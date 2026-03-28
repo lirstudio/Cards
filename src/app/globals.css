@@ -1,26 +1,176 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  --background: #f8f9fa;
   --foreground: #171717;
+  --lc-primary: #0b43b4;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-heebo), system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-heebo), system-ui, sans-serif;
+}
+
+/* סקשני נחיתה — סימון גלובלי; ראה src/lib/landing/section-shell.ts */
+.lc-landing-section {
+  box-sizing: border-box;
+}
+
+input[type="email"],
+input[type="url"] {
+  text-align: start;
+  direction: ltr;
+}
+
+/*
+ * שדות טקסט גלובליים — מינימליסטי: קו תחתון בלבד (ללא מסגרת מלאה).
+ * .lc-input-framed — יוצא מהכלל כשצריך שדה עם מסגרת מלאה בכוונה.
+ */
+input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]):not(
+    [type="range"]
+  ):not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="image"]):not(
+    [type="reset"]
+  ):not(.lc-input-framed),
+textarea:not(.lc-input-framed),
+select:not(.lc-input-framed) {
+  border-radius: 0 !important;
+  border-style: none !important;
+  border-width: 0 !important;
+  border-bottom-width: 1px !important;
+  border-bottom-style: solid !important;
+  border-bottom-color: rgb(212 212 212) !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  --tw-shadow: 0 0 #0000 !important;
+  --tw-ring-offset-shadow: 0 0 #0000 !important;
+  --tw-ring-shadow: 0 0 #0000 !important;
+  --tw-ring-width: 0px !important;
+  outline: none !important;
+  padding-inline: 0 !important;
+  padding-block: 0.5rem !important;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]):not(
+    [type="range"]
+  ):not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="image"]):not(
+    [type="reset"]
+  ):not(.lc-input-framed):focus,
+input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]):not(
+    [type="range"]
+  ):not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="image"]):not(
+    [type="reset"]
+  ):not(.lc-input-framed):focus-visible,
+textarea:not(.lc-input-framed):focus,
+textarea:not(.lc-input-framed):focus-visible,
+select:not(.lc-input-framed):focus,
+select:not(.lc-input-framed):focus-visible {
+  border-bottom-color: var(--lc-primary) !important;
+  box-shadow: none !important;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]):not(
+    [type="range"]
+  ):not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="image"]):not(
+    [type="reset"]
+  ):not(.lc-input-framed):disabled,
+textarea:not(.lc-input-framed):disabled,
+select:not(.lc-input-framed):disabled {
+  border-bottom-color: rgb(229 229 229) !important;
+  opacity: 0.72;
+}
+
+textarea:not(.lc-input-framed) {
+  min-height: 5rem;
+  resize: vertical;
+}
+
+/** שורה בודדת / שדות קצרים — ללא min-height גדול מ globals */
+textarea.lc-textarea-compact:not(.lc-input-framed) {
+  min-height: 2.75rem !important;
+}
+
+select:not(.lc-input-framed) {
+  appearance: none !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b7280' d='M6 8L0 0h12z'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-size: 10px 6px !important;
+  background-position: right 0.2rem center !important;
+  padding-inline-end: 1.1rem !important;
+}
+
+html[dir="rtl"] select:not(.lc-input-framed) {
+  background-position: left 0.2rem center !important;
+  padding-inline-end: 0 !important;
+  padding-inline-start: 1.1rem !important;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]):not(
+    [type="range"]
+  ):not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="image"]):not(
+    [type="reset"]
+  ):not(.lc-input-framed)::placeholder,
+textarea:not(.lc-input-framed)::placeholder {
+  color: rgb(163 163 163);
+}
+
+/*
+ * מרקיי אופקי אינסופי — גלריה והמלצות (אותה מכניקה: שכפול תוכן במסלול + translate -50%).
+ * מחלקה אחת כדי ששני הסקשנים יתנהגו זהה; ללא עצירה בריחוף (כמו הגלריה).
+ */
+@keyframes lc-marquee-x {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.lc-marquee-x-track {
+  animation: lc-marquee-x 68s linear infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lc-marquee-x-track {
+    animation: none !important;
+    transform: none !important;
+  }
+  .lc-marquee-x-clip {
+    overflow-x: auto !important;
+  }
+}
+
+/* המלצות — ריחוף עדין על כרטיס */
+.lc-testimonial-card {
+  transition: box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lc-testimonial-card:hover {
+  box-shadow: 0 22px 48px -26px rgba(0, 0, 0, 0.22);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lc-testimonial-card {
+    transition: none;
+  }
+  .lc-testimonial-card:hover {
+    box-shadow: 0 4px 24px -8px rgba(0, 0, 0, 0.12);
+  }
 }
