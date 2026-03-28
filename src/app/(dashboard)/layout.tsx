@@ -7,6 +7,9 @@ import { he } from "@/lib/i18n/he";
 import { SystemLogo } from "@/components/brand/system-logo";
 import { DashboardUserMenu } from "@/components/dashboard/dashboard-user-menu";
 
+/** מונע prerender בזמן build עם cookies / Supabase. */
+export const dynamic = "force-dynamic";
+
 export default async function DashboardShellLayout({
   children,
 }: {

@@ -5,6 +5,9 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { he } from "@/lib/i18n/he";
 import { SystemLogo } from "@/components/brand/system-logo";
 
+/** מונע prerender בזמן build בלי Supabase / session (Vercel). */
+export const dynamic = "force-dynamic";
+
 const NAV_ITEMS = [
   { href: "/admin", label: he.adminDashboard },
   { href: "/admin/users", label: he.adminUsers },
