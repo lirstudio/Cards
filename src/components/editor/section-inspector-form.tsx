@@ -14,6 +14,7 @@ import {
 import { ImageUploadField } from "./image-upload-field";
 import { HeaderNavLinksEditor } from "./header-nav-links-editor";
 import type { PageNavSectionRow } from "@/lib/landing/page-nav";
+import type { SectionStyleOverrides } from "@/types/admin";
 
 function linkRow(
   v: { label: string; href: string },
@@ -49,13 +50,16 @@ export function SectionInspectorForm({
   embedded,
   deferPersistence = false,
   pageNavSections,
+  variantStyleOverrides,
 }: {
   pageId: string;
   sectionId?: string;
   sectionKey: SectionKey | typeof LEGACY_NAV_HERO_STATS_KEY;
   content: Record<string, unknown>;
+  /** עיצוב נבחר בעמוד — משפיע על סקשן רשימה (הסתרת שדה תמונה ב״רשימה בלבד״). */
+  variantStyleOverrides?: SectionStyleOverrides;
   onSaved?: () => void;
-  /** Live preview: called when structured draft changes (not on every JSON keystroke until save). */
+  /** תצוגה מקדימה חיה: נקרא כשמשתנה הטיוטה המובנית. */
   onDraftChange?: (draft: Record<string, unknown>) => void;
   /** כשמוגדר: כפתור השמירה מוסיף סקשן חדש (ללא updateSectionContent). */
   onAdd?: (
@@ -72,15 +76,12 @@ export function SectionInspectorForm({
   pageNavSections?: PageNavSectionRow[];
 }) {
   const [draft, setDraft] = useState<Record<string, unknown>>(() => ({ ...content }));
-  const [jsonOpen, setJsonOpen] = useState(false);
-  const [jsonText, setJsonText] = useState(() => JSON.stringify(content, null, 2));
   const [msg, setMsg] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   useEffect(() => {
     // סנכרון בעת מעבר בין סקשנים בלבד — לא בכל עדכון תוכן מההורה (טיוטה חיה)
     setDraft({ ...content });
-    setJsonText(JSON.stringify(content, null, 2));
     // content מיועד לטעינה רק כשהסקשן משתנה; לא מסנכרנים מחדש מ-props בזמן הקלדה
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional
   }, [sectionId]);
@@ -101,35 +102,6 @@ export function SectionInspectorForm({
       const r = await updateSectionContent(pageId, sectionId, sectionKey, draft);
       setMsg(r.ok ? he.contentSaved : r.error ?? "");
       if (r.ok) onSaved?.();
-    });
-  }
-
-  function saveJson() {
-    let parsed: Record<string, unknown>;
-    try {
-      parsed = JSON.parse(jsonText) as Record<string, unknown>;
-    } catch {
-      setMsg(he.jsonInvalid);
-      return;
-    }
-    if (onAdd) {
-      setDraft(parsed);
-      setMsg(he.jsonAppliedToDraft);
-      return;
-    }
-    if (deferPersistence) {
-      setDraft(parsed);
-      setMsg(he.jsonAppliedToDraft);
-      return;
-    }
-    startTransition(async () => {
-      if (!sectionId) return;
-      const r = await updateSectionContent(pageId, sectionId, sectionKey, parsed);
-      setMsg(r.ok ? he.contentSaved : r.error ?? "");
-      if (r.ok) {
-        setDraft(parsed);
-        onSaved?.();
-      }
     });
   }
 
@@ -188,6 +160,15 @@ export function SectionInspectorForm({
           value={String(d.heroImage ?? "")}
           onChange={(url) => setDraft({ ...d, heroImage: url })}
         />
+        <label className="flex cursor-pointer items-start gap-2.5 text-sm">
+          <input
+            type="checkbox"
+            className="mt-0.5 size-4 shrink-0 rounded border-neutral-300"
+            checked={Boolean(d.heroBackdropCircle)}
+            onChange={(e) => setDraft({ ...d, heroBackdropCircle: e.target.checked })}
+          />
+          <span className="text-neutral-700">{sectionContentFieldLabel("heroBackdropCircle")}</span>
+        </label>
         <div>
           <div className="text-neutral-600">{sectionContentFieldLabel("heroCta")}</div>
           {linkRow(
@@ -246,7 +227,7 @@ export function SectionInspectorForm({
           onChange={(url) => setDraft({ ...d, image: url })}
         />
         {((d.blocks as { title: string; body: string }[]) ?? []).map((b, i) => (
-          <div key={i} className="rounded border border-neutral-100 p-2">
+          <div key={i} className="lc-field-stack-item space-y-2">
             <label className="block">
               <span className="text-neutral-600">{sectionContentFieldLabel("title")}</span>
               <input
@@ -280,9 +261,9 @@ export function SectionInspectorForm({
     const d = draft as Record<string, unknown>;
     body = (
       <div className="space-y-3 text-sm">
-        {((d.items as Record<string, string>[]) ?? []).map((it, i) => (
-          <div key={i} className="rounded border p-2">
-            {["headline", "body", "authorName", "authorTitle"].map((f) => (
+        {((d.items as Record<string, unknown>[]) ?? []).map((it, i) => (
+          <div key={i} className="lc-field-stack-item space-y-1">
+            {(["headline", "body", "authorName", "authorTitle"] as const).map((f) => (
               <label key={f} className="mb-1 block">
                 <span className="text-neutral-600">{testimonialFieldLabel(f)}</span>
                 <textarea
@@ -290,16 +271,50 @@ export function SectionInspectorForm({
                   rows={f === "body" ? 2 : 1}
                   value={String(it[f] ?? "")}
                   onChange={(e) => {
-                    const arr = [...((d.items as Record<string, string>[]) ?? [])];
+                    const arr = [...((d.items as Record<string, unknown>[]) ?? [])];
                     arr[i] = { ...arr[i], [f]: e.target.value };
                     setDraft({ ...d, items: arr });
                   }}
                 />
               </label>
             ))}
+            <label className="mb-1 block">
+              <span className="text-neutral-600">{testimonialFieldLabel("starRating")}</span>
+              <select
+                className="mt-0.5 w-full text-sm"
+                value={String(
+                  it.starRating === undefined || it.starRating === null ? 5 : Number(it.starRating),
+                )}
+                onChange={(e) => {
+                  const arr = [...((d.items as Record<string, unknown>[]) ?? [])];
+                  arr[i] = { ...arr[i], starRating: parseInt(e.target.value, 10) };
+                  setDraft({ ...d, items: arr });
+                }}
+              >
+                <option value={0}>ללא כוכבים</option>
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <option key={n} value={n}>
+                    {n} כוכבים
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="mt-1">
+              <span className="text-neutral-600">{testimonialFieldLabel("authorImage")}</span>
+              <ImageUploadField
+                pageId={pageId}
+                label=""
+                value={String(it.authorImage ?? "")}
+                onChange={(url) => {
+                  const arr = [...((d.items as Record<string, unknown>[]) ?? [])];
+                  arr[i] = { ...arr[i], authorImage: url };
+                  setDraft({ ...d, items: arr });
+                }}
+              />
+            </div>
             <button
               type="button"
-              className="text-xs text-red-600"
+              className="mt-2 text-xs text-red-600"
               onClick={() =>
                 setDraft({
                   ...d,
@@ -317,9 +332,16 @@ export function SectionInspectorForm({
           onClick={() =>
             setDraft({
               ...d,
-              items: [
-                ...((d.items as Record<string, string>[]) ?? []),
-                { headline: "", body: "", authorName: "", authorTitle: "" },
+                items: [
+                ...((d.items as Record<string, unknown>[]) ?? []),
+                {
+                  headline: "",
+                  body: "",
+                  authorName: "",
+                  authorTitle: "",
+                  authorImage: "",
+                  starRating: 5,
+                },
               ],
             })
           }
@@ -376,6 +398,8 @@ export function SectionInspectorForm({
     );
   } else if (sk === "checklist_with_image") {
     const d = draft as Record<string, unknown>;
+    const checklistTextOnly =
+      (variantStyleOverrides?.checklistLayout ?? "with_image") === "text_only";
     body = (
       <div className="space-y-3 text-sm">
         <label className="block">
@@ -386,14 +410,20 @@ export function SectionInspectorForm({
             onChange={(e) => setDraft({ ...d, title: e.target.value })}
           />
         </label>
-        <ImageUploadField
-          pageId={pageId}
-          label={sectionContentFieldLabel("image")}
-          value={String(d.image ?? "")}
-          onChange={(url) => setDraft({ ...d, image: url })}
-        />
+        {checklistTextOnly ? (
+          <p className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
+            {he.checklistVariantHidesImageHint}
+          </p>
+        ) : (
+          <ImageUploadField
+            pageId={pageId}
+            label={sectionContentFieldLabel("image")}
+            value={String(d.image ?? "")}
+            onChange={(url) => setDraft({ ...d, image: url })}
+          />
+        )}
         {((d.items as { title: string; description: string }[]) ?? []).map((it, i) => (
-          <div key={i} className="rounded border p-2">
+          <div key={i} className="lc-field-stack-item space-y-2">
             <label className="block">
               <span className="text-neutral-600">{sectionContentFieldLabel("title")}</span>
               <input
@@ -475,7 +505,7 @@ export function SectionInspectorForm({
           />
         </label>
         {((d.cards as Record<string, unknown>[]) ?? []).map((c, i) => (
-          <div key={i} className="rounded border p-2">
+          <div key={i} className="lc-field-stack-item space-y-2">
             <label className="flex items-center gap-2 text-xs">
               <input
                 type="checkbox"
@@ -534,7 +564,7 @@ export function SectionInspectorForm({
     body = (
       <div className="space-y-3 text-sm">
         {((d.images as { src: string; alt?: string }[]) ?? []).map((im, i) => (
-          <div key={i} className="rounded border p-2">
+          <div key={i} className="lc-field-stack-item space-y-2">
             <ImageUploadField
               pageId={pageId}
               label={`תמונה ${i + 1}`}
@@ -601,7 +631,7 @@ export function SectionInspectorForm({
           />
         </label>
         {((d.steps as { title: string; body: string }[]) ?? []).map((st, i) => (
-          <div key={i} className="rounded border p-2">
+          <div key={i} className="lc-field-stack-item space-y-2">
             <div className="mb-2 text-xs font-medium text-neutral-600">שלב {i + 1}</div>
             <label className="block">
               <span className="text-xs text-neutral-500">{sectionContentFieldLabel("title")}</span>
@@ -653,7 +683,7 @@ export function SectionInspectorForm({
           />
         </label>
         {((d.items as { question: string; answer: string }[]) ?? []).map((it, i) => (
-          <div key={i} className="rounded border p-2">
+          <div key={i} className="lc-field-stack-item space-y-2">
             <label className="block">
               <span className="text-neutral-600">{sectionContentFieldLabel("question")}</span>
               <textarea
@@ -795,7 +825,7 @@ export function SectionInspectorForm({
         ))}
         <div className="text-neutral-600">{sectionContentFieldLabel("formFields")}</div>
         {((d.formFields as Record<string, unknown>[]) ?? []).map((f, i) => (
-          <div key={i} className="flex flex-wrap items-end gap-2 rounded border p-2 text-xs">
+          <div key={i} className="lc-field-stack-item flex flex-wrap items-end gap-2 text-xs">
             <label className="flex min-w-[4.5rem] flex-col gap-0.5">
               <span className="text-neutral-600">{sectionContentFieldLabel("name")}</span>
               <input
@@ -846,7 +876,7 @@ export function SectionInspectorForm({
   }
 
   return (
-    <div className={embedded ? "" : "rounded-2xl border border-neutral-200 bg-white p-4"}>
+    <div className={embedded ? "" : "rounded-2xl bg-white p-4 shadow-sm"}>
       {!embedded ? (
         <>
           <h3 className="font-semibold">{he.sectionInspector}</h3>
@@ -854,11 +884,7 @@ export function SectionInspectorForm({
         </>
       ) : null}
       <div className={embedded ? "" : "mt-4"}>{body}</div>
-      {deferPersistence && !onAdd ? (
-        <p className="mt-4 rounded-lg bg-neutral-50 px-3 py-2 text-xs leading-relaxed text-neutral-600 ring-1 ring-neutral-200/80">
-          {he.editorSaveHint}
-        </p>
-      ) : (
+      {deferPersistence && !onAdd ? null : (
         <button
           type="button"
           disabled={pending}
@@ -869,30 +895,6 @@ export function SectionInspectorForm({
         </button>
       )}
       {msg ? <p className="mt-2 text-xs text-neutral-600">{msg}</p> : null}
-      <button
-        type="button"
-        className="mt-4 text-xs text-neutral-500 underline"
-        onClick={() => setJsonOpen(!jsonOpen)}
-      >
-        {he.advancedJson}
-      </button>
-      {jsonOpen ? (
-        <div className="mt-2">
-          <textarea
-            dir="ltr"
-            className="min-h-[120px] w-full font-mono text-xs"
-            value={jsonText}
-            onChange={(e) => setJsonText(e.target.value)}
-          />
-          <button
-            type="button"
-            className="mt-2 rounded border px-3 py-1 text-xs"
-            onClick={saveJson}
-          >
-            {he.saveJson}
-          </button>
-        </div>
-      ) : null}
     </div>
   );
 }

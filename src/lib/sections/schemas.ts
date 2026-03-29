@@ -8,6 +8,9 @@ const testimonialSchema = z.object({
   body: z.string().optional(),
   authorName: z.string(),
   authorTitle: z.string().optional(),
+  authorImage: z.string().optional(),
+  /** 0 = בלי כוכבים, 1–5 = מספר כוכבי הדירוג */
+  starRating: z.number().int().min(0).max(5).optional(),
 });
 const checklistItemSchema = z.object({
   title: z.string(),
@@ -37,6 +40,8 @@ export const heroImageSplitContentSchema = z.object({
   headline: z.string(),
   subheadline: z.string(),
   heroCta: linkSchema,
+  /** עיגול צבע מותאם מאחורי תמונת ההירו — ברירת מחדל כבוי */
+  heroBackdropCircle: z.boolean().optional().default(false),
 });
 
 /**

@@ -33,6 +33,15 @@ body {
   box-sizing: border-box;
 }
 
+/*
+ * Container context לסקשני עמוד נחיתה.
+ * כל פריסה תמונה/טקסט דו-עמודתית משתמשת ב-@min-[1024px]: המסתמכים על מיכל זה.
+ * ה-class מוגדר כאן ישירות (לא דרך utility של Tailwind) לאמינות מקסימלית.
+ */
+.lc-page-root {
+  container-type: inline-size;
+}
+
 input[type="email"],
 input[type="url"] {
   text-align: start;
@@ -99,6 +108,18 @@ select:not(.lc-input-framed):disabled {
 textarea:not(.lc-input-framed) {
   min-height: 5rem;
   resize: vertical;
+}
+
+/*
+ * קבוצת שדות חוזרת (עורך / טפסים פנימיים) — הפרדה בשורה תחתונה בלבד, בלי מסגרת מלאה.
+ */
+.lc-field-stack-item {
+  padding-block: 0.875rem;
+  border-bottom: 1px solid rgb(237 237 237);
+}
+.lc-field-stack-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
 /** שורה בודדת / שדות קצרים — ללא min-height גדול מ globals */

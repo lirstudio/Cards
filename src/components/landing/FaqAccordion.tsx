@@ -29,7 +29,7 @@ export function FaqAccordion({
   return (
     <section
       id={landingSectionDomId(sectionId)}
-      className={`${LC_SECTION_SHELL} ${LANDING_SECTION_ANCHOR_CLASS} bg-[#f9f9f9] py-12 sm:py-16`}
+      className={`${LC_SECTION_SHELL} ${LANDING_SECTION_ANCHOR_CLASS} py-12 sm:py-16`}
       dir="rtl"
     >
       <div className="mx-auto min-w-0 max-w-3xl text-center">

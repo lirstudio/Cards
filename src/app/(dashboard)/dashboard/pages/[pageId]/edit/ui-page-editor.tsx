@@ -22,13 +22,7 @@ import { CSS } from "@dnd-kit/utilities";
 import Link from "next/link";
 import { Fragment, type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  insertSectionAt,
-  removeSectionFromPage,
-  setPagePublished,
-  updateSectionContent,
-  updateSectionOrder,
-} from "@/app/actions/pages";
+import { persistPageEditorState, setPagePublished } from "@/app/actions/pages";
 import {
   LEGACY_NAV_HERO_STATS_KEY,
   SECTION_KEYS,
@@ -36,10 +30,6 @@ import {
   type SectionKey,
 } from "@/lib/sections/schemas";
 
-const EMBEDDED_HERO_PREVIEW_KEYS = new Set<string>([
-  "hero_image_split",
-  LEGACY_NAV_HERO_STATS_KEY,
-]);
 import { getDefaultContent } from "@/lib/sections/defaults";
 import { sectionCatalog } from "@/lib/sections/catalog";
 import type { PageNavSectionRow } from "@/lib/landing/page-nav";
@@ -67,6 +57,11 @@ import type {
   SectionVariantPickerRow,
 } from "@/types/admin";
 
+const EMBEDDED_HERO_PREVIEW_KEYS = new Set<string>([
+  "hero_image_split",
+  LEGACY_NAV_HERO_STATS_KEY,
+]);
+
 const TEMP_SECTION_PREFIX = "temp-";
 
 type SectionRow = {
@@ -74,7 +69,7 @@ type SectionRow = {
   section_key: string;
   content: Record<string, unknown>;
   visible: boolean;
-  /** וריאנט שנבחר בעת הוספה מקומית — נשמר ב־Supabase בלחיצה על ״שמור שינויים״ */
+  /** מזהה כרטיס העיצוב שנבחר בעת הוספה מקומית — נשמר ב־Supabase בלחיצה על ״שמור שינויים״ */
   variantId?: string | null;
 };
 
@@ -95,12 +90,18 @@ function isPageDirty(current: SectionRow[], baseline: SectionRow[]): boolean {
     const b = byId.get(s.id);
     if (!b) return true;
     if (b.visible !== s.visible) return true;
+    if ((b.variantId ?? null) !== (s.variantId ?? null)) return true;
     if (JSON.stringify(b.content) !== JSON.stringify(s.content)) return true;
   }
   return false;
 }
 
 const INSERT_PREFIX = "insert:";
+
+/** סטטוס מה־DB — מנקה רווחים */
+function isPublishedStatus(status: string): boolean {
+  return String(status).trim() === "published";
+}
 
 function IconDragHandle({ className }: { className?: string }) {
   return (
@@ -146,12 +147,12 @@ type PreviewViewport = "narrow" | "medium" | "wide";
 function previewInnerWidthClass(v: PreviewViewport): string {
   switch (v) {
     case "narrow":
-      return "w-full max-w-[390px]";
+      return "w-full min-w-0 max-w-[390px] shrink-0";
     case "medium":
-      return "w-full max-w-[768px]";
+      return "w-full min-w-0 max-w-[768px] shrink-0";
     case "wide":
     default:
-      return "w-full max-w-none";
+      return "w-full min-w-0 max-w-none";
   }
 }
 
@@ -328,6 +329,7 @@ export function PageEditor({
   pageId,
   slug,
   status,
+  showNewDraftHint = false,
   initialTitle,
   pageHeadline,
   initialTheme,
@@ -339,6 +341,8 @@ export function PageEditor({
   pageId: string;
   slug: string;
   status: string;
+  /** מוצג אחרי יצירת טיוטה חדשה מהדשבורד */
+  showNewDraftHint?: boolean;
   initialTitle: string;
   /** כותרת להצגה מעל העורך (לרוב כותרת העמוד) */
   pageHeadline: string;
@@ -372,6 +376,13 @@ export function PageEditor({
   const [livePreviewViewport, setLivePreviewViewport] = useState<PreviewViewport>("wide");
   const [addModalPreviewViewport, setAddModalPreviewViewport] = useState<PreviewViewport>("wide");
   const [immersivePreviewOpen, setImmersivePreviewOpen] = useState(false);
+  const [newDraftHintDismissed, setNewDraftHintDismissed] = useState(false);
+  /** מסונכרן עם השרת; מתעדכן מיד אחרי פרסום/ביטול כדי שכפתור הצפייה יופיע בלי להמתין ל־refresh */
+  const [isPublishedLive, setIsPublishedLive] = useState(() => isPublishedStatus(status));
+
+  useEffect(() => {
+    setIsPublishedLive(isPublishedStatus(status));
+  }, [status]);
 
   const isDirty = useMemo(
     () => isPageDirty(sections, baselineSections),
@@ -380,12 +391,13 @@ export function PageEditor({
 
   const variantOverridesForSection = useCallback(
     (section: SectionRow): SectionStyleOverrides | undefined => {
-      const fromPage = variantStyleBySectionId[section.id];
-      if (fromPage) return fromPage;
       const vid = section.variantId;
-      if (!vid) return undefined;
-      const list = variantsBySectionKey[section.section_key as SectionKey] ?? [];
-      return list.find((v) => v.id === vid)?.style_overrides;
+      if (vid) {
+        const list = variantsBySectionKey[section.section_key as SectionKey] ?? [];
+        const found = list.find((v) => v.id === vid);
+        if (found) return found.style_overrides;
+      }
+      return variantStyleBySectionId[section.id];
     },
     [variantStyleBySectionId, variantsBySectionKey],
   );
@@ -402,63 +414,24 @@ export function PageEditor({
   const persistSections = useCallback(async (): Promise<boolean> => {
     if (!isPageDirty(sections, baselineSections)) return true;
 
-    const baseSnapshot = clonePageSections(baselineSections);
-    let working = clonePageSections(sections);
-    const curIdSet = new Set(working.map((s) => s.id));
+    const working = clonePageSections(sections);
+    const rows = working.map((s) => ({
+      id: s.id.startsWith(TEMP_SECTION_PREFIX) ? null : s.id,
+      section_key: s.section_key,
+      content: s.content,
+      visible: s.visible,
+      variant_id: s.variantId ?? null,
+    }));
 
-    for (const row of baseSnapshot) {
-      if (!curIdSet.has(row.id)) {
-        const r = await removeSectionFromPage(pageId, row.id);
-        if (!r.ok) {
-          window.alert(r.error ?? "שגיאה");
-          return false;
-        }
-      }
-    }
-
-    for (let i = 0; i < working.length; i++) {
-      if (!working[i].id.startsWith(TEMP_SECTION_PREFIX)) continue;
-      const s = working[i];
-      const r = await insertSectionAt(
-        pageId,
-        s.section_key as SectionKey,
-        i,
-        s.content,
-        s.variantId ?? undefined,
-      );
-      if (!r.ok) {
-        window.alert(r.error ?? "שגיאה");
-        return false;
-      }
-      const realId = r.sectionId!;
-      working = working.map((row, j) => (j === i ? { ...row, id: realId } : row));
-    }
-
-    for (const s of working) {
-      const b = baseSnapshot.find((x) => x.id === s.id);
-      if (!b) continue;
-      if (
-        b.visible !== s.visible ||
-        JSON.stringify(b.content) !== JSON.stringify(s.content)
-      ) {
-        const r = await updateSectionContent(pageId, s.id, s.section_key, s.content);
-        if (!r.ok) {
-          window.alert(r.error ?? "שגיאה");
-          return false;
-        }
-      }
-    }
-
-    const orderR = await updateSectionOrder(
-      pageId,
-      working.map((x) => x.id),
-    );
-    if (!orderR.ok) {
-      window.alert(orderR.error ?? "שגיאה");
+    const r = await persistPageEditorState(pageId, rows);
+    if (!r.ok) {
+      window.alert(r.error ?? "שגיאה");
       return false;
     }
 
-    const nextBaseline = clonePageSections(working);
+    const nextBaseline = clonePageSections(
+      working.map((s, i) => ({ ...s, id: r.orderedSectionIds[i]! })),
+    );
     setSections(nextBaseline);
     setBaselineSections(nextBaseline);
     router.refresh();
@@ -507,8 +480,10 @@ export function PageEditor({
         if (!ok) return;
       }
       const r = await setPagePublished(pageId, publish);
-      if (r.ok) router.refresh();
-      else window.alert(r.error ?? "שגיאה");
+      if (r.ok) {
+        setIsPublishedLive(publish);
+        router.refresh();
+      } else window.alert(r.error ?? "שגיאה");
     } finally {
       setIsSaving(false);
     }
@@ -675,6 +650,21 @@ export function PageEditor({
       ) : null}
 
       <div className="mt-6 space-y-6">
+        {showNewDraftHint && !newDraftHintDismissed ? (
+          <div
+            className="flex flex-wrap items-start justify-between gap-3 rounded-xl border border-blue-200 bg-blue-50/90 px-4 py-3 text-sm text-neutral-800"
+            role="status"
+          >
+            <p className="min-w-0 flex-1 leading-relaxed">{he.newDraftEditorHint}</p>
+            <button
+              type="button"
+              className="shrink-0 rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-neutral-800 ring-1 ring-neutral-200 hover:bg-neutral-50"
+              onClick={() => setNewDraftHintDismissed(true)}
+            >
+              {he.newDraftEditorHintDismiss}
+            </button>
+          </div>
+        ) : null}
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
             <button
@@ -687,16 +677,7 @@ export function PageEditor({
             <h1 className="mt-3 text-2xl font-bold">{pageHeadline}</h1>
             <p className="mt-1 text-sm text-neutral-600">{he.reorderHint}</p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {status === "published" ? (
-              <Link
-                href={`/${slug}`}
-                target="_blank"
-                className="rounded-full bg-neutral-100 px-4 py-2 text-sm hover:bg-neutral-200"
-              >
-                {he.openPage}
-              </Link>
-            ) : null}
+          <div className="flex flex-wrap items-center gap-2" dir="rtl">
             <button
               type="button"
               disabled={!isDirty || isSaving}
@@ -705,7 +686,7 @@ export function PageEditor({
             >
               {isSaving ? he.savingPageChanges : he.savePageChanges}
             </button>
-            {status === "published" ? (
+            {isPublishedLive ? (
               <button
                 type="button"
                 disabled={isSaving}
@@ -724,6 +705,16 @@ export function PageEditor({
                 {he.publishPage}
               </button>
             )}
+            {isPublishedLive ? (
+              <Link
+                href={`/${slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm font-medium hover:bg-neutral-50"
+              >
+                {he.openPage}
+              </Link>
+            ) : null}
             <button
               type="button"
               className="rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm font-medium hover:bg-neutral-50"
@@ -748,7 +739,7 @@ export function PageEditor({
           onClose={() => setSettingsOpen(false)}
           initialTitle={initialTitle}
           initialSlug={slug}
-          initialPublished={status === "published"}
+          initialPublished={isPublishedLive}
           initialTheme={initialTheme}
           onSaved={() => {
             router.refresh();
@@ -781,7 +772,7 @@ export function PageEditor({
               {/*
                 flex + items-start: מונע יישור אנכי של עמודת התצוגה המקדימה כשעמודת הטופס גבוהה.
                 order: במובייל תצוגה מקדימה למעלה; ב־lg סדר דומה לגריד RTL (טופס ימין, תצוגה שמאל).
-                בחירת וריאנט — רק בעמודת הטופס (ימין ב־RTL), לא ברוחב המלא של המודאל.
+                בחירת עיצוב — רק בעמודת הטופס (ימין ב־RTL), לא ברוחב המלא של המודאל.
               */}
               <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:gap-4">
                 <div className="order-2 min-w-0 w-full flex-1 lg:order-1">
@@ -833,6 +824,7 @@ export function PageEditor({
                     pageId={pageId}
                     sectionKey={addSectionKey}
                     content={getDefaultContent(addSectionKey)}
+                    variantStyleOverrides={selectedAddVariant?.style_overrides}
                     pageNavSections={
                       addSectionKey === "site_header_nav" ? pageNavSections : undefined
                     }
@@ -873,7 +865,7 @@ export function PageEditor({
                   >
                     <div
                       id="lc-page-top"
-                      className={`mx-auto ${previewInnerWidthClass(addModalPreviewViewport)}`}
+                      className={`lc-page-root mx-auto ${previewInnerWidthClass(addModalPreviewViewport)}`}
                     >
                       <SectionLivePreviewStage minHeightClass="min-h-[min(72vh,780px)]">
                         <SectionRenderer
@@ -928,7 +920,7 @@ export function PageEditor({
             >
               <div
                 id="lc-page-top"
-                className={`mx-auto ${previewInnerWidthClass(livePreviewViewport)}`}
+                className={`lc-page-root mx-auto ${previewInnerWidthClass(livePreviewViewport)}`}
               >
                 <SortableContext items={ids} strategy={verticalListSortingStrategy}>
                   {sections.length === 0 ? (
@@ -1051,6 +1043,56 @@ export function PageEditor({
                 >
                   ← {he.backToLibrary}
                 </button>
+                {(() => {
+                  const vk = selected.section_key as SectionKey;
+                  const vlist = variantsBySectionKey[vk] ?? [];
+                  if (vlist.length <= 1) return null;
+                  const effectiveVariantId =
+                    selected.variantId ??
+                    vlist.find((v) => v.is_default)?.id ??
+                    vlist[0]?.id;
+                  return (
+                    <div className="mb-4 border-b border-neutral-100 pb-3">
+                      <h3 className="mb-2 text-sm font-semibold text-neutral-800">
+                        {he.chooseSectionVariant}
+                      </h3>
+                      <div className="flex gap-3 overflow-x-auto pb-1" dir="rtl">
+                        {vlist.map((v) => (
+                          <button
+                            key={v.id}
+                            type="button"
+                            onClick={() =>
+                              setSections((prev) =>
+                                prev.map((s) =>
+                                  s.id === selected.id ? { ...s, variantId: v.id } : s,
+                                ),
+                              )
+                            }
+                            className={`w-40 shrink-0 rounded-xl border-2 bg-white p-2 text-start transition ${
+                              effectiveVariantId === v.id
+                                ? "border-[var(--lc-primary)] shadow-sm"
+                                : "border-neutral-200 hover:border-neutral-300"
+                            }`}
+                          >
+                            <SectionVariantPreviewThumb
+                              sectionKey={vk}
+                              theme={themeForRenderer}
+                              variantStyleOverrides={v.style_overrides}
+                            />
+                            <div className="mt-2 line-clamp-2 text-center text-xs font-medium leading-tight">
+                              {v.name_he}
+                            </div>
+                            {v.is_default ? (
+                              <div className="mt-0.5 text-center text-[10px] text-neutral-500">
+                                {he.adminVariantDefault}
+                              </div>
+                            ) : null}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
                 <SectionInspectorForm
                   pageId={pageId}
                   sectionId={selected.id}
@@ -1058,6 +1100,7 @@ export function PageEditor({
                     selected.section_key as SectionKey | typeof LEGACY_NAV_HERO_STATS_KEY
                   }
                   content={selected.content}
+                  variantStyleOverrides={variantOverridesForSection(selected)}
                   deferPersistence
                   onDraftChange={handleDraftChange}
                   pageNavSections={

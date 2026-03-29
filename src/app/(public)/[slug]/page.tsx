@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { SectionRenderer } from "@/components/landing/SectionRenderer";
@@ -9,17 +10,22 @@ import type { SectionStyleOverrides } from "@/types/admin";
 
 type Props = { params: Promise<{ slug: string }> };
 
+const getPublishedPageRowBySlug = cache(async (slug: string): Promise<LandingPageRow | null> => {
+  const supabase = await createClient();
+  const { data: page } = await supabase
+    .from("landing_pages")
+    .select("*")
+    .eq("slug", slug)
+    .eq("status", "published")
+    .maybeSingle();
+  return page ? (page as unknown as LandingPageRow) : null;
+});
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   if (isReservedSlug(slug)) return {};
   if (!isSupabaseConfigured()) return { title: "Cards" };
-  const supabase = await createClient();
-  const { data: page } = await supabase
-    .from("landing_pages")
-    .select("title,status")
-    .eq("slug", slug)
-    .eq("status", "published")
-    .maybeSingle();
+  const page = await getPublishedPageRowBySlug(slug);
   if (!page) return { title: "לא נמצא" };
   return {
     title: page.title || slug,
@@ -33,13 +39,7 @@ export default async function PublicLandingPage({ params }: Props) {
   if (!isSupabaseConfigured()) notFound();
 
   const supabase = await createClient();
-  const { data: page } = await supabase
-    .from("landing_pages")
-    .select("*")
-    .eq("slug", slug)
-    .eq("status", "published")
-    .maybeSingle();
-
+  const page = await getPublishedPageRowBySlug(slug);
   if (!page) notFound();
 
   const { data: sections } = await supabase
@@ -48,7 +48,7 @@ export default async function PublicLandingPage({ params }: Props) {
     .eq("landing_page_id", page.id)
     .order("sort_order", { ascending: true });
 
-  const typedPage = page as unknown as LandingPageRow;
+  const typedPage = page;
   const typedSections = (sections ?? []) as unknown as PageSectionRow[];
 
   const variantIds = typedSections.map((s) => s.variant_id).filter(Boolean) as string[];
@@ -72,7 +72,7 @@ export default async function PublicLandingPage({ params }: Props) {
   return (
     <div
       id="lc-page-top"
-      className="min-h-full overflow-x-clip"
+      className="lc-page-root min-h-full overflow-x-clip"
       style={{
         backgroundColor: typedPage.theme?.background ?? "#f8f9fa",
       }}

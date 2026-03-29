@@ -116,7 +116,7 @@ export function PageSettingsDrawer({
                     {he.slugChangeWarning}
                   </p>
                 </label>
-                <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-neutral-200/80 bg-white/60 px-3 py-2.5 transition hover:bg-white">
+                <label className="flex cursor-pointer items-start gap-3 py-2">
                   <input
                     type="checkbox"
                     checked={published}
@@ -125,7 +125,7 @@ export function PageSettingsDrawer({
                   />
                   <span className="text-neutral-800">{he.pagePublishedLabel}</span>
                 </label>
-                <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-neutral-200/80 bg-white/60 px-3 py-2.5 transition hover:bg-white">
+                <label className="flex cursor-pointer items-start gap-3 py-2">
                   <input
                     type="checkbox"
                     checked={theme.noSectionAnimations}

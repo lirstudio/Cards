@@ -80,7 +80,7 @@ export function FullscreenLandingPreview({
         className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden"
         style={{ backgroundColor: pageBackground }}
       >
-        <div id="lc-page-top" className="min-h-full w-full">
+        <div id="lc-page-top" className="lc-page-root min-h-full w-full">
           {rows.map((s) => (
             <SectionRenderer
               key={s.id}

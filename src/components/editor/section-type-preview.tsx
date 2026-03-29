@@ -38,7 +38,7 @@ export function SectionTypePreview({ sectionKey }: { sectionKey: SectionKey }) {
   );
 }
 
-/** ממוזער לבחירת וריאנט במודאל הוספה — ערכת צבעים כמו בעמוד. */
+/** ממוזער לבחירת כרטיס עיצוב במודאל הוספה — ערכת צבעים כמו בעמוד. */
 export function SectionVariantPreviewThumb({
   sectionKey,
   theme,

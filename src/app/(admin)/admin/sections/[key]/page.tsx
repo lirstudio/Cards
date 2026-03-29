@@ -16,18 +16,12 @@ export default async function AdminSectionDetailPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <Link
-          href="/admin/sections"
-          className="text-sm text-blue-600 hover:underline"
-        >
-          ← {he.adminSections}
-        </Link>
-        <h1 className="text-2xl font-bold">{definition.title_he}</h1>
-        <code className="rounded bg-neutral-100 px-2 py-0.5 text-xs text-neutral-500">
-          {definition.key}
-        </code>
-      </div>
+      <Link
+        href="/admin/sections"
+        className="inline-block text-sm text-blue-600 hover:underline"
+      >
+        ← {he.adminSections}
+      </Link>
       <SectionEditor
         definition={definition}
         initialVariants={variants}

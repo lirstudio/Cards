@@ -4,7 +4,10 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { he } from "@/lib/i18n/he";
-import { sectionCatalog } from "@/lib/sections/catalog";
+import {
+  CHECKLIST_SECTION_LEGACY_METADATA,
+  sectionCatalog,
+} from "@/lib/sections/catalog";
 import type { SectionKey } from "@/lib/sections/schemas";
 import { sectionStyleOverridesSchema, type SectionStyleOverrides } from "@/types/admin";
 
@@ -44,6 +47,229 @@ async function ensureSplitHeroSectionDefinitions(admin: ReturnType<typeof create
     if (error) {
       console.error("ensureSplitHeroSectionDefinitions insert", key, error.message);
     }
+  }
+}
+
+/** מעדכן ב־DB כותרת/תיאור לסקשן הרשימה אם נשארו ערכי ה־seed הישנים (בלי תלות במיגרציה). */
+async function ensureChecklistSectionDefinitionSync(
+  admin: ReturnType<typeof createAdminClient>,
+) {
+  const { data: row } = await admin
+    .from("section_definitions")
+    .select("key, title_he, description_he")
+    .eq("key", "checklist_with_image")
+    .maybeSingle();
+  if (!row) return;
+  const leg = CHECKLIST_SECTION_LEGACY_METADATA;
+  if (row.title_he !== leg.title_he && row.description_he !== leg.description_he) return;
+  const cat = sectionCatalog.checklist_with_image;
+  const { error } = await admin
+    .from("section_definitions")
+    .update({ title_he: cat.titleHe, description_he: cat.descriptionHe })
+    .eq("key", "checklist_with_image");
+  if (error) console.error("ensureChecklistSectionDefinitionSync", error.message);
+}
+
+// פריסות ישנות שכבר לא קיימות בקוד — נמחקות אוטומטית מה-DB
+const TESTIMONIALS_OBSOLETE_LAYOUTS = new Set([
+  "grid",
+  "grid_three",
+  "featured_carousel",
+  "vertical_stack",
+]);
+
+// כרטיסי העיצוב החדשים — כל אחד עיצוב שונה לגמרי
+const TESTIMONIALS_PRESETS: Array<{
+  layout: "marquee" | "photo_cards" | "star_cards" | "quote_side" | "cinematic";
+  name_he: string;
+  isDefault: boolean;
+}> = [
+  { layout: "marquee", name_he: "כרטיסים נגללים", isDefault: true },
+  { layout: "photo_cards", name_he: "כרטיסי תמונה", isDefault: false },
+  { layout: "star_cards", name_he: "כרטיסי כוכבים", isDefault: false },
+  { layout: "quote_side", name_he: "ציטוט עם תמונה", isDefault: false },
+  { layout: "cinematic", name_he: "קולנועי", isDefault: false },
+];
+
+function testimonialsLayoutKeyFromOverrides(o: Record<string, unknown> | null): {
+  key: string;
+  obsolete: boolean;
+} {
+  if (!o || typeof o !== "object") return { key: "marquee", obsolete: false };
+  const raw = o.testimonialsLayout;
+  if (typeof raw === "string" && raw.length > 0) {
+    if (TESTIMONIALS_OBSOLETE_LAYOUTS.has(raw)) return { key: raw, obsolete: true };
+    return { key: raw, obsolete: false };
+  }
+  return { key: "marquee", obsolete: false };
+}
+
+/** מסיר רקע מכרטיסי עיצוב — הרקע מגיע רק מערכת הנושא של העמוד */
+async function stripSurfaceBackgroundFromAllVariants(
+  admin: ReturnType<typeof createAdminClient>,
+): Promise<boolean> {
+  const { data: rows } = await admin.from("section_variants").select("id, style_overrides");
+  let changed = false;
+  for (const r of rows ?? []) {
+    const o = r.style_overrides as Record<string, unknown> | null;
+    if (!o || typeof o !== "object" || !("backgroundColor" in o)) continue;
+    const next = { ...o };
+    delete next.backgroundColor;
+    const parsed = sectionStyleOverridesSchema.safeParse(next);
+    if (!parsed.success) continue;
+    const { error } = await admin
+      .from("section_variants")
+      .update({ style_overrides: parsed.data })
+      .eq("id", r.id);
+    if (!error) changed = true;
+  }
+  return changed;
+}
+
+/**
+ * מבטיח כרטיסי testimonials_row: ללא כפילויות (וריאנט אחד לכל layout), ללא פריסות ישנות,
+ * ברירת מחדל = marquee, וזריעת עיצובים חסרים.
+ */
+async function ensureTestimonialsSectionVariants(
+  admin: ReturnType<typeof createAdminClient>,
+): Promise<void> {
+  const SECTION_KEY = "testimonials_row";
+
+  const { data: def } = await admin
+    .from("section_definitions")
+    .select("description_he")
+    .eq("key", SECTION_KEY)
+    .maybeSingle();
+  if (def) {
+    const want = sectionCatalog.testimonials_row.descriptionHe;
+    if (def.description_he !== want) {
+      await admin.from("section_definitions").update({ description_he: want }).eq("key", SECTION_KEY);
+    }
+  }
+
+  const { data: rows } = await admin
+    .from("section_variants")
+    .select("id, style_overrides, is_default, sort_order")
+    .eq("section_key", SECTION_KEY);
+
+  let changed = false;
+
+  const obsoleteIds: string[] = [];
+  const byLayout = new Map<
+    string,
+    { id: string; is_default: boolean; sort_order: number }[]
+  >();
+
+  for (const r of rows ?? []) {
+    const o = r.style_overrides as Record<string, unknown> | null;
+    const { key, obsolete } = testimonialsLayoutKeyFromOverrides(o);
+    if (obsolete) {
+      obsoleteIds.push(r.id);
+      continue;
+    }
+    const list = byLayout.get(key) ?? [];
+    list.push({
+      id: r.id,
+      is_default: r.is_default === true,
+      sort_order: typeof r.sort_order === "number" ? r.sort_order : 0,
+    });
+    byLayout.set(key, list);
+  }
+
+  for (const id of obsoleteIds) {
+    await admin.from("section_variants").delete().eq("id", id);
+    changed = true;
+  }
+
+  const duplicateMigrations: { dropId: string; keepId: string }[] = [];
+  const survivingByLayout = new Map<string, string>();
+
+  for (const [layout, group] of byLayout) {
+    if (group.length <= 1) {
+      survivingByLayout.set(layout, group[0]!.id);
+      continue;
+    }
+    const sorted = [...group].sort((a, b) => {
+      if (a.is_default !== b.is_default) return a.is_default ? -1 : 1;
+      if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order;
+      return a.id.localeCompare(b.id);
+    });
+    const keeper = sorted[0]!.id;
+    survivingByLayout.set(layout, keeper);
+    for (let i = 1; i < sorted.length; i++) {
+      duplicateMigrations.push({ dropId: sorted[i]!.id, keepId: keeper });
+    }
+  }
+
+  for (const { dropId, keepId } of duplicateMigrations) {
+    await admin.from("page_sections").update({ variant_id: keepId }).eq("variant_id", dropId);
+  }
+  for (const { dropId } of duplicateMigrations) {
+    await admin.from("section_variants").delete().eq("id", dropId);
+    changed = true;
+  }
+
+  const marqueeId = survivingByLayout.get("marquee");
+  if (marqueeId) {
+    const { data: defRows } = await admin
+      .from("section_variants")
+      .select("id, is_default")
+      .eq("section_key", SECTION_KEY);
+    const defaults = (defRows ?? []).filter((r) => r.is_default);
+    const needsDefaultFix = defaults.length !== 1 || defaults[0]!.id !== marqueeId;
+    if (needsDefaultFix) {
+      await admin.from("section_variants").update({ is_default: false }).eq("section_key", SECTION_KEY);
+      await admin.from("section_variants").update({ is_default: true }).eq("id", marqueeId);
+      changed = true;
+    }
+  }
+
+  const existingLayouts = new Set(survivingByLayout.keys());
+
+  const { data: maxRow } = await admin
+    .from("section_variants")
+    .select("sort_order")
+    .eq("section_key", SECTION_KEY)
+    .order("sort_order", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  let nextOrder = (maxRow?.sort_order ?? -1) + 1;
+
+  for (const p of TESTIMONIALS_PRESETS) {
+    if (existingLayouts.has(p.layout)) continue;
+
+    const parsed = sectionStyleOverridesSchema.safeParse({ testimonialsLayout: p.layout });
+    if (!parsed.success) continue;
+
+    if (p.isDefault) {
+      await admin.from("section_variants").update({ is_default: false }).eq("section_key", SECTION_KEY);
+    }
+
+    const { error } = await admin.from("section_variants").insert({
+      section_key: SECTION_KEY,
+      name_he: p.name_he,
+      style_overrides: parsed.data,
+      is_default: p.isDefault,
+      enabled: true,
+      sort_order: nextOrder++,
+    });
+
+    if (error) {
+      console.error("ensureTestimonialsSectionVariants insert", p.layout, error.message);
+      continue;
+    }
+
+    existingLayouts.add(p.layout);
+    changed = true;
+  }
+
+  const stripChanged = await stripSurfaceBackgroundFromAllVariants(admin);
+  if (stripChanged) changed = true;
+
+  if (changed) {
+    revalidatePath("/admin/sections");
+    revalidatePath(`/admin/sections/${SECTION_KEY}`);
+    revalidatePath("/dashboard", "layout");
   }
 }
 
@@ -209,6 +435,8 @@ export async function listSectionDefinitions() {
   await requireAdmin();
   const admin = createAdminClient();
   await ensureSplitHeroSectionDefinitions(admin);
+  await ensureChecklistSectionDefinitionSync(admin);
+  await ensureTestimonialsSectionVariants(admin);
 
   const { data: defs } = await admin
     .from("section_definitions")
@@ -225,6 +453,8 @@ export async function getSectionDefinition(key: string) {
   await requireAdmin();
   const admin = createAdminClient();
   await ensureSplitHeroSectionDefinitions(admin);
+  await ensureChecklistSectionDefinitionSync(admin);
+  await ensureTestimonialsSectionVariants(admin);
 
   const { data: def } = await admin
     .from("section_definitions")
@@ -299,7 +529,7 @@ const PROTECTED_FROM_GLOBAL_DELETE = new Set<string>(SPLIT_HERO_SECTION_KEYS);
 
 /**
  * מוחק הגדרת סקשן מהקטלוג ומכל דפי הנחיתה (page_sections), מעדכן תבניות,
- * ומוחק וריאנטים (CASCADE מ־section_definitions).
+ * ומוחק כרטיסי עיצוב (CASCADE מ־section_definitions).
  */
 export async function deleteSectionDefinitionGlobally(
   key: string,
@@ -390,7 +620,7 @@ export async function upsertSectionVariant(input: {
 
   revalidatePath("/admin/sections");
   revalidatePath(`/admin/sections/${input.section_key}`);
-  /* וריאנטים נטענים בעורך העמוד — ללא זה יישאר מטמון ישן ויופיע וריאנט אחד בלבד */
+  /* כרטיסי עיצוב נטענים בעורך העמוד — ללא זה יישאר מטמון ישן */
   revalidatePath("/dashboard", "layout");
   return { ok: true };
 }
@@ -404,6 +634,32 @@ export async function deleteSectionVariant(
   const { error } = await admin.from("section_variants").delete().eq("id", id);
   if (error) return { ok: false, error: error.message };
   revalidatePath("/admin/sections");
+  revalidatePath("/dashboard", "layout");
+  return { ok: true };
+}
+
+/** מחיקת מספר כרטיסי עיצוב לסקשן אחד (אימות section_key). */
+export async function deleteSectionVariants(
+  sectionKey: string,
+  ids: string[],
+): Promise<{ ok: boolean; error?: string }> {
+  await requireAdmin();
+  const admin = createAdminClient();
+  const key = sectionKey.trim();
+  if (!key) return { ok: false, error: "מזהה סקשן לא תקין" };
+
+  const cleaned = [...new Set(ids.map((id) => String(id).trim()).filter(Boolean))];
+  if (cleaned.length === 0) return { ok: true };
+
+  const { error } = await admin
+    .from("section_variants")
+    .delete()
+    .eq("section_key", key)
+    .in("id", cleaned);
+
+  if (error) return { ok: false, error: error.message };
+  revalidatePath("/admin/sections");
+  revalidatePath(`/admin/sections/${key}`);
   revalidatePath("/dashboard", "layout");
   return { ok: true };
 }

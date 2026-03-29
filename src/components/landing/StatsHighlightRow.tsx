@@ -117,7 +117,6 @@ export function StatsHighlightRow({
   stats,
   headingColor,
   labelColor,
-  backgroundColor,
   sectionPaddingClass,
   embedded,
   editorPreview,
@@ -128,7 +127,6 @@ export function StatsHighlightRow({
   stats: StatHighlightItem[];
   headingColor: string;
   labelColor: string;
-  backgroundColor: string;
   /** מ־variant (py-8, py-12, …) או undefined לברירת מחדל */
   sectionPaddingClass?: string;
   embedded: boolean;
@@ -138,7 +136,7 @@ export function StatsHighlightRow({
   sectionId: string;
 }) {
   const sectionPad =
-    sectionPaddingClass ?? (embedded ? "py-3 md:py-4" : "py-16 md:py-20");
+    sectionPaddingClass ?? (embedded ? "py-3 @md:py-4" : "py-16 @md:py-20");
 
   const [reducedMotion, setReducedMotion] = useState(false);
   useEffect(() => {
@@ -155,7 +153,6 @@ export function StatsHighlightRow({
     <section
       id={landingSectionDomId(sectionId)}
       className={`${sectionPad} ${embedded ? "px-1 sm:px-2" : `${LC_SECTION_PX} ${LANDING_SECTION_ANCHOR_CLASS}`} ${embedded ? "" : "lc-landing-section box-border w-full min-w-0 max-w-full"}`}
-      style={{ backgroundColor }}
       dir={dir ?? "rtl"}
     >
       <div
@@ -166,8 +163,8 @@ export function StatsHighlightRow({
         <div
           className={
             embedded
-              ? "grid grid-cols-1 gap-5 sm:grid-cols-3 sm:gap-4 md:gap-6"
-              : "grid grid-cols-1 gap-12 sm:grid-cols-3 sm:gap-8 md:gap-12 lg:gap-16"
+              ? "grid grid-cols-1 gap-5 @min-[640px]:grid-cols-3 @min-[640px]:gap-4 @md:gap-6"
+              : "grid grid-cols-1 gap-12 @min-[640px]:grid-cols-3 @min-[640px]:gap-8 @md:gap-12 @min-[1024px]:gap-16"
           }
         >
           {stats.map((s, i) => {

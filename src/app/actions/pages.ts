@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getDefaultContent } from "@/lib/sections/defaults";
 import type { SectionKey } from "@/lib/sections/schemas";
@@ -14,6 +15,7 @@ import { getUserQuota } from "@/lib/subscription";
 import { isReservedSlug } from "@/lib/reserved-slugs";
 import type { PageTheme } from "@/types/landing";
 import { he } from "@/lib/i18n/he";
+import { runPersistPageEditorState } from "@/lib/pages/persist-page-editor-state";
 
 function slugify(input: string) {
   return input
@@ -39,59 +41,54 @@ async function defaultVariantIdForSection(
   return (data?.id as string | undefined) ?? null;
 }
 
-export async function createLandingPageFromTemplate(
-  templateSlug: string,
-  rawSlug: string,
-  title: string,
-): Promise<{ ok: true; pageId: string } | { ok: false; error: string }> {
+const DEFAULT_NEW_PAGE_THEME = {
+  primary: "#0b43b4",
+  background: "#f8f9fa",
+  heading: "#000000",
+  body: "#4b5563",
+} satisfies PageTheme;
+
+function randomDraftSlugBase(): string {
+  return `page-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+/** יוצר טיוטת עמוד ריקה (ללא תבנית) ומפנה לעורך. קורא מטופס/פעולת שרת בלבד — לא מ־GET. */
+export async function createDraftLandingPage() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "לא מחובר" };
+  if (!user) redirect("/login");
 
   const quota = await getUserQuota(supabase, user.id);
-  if (!quota?.canCreate) return { ok: false, error: he.quotaExceeded };
+  if (!quota?.canCreate) redirect("/dashboard");
 
-  const slug = slugify(rawSlug) || `page-${Date.now().toString(36)}`;
-  if (isReservedSlug(slug)) return { ok: false, error: "שם כתובת לא זמין" };
+  for (let attempt = 0; attempt < 12; attempt++) {
+    const raw = attempt === 0 ? randomDraftSlugBase() : `${randomDraftSlugBase()}-${attempt}`;
+    const slug = slugify(raw) || raw.replace(/[^a-z0-9-]/gi, "").toLowerCase() || `page-${attempt}`;
+    if (isReservedSlug(slug)) continue;
 
-  const { data: template } = await supabase
-    .from("templates")
-    .select("id,tier")
-    .eq("slug", templateSlug)
-    .maybeSingle();
+    const { data: page, error: pageError } = await supabase
+      .from("landing_pages")
+      .insert({
+        user_id: user.id,
+        template_id: null,
+        slug,
+        title: "",
+        status: "draft",
+        theme: DEFAULT_NEW_PAGE_THEME,
+      })
+      .select("id")
+      .single();
 
-  if (!template) return { ok: false, error: "תבנית לא נמצאה" };
-  if (template.tier > quota.allowedTier) {
-    return { ok: false, error: "התבנית דורשת שדרוג מנוי" };
+    if (pageError?.code === "23505") continue;
+    if (pageError || !page) redirect("/dashboard");
+
+    revalidatePath("/dashboard");
+    redirect(`/dashboard/pages/${page.id}/edit?newDraft=1`);
   }
 
-  const { data: page, error: pageError } = await supabase
-    .from("landing_pages")
-    .insert({
-      user_id: user.id,
-      template_id: template.id,
-      slug,
-      title: title || slug,
-      status: "draft",
-      theme: {
-        primary: "#0b43b4",
-        background: "#f8f9fa",
-        heading: "#000000",
-        body: "#4b5563",
-      } satisfies PageTheme,
-    })
-    .select("id")
-    .single();
-
-  if (pageError || !page) {
-    if (pageError?.code === "23505") return { ok: false, error: "כתובת זו כבר תפוסה" };
-    return { ok: false, error: pageError?.message ?? "שגיאה ביצירה" };
-  }
-
-  revalidatePath("/dashboard");
-  return { ok: true, pageId: page.id };
+  redirect("/dashboard");
 }
 
 export async function updateSectionOrder(
@@ -112,13 +109,11 @@ export async function updateSectionOrder(
     .maybeSingle();
   if (!page) return { ok: false, error: "אין גישה" };
 
-  for (let i = 0; i < orderedSectionIds.length; i++) {
-    await supabase
-      .from("page_sections")
-      .update({ sort_order: i })
-      .eq("id", orderedSectionIds[i])
-      .eq("landing_page_id", pageId);
-  }
+  const { error: rpcErr } = await supabase.rpc("reorder_page_sections", {
+    p_page_id: pageId,
+    p_ordered_ids: orderedSectionIds,
+  });
+  if (rpcErr) return { ok: false, error: rpcErr.message };
 
   revalidatePath("/dashboard");
   revalidatePath(`/${page.slug}`);
@@ -235,6 +230,7 @@ export async function setPagePublished(
     .eq("id", pageId);
 
   revalidatePath("/dashboard");
+  revalidatePath(`/dashboard/pages/${pageId}/edit`);
   revalidatePath(`/${page.slug}`);
   return { ok: true };
 }
@@ -299,6 +295,7 @@ export async function updatePageSettings(
   }
 
   revalidatePath("/dashboard");
+  revalidatePath(`/dashboard/pages/${pageId}/edit`);
   revalidatePath(`/${slugOld}`);
   if (nextSlug !== slugOld) {
     revalidatePath(`/${nextSlug}`);
@@ -358,7 +355,7 @@ export async function insertSectionAt(
   sectionKey: SectionKey,
   index: number,
   contentOverride?: Record<string, unknown>,
-  /** מזהה וריאנט שנבחר בעורך; אם לא הועבר — נטען וריאנט ברירת־מחדל מה־DB */
+  /** מזהה כרטיס עיצוב שנבחר בעורך; אם לא הועבר — נטען כרטיס ברירת־המחדל מה־DB */
   explicitVariantId?: string,
 ): Promise<{ ok: boolean; error?: string; sectionId?: string }> {
   const supabase = await createClient();
@@ -415,13 +412,11 @@ export async function insertSectionAt(
   if (insErr || !inserted) return { ok: false, error: insErr?.message ?? "שגיאה" };
 
   const newOrder = [...ids.slice(0, insertIndex), inserted.id, ...ids.slice(insertIndex)];
-  for (let i = 0; i < newOrder.length; i++) {
-    await supabase
-      .from("page_sections")
-      .update({ sort_order: i })
-      .eq("id", newOrder[i])
-      .eq("landing_page_id", pageId);
-  }
+  const { error: rpcErr } = await supabase.rpc("reorder_page_sections", {
+    p_page_id: pageId,
+    p_ordered_ids: newOrder,
+  });
+  if (rpcErr) return { ok: false, error: rpcErr.message };
 
   revalidatePath("/dashboard");
   revalidatePath(`/${page.slug}`);
@@ -479,6 +474,93 @@ export async function updateSectionContent(
   return { ok: true };
 }
 
+/** מעדכן כרטיס עיצוב לסקשן קיים בעמוד (בחירה מחדש ללא מחיקת הסקשן). */
+export async function updatePageSectionVariant(
+  pageId: string,
+  sectionId: string,
+  variantId: string | null,
+): Promise<{ ok: boolean; error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "לא מחובר" };
+
+  const { data: page } = await supabase
+    .from("landing_pages")
+    .select("slug")
+    .eq("id", pageId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (!page) return { ok: false, error: "אין גישה" };
+
+  const { data: sec } = await supabase
+    .from("page_sections")
+    .select("section_key")
+    .eq("id", sectionId)
+    .eq("landing_page_id", pageId)
+    .maybeSingle();
+  if (!sec) return { ok: false, error: "סקשן לא נמצא" };
+
+  const sectionKey = sec.section_key as string;
+
+  let nextVariant: string | null = null;
+  if (variantId !== null && String(variantId).trim() !== "") {
+    const vid = String(variantId).trim();
+    const { data: vrow } = await supabase
+      .from("section_variants")
+      .select("id")
+      .eq("id", vid)
+      .eq("section_key", sectionKey)
+      .eq("enabled", true)
+      .maybeSingle();
+    if (!vrow) return { ok: false, error: "כרטיס עיצוב לא תקף" };
+    nextVariant = vid;
+  }
+
+  const { error } = await supabase
+    .from("page_sections")
+    .update({ variant_id: nextVariant })
+    .eq("id", sectionId)
+    .eq("landing_page_id", pageId);
+
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/dashboard");
+  revalidatePath(`/${page.slug}`);
+  return { ok: true };
+}
+
+export async function deleteLandingPage(
+  pageId: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "לא מחובר" };
+
+  const { data: page } = await supabase
+    .from("landing_pages")
+    .select("slug")
+    .eq("id", pageId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (!page) return { ok: false, error: "אין גישה" };
+
+  const { error } = await supabase
+    .from("landing_pages")
+    .delete()
+    .eq("id", pageId)
+    .eq("user_id", user.id);
+
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/dashboard");
+  revalidatePath(`/${page.slug}`);
+  return { ok: true };
+}
+
 export async function removeSectionFromPage(
   pageId: string,
   sectionId: string,
@@ -506,4 +588,24 @@ export async function removeSectionFromPage(
   revalidatePath("/dashboard");
   revalidatePath(`/${page.slug}`);
   return { ok: true };
+}
+
+export async function persistPageEditorState(
+  pageId: string,
+  rows: Parameters<typeof runPersistPageEditorState>[3],
+): Promise<
+  { ok: true; orderedSectionIds: string[] } | { ok: false; error: string }
+> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "לא מחובר" };
+  const r = await runPersistPageEditorState(supabase, user.id, pageId, rows);
+  if (r.ok) {
+    revalidatePath("/dashboard");
+    revalidatePath(`/${r.slug}`);
+    return { ok: true, orderedSectionIds: r.orderedSectionIds };
+  }
+  return { ok: false, error: r.error };
 }

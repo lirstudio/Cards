@@ -4,6 +4,7 @@ import {
   Children,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type ReactNode,
@@ -32,6 +33,7 @@ export function ManualHorizontalCarousel({
   } | null>(null);
 
   const [canScroll, setCanScroll] = useState(false);
+  const snapCount = Children.count(children);
 
   const measure = useCallback(() => {
     const el = scrollerRef.current;
@@ -49,6 +51,23 @@ export function ManualHorizontalCarousel({
     if (track) ro.observe(track);
     return () => ro.disconnect();
   }, [measure]);
+
+  /** סקשן RTL: הכרטיס הראשון ב-DOM מימין — scroller LTR ל-scrollLeft חיובי, המסלול RTL; גלילה לסוף בטעינה */
+  useLayoutEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const toEnd = () => {
+      const maxScroll = el.scrollWidth - el.clientWidth;
+      if (maxScroll > 0) el.scrollLeft = maxScroll;
+    };
+    toEnd();
+    const raf = requestAnimationFrame(toEnd);
+    const t = window.setTimeout(toEnd, 80);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(t);
+    };
+  }, [snapCount]);
 
   const scrollStep = useCallback(() => {
     const el = scrollerRef.current;
@@ -119,16 +138,16 @@ export function ManualHorizontalCarousel({
         <>
           <button
             type="button"
-            aria-label={he.carouselPrevAria}
-            className="absolute left-1 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-neutral-200/80 bg-white/95 text-neutral-800 shadow-md transition hover:bg-white md:left-2"
+            aria-label={he.carouselNextAria}
+            className="absolute left-1 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-neutral-200/80 bg-white/95 text-neutral-800 shadow-md transition hover:bg-white @md:left-2"
             onClick={scrollPrev}
           >
             <Chevron direction="prev" />
           </button>
           <button
             type="button"
-            aria-label={he.carouselNextAria}
-            className="absolute right-1 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-neutral-200/80 bg-white/95 text-neutral-800 shadow-md transition hover:bg-white md:right-2"
+            aria-label={he.carouselPrevAria}
+            className="absolute right-1 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-neutral-200/80 bg-white/95 text-neutral-800 shadow-md transition hover:bg-white @md:right-2"
             onClick={scrollNext}
           >
             <Chevron direction="next" />
@@ -149,7 +168,11 @@ export function ManualHorizontalCarousel({
         }}
         style={{ cursor: "grab", touchAction: "pan-x" }}
       >
-        <div ref={trackRef} className={`flex w-max items-stretch ${gapClassName}`}>
+        <div
+          ref={trackRef}
+          dir="rtl"
+          className={`ms-auto flex w-max items-stretch ${gapClassName}`}
+        >
           {mapSnapChildren(children)}
         </div>
       </div>

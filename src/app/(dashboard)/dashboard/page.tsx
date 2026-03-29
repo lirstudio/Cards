@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { getUserQuota } from "@/lib/subscription";
 import { he } from "@/lib/i18n/he";
+import { CreateDraftPageForm } from "./create-draft-page-form";
+import { DeleteLandingPageButton } from "./delete-landing-page-button";
 
 export default async function DashboardPage() {
   if (!isSupabaseConfigured()) return null;
@@ -37,12 +39,7 @@ export default async function DashboardPage() {
             {he.newPage}
           </span>
         ) : (
-          <Link
-            href="/dashboard/pages/new"
-            className="rounded-full bg-[var(--lc-primary)] px-6 py-2.5 text-sm font-medium text-white"
-          >
-            {he.newPage}
-          </Link>
+          <CreateDraftPageForm className="rounded-full bg-[var(--lc-primary)] px-6 py-2.5 text-sm font-medium text-white hover:opacity-95 disabled:opacity-60" />
         )}
       </div>
 
@@ -61,7 +58,7 @@ export default async function DashboardPage() {
                   /{p.slug}
                 </div>
                 <div className="mt-1 text-xs text-neutral-500">
-                  {p.status === "published" ? he.published : he.draft}
+                  {String(p.status).trim() === "published" ? he.published : he.draft}
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -71,15 +68,20 @@ export default async function DashboardPage() {
                 >
                   {he.editPage}
                 </Link>
-                {p.status === "published" ? (
+                {String(p.status).trim() === "published" ? (
                   <Link
                     href={`/${p.slug}`}
                     target="_blank"
-                    className="rounded-full bg-neutral-100 px-4 py-2 text-sm"
+                    rel="noopener noreferrer"
+                    className="rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm font-medium hover:bg-neutral-50"
                   >
                     {he.openPage}
                   </Link>
                 ) : null}
+                <DeleteLandingPageButton
+                  pageId={p.id}
+                  pageLabel={(p.title || p.slug).trim() || p.slug}
+                />
               </div>
             </li>
           ))}

@@ -47,6 +47,10 @@ function imageTextLayoutMode(vo: SectionStyleOverrides) {
   return "default" as const;
 }
 
+function checklistShowsImage(vo: SectionStyleOverrides) {
+  return (vo.checklistLayout ?? "with_image") !== "text_only";
+}
+
 /** תמונה עם object-cover: בפריסה דו-עמודתית גובה התמונה נמתח לגובה עמודת הטקסט (items-stretch). */
 function BioSectionCoverImage({
   src,
@@ -56,10 +60,10 @@ function BioSectionCoverImage({
   layoutMode: ReturnType<typeof imageTextLayoutMode>;
 }) {
   const frame =
-    "relative overflow-hidden rounded-[2rem] shadow-[0_22px_55px_-20px_rgba(0,0,0,0.2)] ring-1 ring-neutral-900/[0.06] md:rounded-[2.25rem]";
+    "relative overflow-hidden rounded-[2rem] shadow-[0_22px_55px_-20px_rgba(0,0,0,0.2)] ring-1 ring-neutral-900/[0.06] @md:rounded-[2.25rem]";
   if (layoutMode !== "default") {
     return (
-      <div className={`${frame} aspect-[4/3] w-full max-h-[min(72vh,560px)] md:aspect-[16/11]`}>
+      <div className={`${frame} aspect-[4/3] w-full max-h-[min(72vh,560px)] @md:aspect-[16/11]`}>
         {imageSrcIsProvided(src) ? (
           <Image
             src={src}
@@ -77,7 +81,7 @@ function BioSectionCoverImage({
   }
   return (
     <div
-      className={`${frame} w-full max-lg:aspect-[5/6] max-lg:max-h-[min(92vw,460px)] lg:h-full lg:min-h-[280px]`}
+      className={`${frame} w-full @max-[1023px]:aspect-[5/6] @max-[1023px]:max-h-[min(92cqw,460px)] @min-[1024px]:h-full @min-[1024px]:min-h-[280px]`}
     >
       {imageSrcIsProvided(src) ? (
         <Image
@@ -126,7 +130,6 @@ export function SectionRenderer({
 
   const vo = variantStyleOverrides ?? {};
   const primary = vo.accentColor ?? theme.primary ?? "#0b43b4";
-  const bg = vo.backgroundColor ?? theme.background ?? "#f8f9fa";
   const heading = vo.textColor ?? theme.heading ?? "#000000";
   const body = theme.body ?? "#4b5563";
   const siteLogoUrl = theme.siteLogoUrl?.trim();
@@ -178,17 +181,17 @@ export function SectionRenderer({
           }));
     const ctaHref = resolveHeaderCtaHref(c.headerCta.href, pageNavSections);
     const headerNavListDir = (dir ?? "rtl") as "rtl" | "ltr";
-    const barPad = embedded ? "px-3 py-2.5" : "px-4 py-3 md:px-6 md:py-3.5";
-    const outerY = embedded ? "py-2" : "py-4 md:py-6";
+    const barPad = embedded ? "px-3 py-2.5" : "px-4 py-3 @md:px-6 @md:py-3.5";
+    const outerY = embedded ? "py-2" : "py-4 @md:py-6";
     return (
       <header className={`mx-auto w-full max-w-6xl ${LC_SECTION_PX} ${outerY}`}>
         <nav
-          className={`flex w-full flex-col gap-3 rounded-[1.25rem] bg-white shadow-[0_10px_40px_-12px_rgba(0,0,0,0.14)] ring-1 ring-neutral-900/[0.06] md:flex-row md:items-center md:gap-3 ${barPad}`}
+          className={`flex w-full flex-col gap-3 rounded-[1.25rem] bg-white shadow-[0_10px_40px_-12px_rgba(0,0,0,0.14)] ring-1 ring-neutral-900/[0.06] @md:flex-row @md:items-center @md:gap-3 ${barPad}`}
         >
-          <div className="flex w-full min-w-0 items-center justify-between gap-3 md:contents">
+          <div className="flex w-full min-w-0 items-center justify-between gap-3 @md:contents">
             <a
               href="#lc-page-top"
-              className="relative z-10 flex shrink-0 items-center text-lg font-bold tracking-tight text-neutral-950 md:text-xl"
+              className="relative z-10 flex shrink-0 items-center text-lg font-bold tracking-tight text-neutral-950 @md:text-xl"
               style={siteLogoUrl ? undefined : { color: heading }}
             >
               {siteLogoUrl ? (
@@ -197,7 +200,7 @@ export function SectionRenderer({
                   <img
                     src={siteLogoUrl}
                     alt={c.logoText}
-                    className="h-8 w-auto max-w-[180px] object-contain object-right md:h-9 md:max-w-[200px]"
+                    className="h-8 w-auto max-w-[180px] object-contain object-right @md:h-9 @md:max-w-[200px]"
                   />
                 </>
               ) : (
@@ -206,7 +209,7 @@ export function SectionRenderer({
             </a>
             <a
               href={ctaHref}
-              className="relative z-10 inline-flex shrink-0 items-center justify-center rounded-full px-5 py-2.5 text-sm font-medium text-white transition hover:opacity-95 md:order-last"
+              className="relative z-10 inline-flex shrink-0 items-center justify-center rounded-full px-5 py-2.5 text-sm font-medium text-white transition hover:opacity-95 @md:order-last"
               style={{ backgroundColor: primary }}
             >
               {c.headerCta.label}
@@ -214,7 +217,7 @@ export function SectionRenderer({
           </div>
           <ul
             dir={headerNavListDir}
-            className={`relative z-0 flex min-w-0 flex-1 flex-row flex-nowrap items-center justify-start gap-x-4 overflow-x-auto overflow-y-visible py-0.5 text-sm font-medium [-ms-overflow-style:none] [scrollbar-width:none] md:order-2 md:gap-x-5 md:px-1 [&::-webkit-scrollbar]:hidden ${embedded ? "px-0" : "px-0.5"}`}
+            className={`relative z-0 flex min-w-0 flex-1 flex-row flex-nowrap items-center justify-start gap-x-4 overflow-x-auto overflow-y-visible py-0.5 text-sm font-medium [-ms-overflow-style:none] [scrollbar-width:none] @md:order-2 @md:gap-x-5 @md:px-1 [&::-webkit-scrollbar]:hidden ${embedded ? "px-0" : "px-0.5"}`}
           >
             {navLinksToRender.map((l) => (
               <li key={l.sectionId} className="shrink-0">
@@ -238,16 +241,21 @@ export function SectionRenderer({
     headline: string;
     subheadline: string;
     heroCta: { label: string; href: string };
+    heroBackdropCircle?: boolean;
   }) {
     const heroSecId = landingSectionDomId(sectionId);
     const heroAnchor = LANDING_SECTION_ANCHOR_CLASS;
     const layout = imageTextLayoutMode(vo);
+    const showBackdrop = c.heroBackdropCircle === true;
     const heroImageCol = (
       <div className="relative flex justify-center">
-        <div
-          className={`absolute rounded-full opacity-100 ${embedded ? "inset-4" : "inset-6"}`}
-          style={{ backgroundColor: primary }}
-        />
+        {showBackdrop ? (
+          <div
+            className={`absolute rounded-full opacity-100 ${embedded ? "inset-4" : "inset-6"}`}
+            style={{ backgroundColor: primary }}
+            aria-hidden
+          />
+        ) : null}
         <div className={`relative w-full max-w-[288px] sm:max-w-[320px] ${embedded ? "mt-3" : "mt-8"}`}>
           {imageSrcIsProvided(c.heroImage) ? (
             <Image
@@ -266,7 +274,7 @@ export function SectionRenderer({
     );
     const heroTextCol = (
       <div
-        className={`min-w-0 text-center ${layout === "default" ? "lg:text-start" : ""} ${embedded ? "space-y-3" : "space-y-6"}`}
+        className={`min-w-0 text-center ${layout === "default" ? "@min-[1024px]:text-start" : ""} ${embedded ? "space-y-3" : "space-y-6"}`}
       >
         <h1
           className="break-words text-3xl font-extrabold leading-tight md:text-4xl"
@@ -289,15 +297,15 @@ export function SectionRenderer({
     return layout === "default" ? (
       <section
         id={heroSecId}
-        className={`${LC_SECTION_SHELL} ${heroAnchor} mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-2 ${embedded ? "gap-6 py-5" : "py-12 lg:py-20"}`}
+        className={`${LC_SECTION_SHELL} ${heroAnchor} mx-auto grid max-w-6xl grid-cols-1 items-center gap-10 @min-[1024px]:grid-cols-2 ${embedded ? "gap-6 py-5" : "py-12 @min-[1024px]:py-20"}`}
       >
-        <div className="order-2 min-w-0 lg:order-1">{heroImageCol}</div>
-        <div className="order-1 min-w-0 lg:order-2">{heroTextCol}</div>
+        <div className="order-2 min-w-0 @min-[1024px]:order-1">{heroImageCol}</div>
+        <div className="order-1 min-w-0 @min-[1024px]:order-2">{heroTextCol}</div>
       </section>
     ) : (
       <section
         id={heroSecId}
-        className={`${LC_SECTION_SHELL} ${heroAnchor} mx-auto flex max-w-6xl flex-col items-center gap-8 ${embedded ? "py-5" : "py-12 lg:py-20"}`}
+        className={`${LC_SECTION_SHELL} ${heroAnchor} mx-auto flex max-w-6xl flex-col items-center gap-8 ${embedded ? "py-5" : "py-12 @min-[1024px]:py-20"}`}
       >
         {layout === "stack_text_above" ? (
           <>
@@ -318,7 +326,7 @@ export function SectionRenderer({
     type C = z.infer<typeof sectionSchemas.site_header_nav>;
     const c = parseSectionContent("site_header_nav", content) as C;
     return (
-      <section style={{ backgroundColor: bg }} dir={dir ?? "rtl"}>
+      <section dir={dir ?? "rtl"}>
         {renderSiteHeaderNav(c)}
       </section>
     );
@@ -328,7 +336,7 @@ export function SectionRenderer({
     type C = z.infer<typeof sectionSchemas.hero_image_split>;
     const c = parseSectionContent("hero_image_split", content) as C;
     return (
-      <div style={{ backgroundColor: bg }} dir={dir ?? "rtl"}>
+      <div dir={dir ?? "rtl"}>
         {renderHeroImageSplit(c)}
       </div>
     );
@@ -342,7 +350,6 @@ export function SectionRenderer({
         stats={c.stats}
         headingColor={heading}
         labelColor={body}
-        backgroundColor={bg}
         sectionPaddingClass={paddingClass}
         embedded={embedded}
         editorPreview={editorPreview}
@@ -358,7 +365,7 @@ export function SectionRenderer({
     if (!parsed.success) return null;
     const c = parsed.data;
     return (
-      <div style={{ backgroundColor: bg }} dir={dir ?? "rtl"}>
+      <div dir={dir ?? "rtl"}>
         {renderHeroImageSplit(c)}
       </div>
     );
@@ -390,18 +397,16 @@ export function SectionRenderer({
         ))}
       </div>
     );
-    const aboutBg = vo.backgroundColor ?? theme.background ?? "#f4f4f6";
     return (
       <section
         id={landingSectionDomId(sectionId)}
         className={`${LC_SECTION_SHELL} ${LANDING_SECTION_ANCHOR_CLASS} ${sectionPad}`}
-        style={{ backgroundColor: aboutBg }}
         dir={dir ?? "rtl"}
       >
         <div
           className={
             layout === "default"
-              ? "mx-auto grid min-w-0 max-w-6xl gap-12 lg:grid-cols-2 lg:items-stretch lg:gap-14"
+              ? "mx-auto grid min-w-0 max-w-6xl grid-cols-1 gap-12 @min-[1024px]:grid-cols-2 @min-[1024px]:items-stretch @min-[1024px]:gap-14"
               : "mx-auto flex min-w-0 max-w-6xl flex-col gap-12"
           }
         >
@@ -417,8 +422,8 @@ export function SectionRenderer({
             </>
           ) : (
             <>
-              <div className="order-2 min-h-0 min-w-0 lg:order-1">{textCol}</div>
-              <div className="order-1 h-full min-h-0 min-w-0 lg:order-2">{imageCol}</div>
+              <div className="order-2 min-h-0 min-w-0 @min-[1024px]:order-1">{textCol}</div>
+              <div className="order-1 h-full min-h-0 min-w-0 @min-[1024px]:order-2">{imageCol}</div>
             </>
           )}
         </div>
@@ -431,7 +436,6 @@ export function SectionRenderer({
     const c = parseSectionContent("split_three_qa_image", content) as C;
     const layout = imageTextLayoutMode(vo);
     const sectionPad = paddingClass ?? "py-14 md:py-20";
-    const sectionBg = vo.backgroundColor ?? theme.background ?? "#f4f4f6";
     const textCol = (
       <div className="min-w-0 space-y-10 text-start md:space-y-12">
         {c.blocks.map((b) => (
@@ -455,26 +459,25 @@ export function SectionRenderer({
     const imageCol = <BioSectionCoverImage src={c.image} layoutMode={layout} />;
     const inner =
       layout === "stack_text_above" ? (
-        <div className="flex min-w-0 flex-col gap-10 md:gap-12">
+        <div className="flex min-w-0 flex-col gap-10 @md:gap-12">
           {textCol}
           {imageCol}
         </div>
       ) : layout === "stack_image_above" ? (
-        <div className="flex min-w-0 flex-col gap-10 md:gap-12">
+        <div className="flex min-w-0 flex-col gap-10 @md:gap-12">
           {imageCol}
           {textCol}
         </div>
       ) : (
-        <div className="grid min-w-0 gap-12 lg:grid-cols-2 lg:items-stretch lg:gap-14 xl:gap-16">
-          <div className="order-2 min-h-0 min-w-0 lg:order-1">{textCol}</div>
-          <div className="order-1 h-full min-h-0 min-w-0 lg:order-2">{imageCol}</div>
+        <div className="grid min-w-0 grid-cols-1 gap-12 @min-[1024px]:grid-cols-2 @min-[1024px]:items-stretch @min-[1024px]:gap-14 @min-[1280px]:gap-16">
+          <div className="order-2 min-h-0 min-w-0 @min-[1024px]:order-1">{textCol}</div>
+          <div className="order-1 h-full min-h-0 min-w-0 @min-[1024px]:order-2">{imageCol}</div>
         </div>
       );
     return (
       <section
         id={landingSectionDomId(sectionId)}
         className={`${LC_SECTION_SHELL} ${LANDING_SECTION_ANCHOR_CLASS} ${sectionPad}`}
-        style={{ backgroundColor: sectionBg }}
         dir={dir ?? "rtl"}
       >
         <div className="mx-auto min-w-0 max-w-6xl">{inner}</div>
@@ -485,12 +488,14 @@ export function SectionRenderer({
   if (key === "testimonials_row") {
     type C = z.infer<typeof sectionSchemas.testimonials_row>;
     const c = parseSectionContent("testimonials_row", content) as C;
+    const layout = vo.testimonialsLayout ?? "marquee";
     return (
       <TestimonialsRow
         items={c.items}
-        editorPreview={editorPreview}
         noSectionAnimations={noSectionAnimations}
         sectionId={sectionId}
+        layout={layout}
+        sectionPadClass={paddingClass ?? undefined}
       />
     );
   }
@@ -502,7 +507,6 @@ export function SectionRenderer({
       <section
         id={landingSectionDomId(sectionId)}
         className={`${LC_SECTION_SHELL} ${LANDING_SECTION_ANCHOR_CLASS} py-12 sm:py-16`}
-        style={{ backgroundColor: "#f5f5f5" }}
         dir="rtl"
       >
         <div className="mx-auto min-w-0 max-w-3xl text-center">
@@ -537,6 +541,7 @@ export function SectionRenderer({
   if (key === "checklist_with_image") {
     type C = z.infer<typeof sectionSchemas.checklist_with_image>;
     const c = parseSectionContent("checklist_with_image", content) as C;
+    const showImage = checklistShowsImage(vo);
     const layout = imageTextLayoutMode(vo);
     const checklistCol = (
       <div className="min-w-0 text-start">
@@ -571,7 +576,7 @@ export function SectionRenderer({
     /** פריסה דו־עמודתית: גובה התמונה = גובה עמודת הרשימה (items-stretch + fill + object-cover). */
     const imageColStretch = (
       <div
-        className={`relative w-full overflow-hidden rounded-[2rem] shadow-[0_22px_55px_-20px_rgba(0,0,0,0.2)] ring-1 ring-neutral-900/[0.06] md:rounded-[2.25rem] max-lg:aspect-[5/6] max-lg:max-h-[min(92vw,460px)] lg:h-full lg:min-h-[280px]`}
+        className={`relative w-full overflow-hidden rounded-[2rem] shadow-[0_22px_55px_-20px_rgba(0,0,0,0.2)] ring-1 ring-neutral-900/[0.06] @md:rounded-[2.25rem] @max-[1023px]:aspect-[5/6] @max-[1023px]:max-h-[min(92cqw,460px)] @min-[1024px]:h-full @min-[1024px]:min-h-[280px]`}
       >
         {imageSrcIsProvided(c.image) ? (
           <Image
@@ -589,7 +594,7 @@ export function SectionRenderer({
     );
     /** ערימה אנכית: יחס גובה־רוחב קבוע */
     const imageColStack = (
-      <div className="relative aspect-[4/3] w-full max-h-[min(72vh,560px)] overflow-hidden rounded-3xl shadow-xl md:aspect-[16/11]">
+      <div className="relative aspect-[4/3] w-full max-h-[min(72vh,560px)] overflow-hidden rounded-3xl shadow-xl @md:aspect-[16/11]">
         {imageSrcIsProvided(c.image) ? (
           <Image
             src={c.image}
@@ -605,11 +610,21 @@ export function SectionRenderer({
       </div>
     );
     const sectionPad = paddingClass ?? "py-16";
+    if (!showImage) {
+      return (
+        <section
+          id={landingSectionDomId(sectionId)}
+          className={`${LC_SECTION_SHELL} ${LANDING_SECTION_ANCHOR_CLASS} ${sectionPad}`}
+          dir={dir ?? "rtl"}
+        >
+          <div className="mx-auto min-w-0 max-w-3xl">{checklistCol}</div>
+        </section>
+      );
+    }
     return (
       <section
         id={landingSectionDomId(sectionId)}
         className={`${LC_SECTION_SHELL} ${LANDING_SECTION_ANCHOR_CLASS} ${sectionPad}`}
-        style={{ backgroundColor: bg }}
         dir={dir ?? "rtl"}
       >
         {layout === "stack_text_above" ? (
@@ -623,9 +638,9 @@ export function SectionRenderer({
             {checklistCol}
           </div>
         ) : (
-          <div className="mx-auto grid min-w-0 max-w-6xl gap-12 lg:grid-cols-2 lg:items-stretch lg:gap-14 xl:gap-16">
-            <div className="order-2 min-h-0 min-w-0 lg:order-1">{checklistCol}</div>
-            <div className="order-1 h-full min-h-0 lg:order-2">{imageColStretch}</div>
+          <div className="mx-auto grid min-w-0 max-w-6xl grid-cols-1 gap-12 @min-[1024px]:grid-cols-2 @min-[1024px]:items-stretch @min-[1024px]:gap-14 @min-[1280px]:gap-16">
+            <div className="order-2 min-h-0 min-w-0 @min-[1024px]:order-1">{checklistCol}</div>
+            <div className="order-1 h-full min-h-0 min-w-0 @min-[1024px]:order-2">{imageColStretch}</div>
           </div>
         )}
       </section>
@@ -638,7 +653,7 @@ export function SectionRenderer({
     return (
       <section
         id={landingSectionDomId(sectionId)}
-        className={`${LC_SECTION_SHELL} ${LANDING_SECTION_ANCHOR_CLASS} bg-[#f2f2f2] py-12 text-center sm:py-16`}
+        className={`${LC_SECTION_SHELL} ${LANDING_SECTION_ANCHOR_CLASS} py-12 text-center sm:py-16`}
         dir="rtl"
       >
         <h2
@@ -671,7 +686,6 @@ export function SectionRenderer({
       <section
         id={landingSectionDomId(sectionId)}
         className={`${LC_SECTION_SHELL} ${LANDING_SECTION_ANCHOR_CLASS} py-12 sm:py-16 md:py-20`}
-        style={{ backgroundColor: bg }}
         dir="rtl"
       >
         <div className="mx-auto min-w-0 max-w-5xl text-center">
@@ -687,7 +701,7 @@ export function SectionRenderer({
           >
             {c.title}
           </h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
+          <div className="grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2 @min-[640px]:gap-6">
             {c.cards.map((card, i) => {
               const featured = card.featured;
               return (
@@ -724,12 +738,10 @@ export function SectionRenderer({
   if (key === "gallery_row") {
     type C = z.infer<typeof sectionSchemas.gallery_row>;
     const c = parseSectionContent("gallery_row", content) as C;
-    const galleryBg = vo.backgroundColor ?? theme.background ?? "#f5f5f5";
     const galleryPad = paddingClass ?? "py-12";
     return (
       <GalleryRowMarquee
         images={c.images}
-        backgroundColor={galleryBg}
         paddingClass={galleryPad}
         noSectionAnimations={noSectionAnimations}
         sectionId={sectionId}
@@ -747,7 +759,7 @@ export function SectionRenderer({
         dir="rtl"
       >
         <div
-          className="mx-auto min-w-0 max-w-6xl rounded-2xl px-4 py-10 text-white sm:rounded-[2rem] sm:px-6 sm:py-12 md:px-10 md:py-14 lg:px-12"
+          className="mx-auto min-w-0 max-w-6xl rounded-2xl px-4 py-10 text-white sm:rounded-[2rem] sm:px-6 sm:py-12 @md:px-10 @md:py-14 @min-[1024px]:px-12"
           style={{ backgroundColor: primary }}
         >
           <div className="mb-8 text-center sm:mb-10">
@@ -759,7 +771,7 @@ export function SectionRenderer({
               {c.intro}
             </p>
           </div>
-          <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 @sm:gap-6 @min-[768px]:grid-cols-3">
             {c.steps.map((s, i) => (
               <article key={i} className="min-w-0 rounded-2xl bg-white p-5 text-start shadow-lg sm:p-6">
                 <div

@@ -14,13 +14,11 @@ export type GalleryRowImage = { src: string; alt?: string };
  */
 export function GalleryRowMarquee({
   images,
-  backgroundColor,
   paddingClass = "py-12",
   noSectionAnimations = false,
   sectionId,
 }: {
   images: GalleryRowImage[];
-  backgroundColor: string;
   paddingClass?: string;
   noSectionAnimations?: boolean;
   sectionId: string;
@@ -31,7 +29,7 @@ export function GalleryRowMarquee({
   const anchor = LANDING_SECTION_ANCHOR_CLASS;
 
   const cellClass =
-    "relative aspect-[3/4] w-[38vw] max-w-[220px] overflow-hidden rounded-3xl md:w-44 lg:w-52";
+    "relative aspect-[3/4] w-[38vw] max-w-[220px] overflow-hidden rounded-3xl @min-[640px]:w-44 @min-[1024px]:w-52";
 
   const cells = images.map((im, i) => (
     <div key={`gallery-slot-${i}`} className={cellClass}>
@@ -55,10 +53,9 @@ export function GalleryRowMarquee({
       <section
         id={sid}
         className={`${LC_SECTION_SHELL} ${anchor} ${paddingClass}`}
-        style={{ backgroundColor }}
         dir="rtl"
       >
-        <ManualHorizontalCarousel gapClassName="gap-4 md:gap-5">{cells}</ManualHorizontalCarousel>
+        <ManualHorizontalCarousel gapClassName="gap-4 @md:gap-5">{cells}</ManualHorizontalCarousel>
       </section>
     );
   }
@@ -69,11 +66,10 @@ export function GalleryRowMarquee({
     <section
       id={sid}
       className={`${LC_SECTION_SHELL} ${anchor} ${paddingClass}`}
-      style={{ backgroundColor }}
       dir="rtl"
     >
-      <div className="lc-marquee-x-clip overflow-x-hidden overflow-y-visible" dir="ltr">
-        <div className="lc-marquee-x-track flex w-max items-stretch gap-4 md:gap-5">
+      <div className="lc-marquee-x-clip overflow-x-hidden overflow-y-visible">
+        <div className="lc-marquee-x-track flex w-max items-stretch gap-4 @md:gap-5">
           {loop.map((im, i) => (
             <div key={`gallery-slot-${i}`} className={cellClass}>
               {imageSrcIsProvided(im.src) ? (

@@ -39,15 +39,18 @@ function SubmitButton({ label }: { label: string }) {
   );
 }
 
+/** עיצוב שדות מותאם ל־globals.css — קו תחתון בלבד */
 const fieldClass =
-  "w-full rounded-xl border-0 bg-neutral-100 px-4 py-3.5 text-neutral-900 outline-none ring-1 ring-neutral-200/90 placeholder:text-neutral-400 focus:bg-white focus:ring-2 focus:ring-[color-mix(in_srgb,var(--lc-primary)_35%,transparent)] disabled:opacity-70";
+  "w-full text-neutral-900 placeholder:text-neutral-400 disabled:opacity-70";
+
+const ICON_STROKE = 1.5;
 
 function BadgePhoneIcon({ className }: { className?: string }) {
   return (
     <svg
       className={className}
-      width="18"
-      height="18"
+      width="16"
+      height="16"
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -56,7 +59,7 @@ function BadgePhoneIcon({ className }: { className?: string }) {
       <path
         d="M22 16.92v3a2 2 0 0 1-2.18 2 19.86 19.86 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.86 19.86 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.81.3 1.6.57 2.36a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.72-1.14a2 2 0 0 1 2.11-.45c.76.27 1.55.45 2.36.57A2 2 0 0 1 22 16.92Z"
         stroke="currentColor"
-        strokeWidth="1.75"
+        strokeWidth={ICON_STROKE}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -66,17 +69,17 @@ function BadgePhoneIcon({ className }: { className?: string }) {
 
 function MailIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+    <svg className={className} width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden>
       <path
         d="M4 6h16v12H4V6Z"
         stroke="currentColor"
-        strokeWidth="1.75"
+        strokeWidth={ICON_STROKE}
         strokeLinejoin="round"
       />
       <path
         d="m4 7 8 5 8-5"
         stroke="currentColor"
-        strokeWidth="1.75"
+        strokeWidth={ICON_STROKE}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -86,11 +89,11 @@ function MailIcon({ className }: { className?: string }) {
 
 function PhoneHandsetIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+    <svg className={className} width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden>
       <path
         d="M22 16.92v3a2 2 0 0 1-2.18 2 19.86 19.86 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.86 19.86 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.81.3 1.6.57 2.36a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.72-1.14a2 2 0 0 1 2.11-.45c.76.27 1.55.45 2.36.57A2 2 0 0 1 22 16.92Z"
         stroke="currentColor"
-        strokeWidth="1.75"
+        strokeWidth={ICON_STROKE}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -107,12 +110,24 @@ function SocialGlyph({
 }) {
   const n = network.toLowerCase();
   const stroke = "currentColor";
-  const common = { className, fill: "none" as const, stroke, strokeWidth: 1.65, "aria-hidden": true as const };
+  const sw = ICON_STROKE;
+  const svgProps = {
+    className: className ?? "h-[18px] w-[18px] shrink-0",
+    viewBox: "0 0 24 24" as const,
+    width: 18,
+    height: 18,
+    fill: "none" as const,
+    stroke,
+    strokeWidth: sw,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    "aria-hidden": true as const,
+  };
 
   if (n.includes("linkedin")) {
     return (
-      <svg viewBox="0 0 24 24" width="22" height="22" {...common}>
-        <path d="M16 8a6 6 0 0 1 6 6v6h-4v-6a2 2 0 0 0-4 0v6h-4v-12h4v1.5" strokeLinecap="round" />
+      <svg {...svgProps}>
+        <path d="M16 8a6 6 0 0 1 6 6v6h-4v-6a2 2 0 0 0-4 0v6h-4v-12h4v1.5" />
         <rect x="2" y="9" width="4" height="11" rx="1" />
         <circle cx="4" cy="5" r="2" />
       </svg>
@@ -120,61 +135,69 @@ function SocialGlyph({
   }
   if (n.includes("facebook")) {
     return (
-      <svg viewBox="0 0 24 24" width="22" height="22" {...common}>
-        <path
-          d="M18 2h-3a4 4 0 0 0-4 4v3H8v4h3v8h4v-8h3l1-4h-4V6a1 1 0 0 1 1-1h3V2Z"
-          strokeLinejoin="round"
-        />
+      <svg {...svgProps}>
+        <path d="M18 2h-3a4 4 0 0 0-4 4v3H8v4h3v8h4v-8h3l1-4h-4V6a1 1 0 0 1 1-1h3V2Z" />
       </svg>
     );
   }
   if (n.includes("instagram")) {
     return (
-      <svg viewBox="0 0 24 24" width="22" height="22" {...common}>
-        <rect x="3" y="3" width="18" height="18" rx="5" />
-        <circle cx="12" cy="12" r="4" />
-        <circle cx="17.5" cy="6.5" r="1.2" fill={stroke} stroke="none" />
+      <svg {...svgProps}>
+        <rect x="3.5" y="3.5" width="17" height="17" rx="4.5" />
+        <circle cx="12" cy="12" r="3.5" />
+        <circle cx="17.2" cy="6.8" r="0.9" fill={stroke} stroke="none" />
       </svg>
     );
   }
   if (n.includes("youtube")) {
     return (
-      <svg viewBox="0 0 24 24" width="22" height="22" {...common}>
+      <svg {...svgProps}>
+        <path d="M22 8s-.2-3.7-2-4.8C18.3 2 12 2 12 2s-6.3 0-8 .2C2.2 4.4 2 8 2 8s0 3.7 2 4.9c1.7.2 8 .2 8 .2s6.3 0 8-.2c1.8-1.1 2-4.9 2-4.9Z" />
         <path
-          d="M22 8s-.2-3.7-2-4.8C18.3 2 12 2 12 2s-6.3 0-8 .2C2.2 4.4 2 8 2 8s0 3.7 2 4.9c1.7.2 8 .2 8 .2s6.3 0 8-.2c1.8-1.1 2-4.9 2-4.9Z"
-          strokeLinejoin="round"
+          d="m10 9 5 3-5 3V9Z"
+          fill={stroke}
+          stroke="none"
         />
-        <path d="m10 9 5 3-5 3V9Z" fill={stroke} stroke="none" />
       </svg>
     );
   }
   if (n.includes("tiktok")) {
     return (
-      <svg viewBox="0 0 24 24" width="22" height="22" {...common}>
-        <path
-          d="M16.5 3v11a4 4 0 1 1-3-3.9V7a6 6 0 0 0 3 1V3Z"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
+      <svg {...svgProps}>
+        <path d="M16.65 3.05v10.9a3.35 3.35 0 1 1-2.5-3.24V7.1a5.55 5.55 0 0 0 2.5.85V3.05Z" />
       </svg>
     );
   }
   if (n.includes("whatsapp")) {
     return (
-      <svg viewBox="0 0 24 24" width="22" height="22" {...common}>
+      <svg {...svgProps}>
+        <path d="M12 20.5a8.5 8.5 0 0 0 4.12-15.97A8.5 8.5 0 0 0 5.03 16.9L3.5 20.5l3.78-1.04A8.44 8.44 0 0 0 12 20.5Z" />
         <path
-          d="M12 21a9 9 0 0 0 9-9c0-5-4-9-9-9S3 7 3 12c0 1.6.4 3 1.1 4.3L3 21l4.9-1.3A8.9 8.9 0 0 0 12 21Z"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M8.5 9.5c.2 1.4 1.6 3.8 3.2 5.4s4.3 3 5.7 3.2c1.4.2 2.3-.8 2.6-1.6.3-.9.3-1.6.2-1.7l-1.2-.6s-1.5-.7-2.1-.4c-.4.2-1 1-1.3 1.3-.1 0-.8-.3-1.5-.9a6 6 0 0 1-1.4-1.5c-.5-.7-.9-1.4-.8-1.6.2-.4 1.2-1.2 1.3-1.7.1-.4-.4-2-.6-2.2-.2-.3-.8-.3-1.2-.3h-1.1c-.4 0-.9.2-1 .5-.4.6-.8 1.5-.8 2.8Z"
-          strokeLinejoin="round"
+          d="M8.35 9.35c.15 1.2 1.45 3.35 2.85 4.75s3.65 2.75 4.85 2.9c.95.12 1.55-.55 1.8-1.15.28-.68.28-1.2.2-1.28l-1.05-.55s-1.25-.6-1.75-.38c-.35.16-.85.75-1.1.98-.08.02-.65-.28-1.25-.82a5.6 5.6 0 0 1-1.15-1.25c-.45-.62-.78-1.18-.72-1.28.12-.22.95-1.05 1.05-1.48.08-.35-.32-1.72-.48-1.92-.14-.18-.68-.2-1.02-.2h-.95c-.32 0-.84.1-.98.42-.35.75-.72 1.4-.72 2.48Z"
         />
       </svg>
     );
   }
+  if (n.includes("twitter") || n === "x" || n.includes("x.com")) {
+    return (
+      <svg
+        className={svgProps.className}
+        viewBox="0 0 24 24"
+        width={18}
+        height={18}
+        fill={stroke}
+        aria-hidden
+      >
+        <path d="M4 4l7.2 9.6L4 20h1.8l6.3-6.75L17.5 20H20l-7.5-10L19.5 4h-1.8l-5.7 6.09L6.5 4H4Z" />
+      </svg>
+    );
+  }
   return (
-    <span className={`text-xs font-bold ${className ?? ""}`}>{network.slice(0, 2).toUpperCase()}</span>
+    <svg {...svgProps}>
+      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+      <path d="M15 3h6v6" />
+      <path d="M10 14 21 3" />
+    </svg>
   );
 }
 
@@ -268,7 +291,7 @@ export function ContactSplit({
   return (
     <section
       id={landingSectionDomId(sectionId)}
-      className={`${LC_SECTION_SHELL} ${LANDING_SECTION_ANCHOR_CLASS} min-w-0 bg-[#f0f0f0] py-12 sm:py-16`}
+      className={`${LC_SECTION_SHELL} ${LANDING_SECTION_ANCHOR_CLASS} min-w-0 py-12 sm:py-16`}
       style={
         {
           "--lc-primary": primary,
@@ -276,8 +299,8 @@ export function ContactSplit({
       }
     >
       {/* dir=ltr כדי שטופס יופיע משמאל וטקסט מימין כמו רפרנס; תוכן עברית נשאר rtl בתוך העמודות */}
-      <div className="mx-auto grid w-full min-w-0 max-w-6xl gap-12 lg:grid-cols-2 lg:gap-10" dir="ltr">
-        <div className="order-2 min-w-0 rounded-[1.75rem] bg-white p-8 shadow-[0_20px_50px_-24px_rgba(0,0,0,0.18)] ring-1 ring-neutral-900/[0.04] lg:order-1" dir="rtl">
+      <div className="mx-auto grid w-full min-w-0 max-w-6xl grid-cols-1 gap-12 @min-[1024px]:grid-cols-2 @min-[1024px]:gap-10" dir="ltr">
+        <div className="order-2 min-w-0 rounded-[1.75rem] bg-white p-8 shadow-[0_20px_50px_-24px_rgba(0,0,0,0.18)] ring-1 ring-neutral-900/[0.04] @min-[1024px]:order-1" dir="rtl">
           {state?.message && !editorPreview ? (
             <p
               className={`mb-4 text-sm font-medium ${state.ok ? "text-green-700" : "text-red-600"}`}
@@ -313,7 +336,7 @@ export function ContactSplit({
             </form>
           )}
         </div>
-        <div className="order-1 min-w-0 space-y-8 lg:order-2" dir="rtl">
+        <div className="order-1 min-w-0 space-y-8 @min-[1024px]:order-2" dir="rtl">
           <div
             className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-medium shadow-sm ring-1 ring-neutral-200/80"
             style={{ color: primary }}
@@ -329,44 +352,52 @@ export function ContactSplit({
           <h2 className="break-words text-2xl font-bold leading-tight tracking-tight text-black sm:text-3xl md:text-4xl">
             {data.headline}
           </h2>
-          <div className="flex flex-wrap gap-3">
-            {data.social.map((s) => (
+          <div
+            className="grid w-fit max-w-full grid-cols-3 gap-2 @min-[480px]:grid-cols-6"
+            aria-label="רשתות חברתיות"
+          >
+            {data.social.map((s, i) => (
               <a
-                key={s.network}
+                key={`${s.network}-${s.href}-${i}`}
                 href={s.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex h-12 w-12 items-center justify-center rounded-full border-2 bg-white/80 transition hover:bg-white hover:opacity-95"
-                style={{ borderColor: primary, color: primary }}
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-[color-mix(in_srgb,var(--lc-primary)_38%,transparent)] bg-white/95 text-[var(--lc-primary)] shadow-[0_1px_2px_rgba(0,0,0,0.05)] transition hover:bg-white hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--lc-primary)]"
                 aria-label={s.network}
               >
                 <SocialGlyph network={s.network} />
               </a>
             ))}
           </div>
-          <div className="space-y-4 text-lg">
+          <div className="space-y-3 text-base sm:text-lg">
             <div className="flex min-w-0 justify-start">
-              <p className="flex min-w-0 max-w-full flex-row flex-wrap items-center gap-3" dir="ltr">
+              <p
+                className="flex min-w-0 max-w-full flex-row flex-wrap items-center gap-3 sm:gap-3.5"
+                dir="ltr"
+              >
                 <a
                   href={`mailto:${data.email}`}
-                  className="min-w-0 break-words hover:underline"
+                  className="min-w-0 break-words font-medium text-neutral-900 decoration-[color-mix(in_srgb,var(--lc-primary)_55%,transparent)] underline-offset-2 hover:underline"
                 >
                   {data.email}
                 </a>
-                <span className="flex shrink-0 items-center" style={{ color: primary }}>
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[color-mix(in_srgb,var(--lc-primary)_38%,transparent)] bg-white/95 text-[var(--lc-primary)] shadow-[0_1px_2px_rgba(0,0,58,0.05)]">
                   <MailIcon />
                 </span>
               </p>
             </div>
             <div className="flex min-w-0 justify-start">
-              <p className="flex min-w-0 max-w-full flex-row flex-wrap items-center gap-3" dir="ltr">
+              <p
+                className="flex min-w-0 max-w-full flex-row flex-wrap items-center gap-3 sm:gap-3.5"
+                dir="ltr"
+              >
                 <a
                   href={`tel:${data.phone.replace(/\D/g, "")}`}
-                  className="shrink-0 hover:underline"
+                  className="shrink-0 font-medium text-neutral-900 decoration-[color-mix(in_srgb,var(--lc-primary)_55%,transparent)] underline-offset-2 hover:underline"
                 >
                   {data.phone}
                 </a>
-                <span className="flex shrink-0 items-center" style={{ color: primary }}>
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[color-mix(in_srgb,var(--lc-primary)_38%,transparent)] bg-white/95 text-[var(--lc-primary)] shadow-[0_1px_2px_rgba(0,0,58,0.05)]">
                   <PhoneHandsetIcon />
                 </span>
               </p>

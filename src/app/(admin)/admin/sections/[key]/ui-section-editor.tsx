@@ -1,11 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import {
   upsertSectionDefinition,
   upsertSectionVariant,
   deleteSectionVariant,
+  deleteSectionVariants,
 } from "@/app/actions/admin";
 import { he } from "@/lib/i18n/he";
 import {
@@ -30,6 +31,16 @@ import type {
 } from "@/types/admin";
 
 const EMPTY_OVERRIDES: SectionStyleOverrides = {};
+
+function optionDisplayName(nameHe: string | undefined, index: number): string {
+  const t = nameHe?.trim();
+  if (t) return t;
+  return he.adminDesignOptionNumbered.replace("{n}", String(index + 1));
+}
+
+type DesignCardDisplayItem =
+  | { kind: "implicit" }
+  | { kind: "persisted"; row: SectionVariantRow };
 
 function emptyVariantDraft(
   sectionKey: string,
@@ -86,7 +97,7 @@ function TrashIcon() {
 function themeFromOverrides(vo: SectionStyleOverrides) {
   return {
     primary: vo.accentColor ?? "#0b43b4",
-    background: vo.backgroundColor ?? "#f8f9fa",
+    background: "#e5e5e5",
     heading: vo.textColor ?? "#000000",
     body: "#4b5563",
   };
@@ -153,31 +164,14 @@ function AdminVariantPreview({
 function VariantStyleForm({
   value,
   onChange,
+  sectionKey,
 }: {
   value: SectionStyleOverrides;
   onChange: (v: SectionStyleOverrides) => void;
+  sectionKey?: string;
 }) {
   return (
     <div className="grid grid-cols-2 gap-3">
-      <div className="space-y-1">
-        <label className="text-xs font-medium text-neutral-600">{he.adminStyleBg}</label>
-        <div className="flex items-center gap-2">
-          <input
-            type="color"
-            value={value.backgroundColor ?? "#ffffff"}
-            onChange={(e) => onChange({ ...value, backgroundColor: e.target.value })}
-            className="h-8 w-8 cursor-pointer rounded border border-neutral-300"
-          />
-          <input
-            type="text"
-            value={value.backgroundColor ?? ""}
-            onChange={(e) => onChange({ ...value, backgroundColor: e.target.value || undefined })}
-            placeholder="#ffffff"
-            dir="ltr"
-            className="flex-1 text-xs"
-          />
-        </div>
-      </div>
       <div className="space-y-1">
         <label className="text-xs font-medium text-neutral-600">{he.adminStyleText}</label>
         <div className="flex items-center gap-2">
@@ -271,6 +265,49 @@ function VariantStyleForm({
           <option value="ltr">שמאל לימין</option>
         </select>
       </div>
+      {sectionKey === "checklist_with_image" ? (
+        <div className="col-span-2 space-y-1">
+          <label className="text-xs font-medium text-neutral-600">{he.adminChecklistLayout}</label>
+          <select
+            value={value.checklistLayout ?? "with_image"}
+            onChange={(e) =>
+              onChange({
+                ...value,
+                checklistLayout: e.target.value as NonNullable<
+                  SectionStyleOverrides["checklistLayout"]
+                >,
+              })
+            }
+            className="w-full text-xs"
+          >
+            <option value="with_image">{he.adminChecklistWithImage}</option>
+            <option value="text_only">{he.adminChecklistTextOnly}</option>
+          </select>
+        </div>
+      ) : null}
+      {sectionKey === "testimonials_row" ? (
+        <div className="col-span-2 space-y-1">
+          <label className="text-xs font-medium text-neutral-600">{he.adminTestimonialsLayout}</label>
+          <select
+            value={value.testimonialsLayout ?? "marquee"}
+            onChange={(e) =>
+              onChange({
+                ...value,
+                testimonialsLayout: e.target.value as NonNullable<
+                  SectionStyleOverrides["testimonialsLayout"]
+                >,
+              })
+            }
+            className="w-full text-xs"
+          >
+            <option value="marquee">{he.adminTestimonialsMarquee}</option>
+            <option value="photo_cards">{he.adminTestimonialsPhotoCards}</option>
+            <option value="star_cards">{he.adminTestimonialsStarCards}</option>
+            <option value="quote_side">{he.adminTestimonialsQuoteSide}</option>
+            <option value="cinematic">{he.adminTestimonialsCinematic}</option>
+          </select>
+        </div>
+      ) : null}
       <div className="col-span-2 space-y-1">
         <label className="text-xs font-medium text-neutral-600">{he.adminImageTextLayout}</label>
         <select
@@ -353,6 +390,7 @@ function VariantDraftEditor({
 
         <h4 className="text-xs font-semibold text-neutral-600">{he.adminVariantStyle}</h4>
         <VariantStyleForm
+          sectionKey={sectionKey}
           value={draft.style_overrides ?? EMPTY_OVERRIDES}
           onChange={(v) => patchDraft({ style_overrides: v })}
         />
@@ -406,10 +444,11 @@ export function SectionEditor({
   const [def, setDef] = useState(definition);
   const [variants, setVariants] = useState(initialVariants);
   const [editingVariant, setEditingVariant] = useState<Partial<SectionVariantRow> | null>(null);
-  const [definitionModalOpen, setDefinitionModalOpen] = useState(false);
+  const [selectedVariantIds, setSelectedVariantIds] = useState<Set<string>>(() => new Set());
   const [msg, setMsg] = useState("");
   const [pending, startTransition] = useTransition();
   const router = useRouter();
+  const selectAllRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setDef(definition);
@@ -419,14 +458,26 @@ export function SectionEditor({
     setVariants(initialVariants);
   }, [initialVariants]);
 
+  useEffect(() => {
+    const valid = new Set(variants.map((v) => v.id));
+    setSelectedVariantIds((prev) => {
+      const next = new Set([...prev].filter((id) => valid.has(id)));
+      return next.size === prev.size ? prev : next;
+    });
+  }, [variants]);
+
   const canPreview =
     SECTION_KEYS.includes(def.key as SectionKey) || isLegacyNavHeroStatsKey(def.key);
   const previewContent = getDefaultContentForAdminPreview(def.key);
-  const showAddVariantButton = variants.length >= 1 && !editingVariant;
+  const displayItems: DesignCardDisplayItem[] =
+    variants.length > 0
+      ? variants.map((row) => ({ kind: "persisted", row }))
+      : [{ kind: "implicit" }];
+  /** תמיד מציגים הוספה כשלא עורכים מודאל — כולל כשאין עדיין כרטיסים במסד. */
+  const showAddVariantButton = !editingVariant;
   const variantEditorModalOpen = !!editingVariant;
 
   function openVariantEditor(draft: Partial<SectionVariantRow>) {
-    setDefinitionModalOpen(false);
     setEditingVariant(draft);
   }
 
@@ -440,12 +491,7 @@ export function SectionEditor({
 
   const variantCancelLabel = he.adminBackToVariantList;
 
-  function openDefinitionModal() {
-    setEditingVariant(null);
-    setDefinitionModalOpen(true);
-  }
-
-  function handleSaveDef() {
+  function handleSaveDefinition() {
     startTransition(async () => {
       const res = await upsertSectionDefinition({
         key: def.key,
@@ -457,7 +503,6 @@ export function SectionEditor({
         preview_image_url: def.preview_image_url,
       });
       if (res.ok) {
-        setDefinitionModalOpen(false);
         setMsg(he.adminSaved);
         router.refresh();
       } else {
@@ -497,6 +542,11 @@ export function SectionEditor({
       if (res.ok) {
         const next = variants.filter((v) => v.id !== id);
         setVariants(next);
+        setSelectedVariantIds((prev) => {
+          const n = new Set(prev);
+          n.delete(id);
+          return n;
+        });
         if (editingVariant?.id === id) {
           setEditingVariant(null);
         }
@@ -504,25 +554,167 @@ export function SectionEditor({
     });
   }
 
+  const allVariantsSelected =
+    variants.length > 0 && selectedVariantIds.size === variants.length;
+  const someVariantsSelected =
+    selectedVariantIds.size > 0 && !allVariantsSelected;
+
+  useEffect(() => {
+    const el = selectAllRef.current;
+    if (el) el.indeterminate = someVariantsSelected;
+  }, [someVariantsSelected, allVariantsSelected]);
+
+  function toggleSelectVariant(id: string) {
+    setSelectedVariantIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAllVariants() {
+    if (allVariantsSelected) {
+      setSelectedVariantIds(new Set());
+    } else {
+      setSelectedVariantIds(new Set(variants.map((v) => v.id)));
+    }
+  }
+
+  function handleBulkDeleteVariants() {
+    const ids = [...selectedVariantIds];
+    if (ids.length === 0) return;
+    const confirmMsg = he.adminBulkDeleteConfirm.replace("{n}", String(ids.length));
+    if (!window.confirm(confirmMsg)) return;
+    startTransition(async () => {
+      const res = await deleteSectionVariants(def.key, ids);
+      if (res.ok) {
+        setMsg(he.adminSaved);
+        const idSet = new Set(ids);
+        setVariants((prev) => prev.filter((v) => !idSet.has(v.id)));
+        setSelectedVariantIds(new Set());
+        if (editingVariant?.id && idSet.has(editingVariant.id)) {
+          setEditingVariant(null);
+        }
+        router.refresh();
+      } else {
+        setMsg(res.error ?? he.adminError);
+      }
+    });
+  }
+
   return (
     <div className="rounded-xl border border-neutral-200 bg-white p-5 space-y-4">
+      <header className="space-y-4 border-b border-neutral-100 pb-5" dir="rtl">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <h2 className="text-base font-semibold text-neutral-900">{he.adminSectionDetails}</h2>
+          <button
+            type="button"
+            disabled={pending || !def.title_he.trim()}
+            onClick={handleSaveDefinition}
+            className="shrink-0 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-50"
+          >
+            {he.adminSave}
+          </button>
+        </div>
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <label
+              className="block text-xs font-medium text-neutral-600"
+              htmlFor="section-display-name"
+            >
+              {he.adminSectionDisplayName}
+            </label>
+            <input
+              id="section-display-name"
+              type="text"
+              value={def.title_he}
+              onChange={(e) => setDef({ ...def, title_he: e.target.value })}
+              className="block w-full max-w-2xl text-lg font-semibold text-neutral-900"
+            />
+            <p className="text-[11px] leading-relaxed text-neutral-500">
+              {he.adminSectionDisplayNameHint}
+            </p>
+          </div>
+          <div className="grid max-w-2xl gap-3 sm:grid-cols-2">
+            <div className="space-y-1">
+              <label className="block text-xs font-medium text-neutral-600" htmlFor="section-category">
+                {he.adminSectionCategory}
+              </label>
+              <select
+                id="section-category"
+                value={def.category_slug}
+                onChange={(e) => setDef({ ...def, category_slug: e.target.value })}
+                className="block w-full text-sm"
+              >
+                {categories.map((c) => (
+                  <option key={c.slug} value={c.slug}>
+                    {c.name_he}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1">
+              <label className="block text-xs font-medium text-neutral-600" htmlFor="section-sort">
+                {he.adminSectionSortOrder}
+              </label>
+              <input
+                id="section-sort"
+                type="number"
+                value={def.sort_order}
+                onChange={(e) => setDef({ ...def, sort_order: Number(e.target.value) })}
+                className="block w-full text-sm sm:max-w-[8rem]"
+              />
+            </div>
+          </div>
+          <div className="max-w-2xl space-y-1">
+            <label className="block text-xs font-medium text-neutral-600" htmlFor="section-description">
+              {he.adminSectionDescription}
+            </label>
+            <textarea
+              id="section-description"
+              value={def.description_he}
+              onChange={(e) => setDef({ ...def, description_he: e.target.value })}
+              rows={3}
+              className="block w-full text-sm"
+            />
+          </div>
+          <label className="flex max-w-2xl items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={def.enabled}
+              onChange={(e) => setDef({ ...def, enabled: e.target.checked })}
+              className="rounded"
+            />
+            {he.adminSectionEnabled}
+          </label>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-neutral-500">
+            <span>{he.adminSectionKey}</span>
+            <code
+              className="rounded-md bg-neutral-100 px-2 py-0.5 font-mono text-[11px] text-neutral-700"
+              dir="ltr"
+            >
+              {def.key}
+            </code>
+          </div>
+        </div>
+      </header>
+
       <div
         className="flex flex-wrap items-center justify-between gap-3"
         dir="rtl"
       >
         <h2 className="font-semibold">{he.adminSectionVariants}</h2>
         <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={openDefinitionModal}
-            className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-800 transition hover:bg-neutral-50"
-          >
-            {he.adminEditSectionDetailsButton}
-          </button>
           {showAddVariantButton ? (
             <button
               type="button"
-              onClick={() => openVariantEditor(emptyVariantDraft(def.key, variants.length))}
+              onClick={() =>
+                openVariantEditor({
+                  ...emptyVariantDraft(def.key, variants.length),
+                  ...(variants.length === 0 ? { is_default: true } : {}),
+                })
+              }
               className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-blue-700"
             >
               + {he.adminAddVariant}
@@ -531,6 +723,45 @@ export function SectionEditor({
         </div>
       </div>
 
+      {variants.length > 0 && !variantEditorModalOpen ? (
+        <div
+          className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2"
+          dir="rtl"
+        >
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-neutral-800">
+            <input
+              ref={selectAllRef}
+              type="checkbox"
+              checked={allVariantsSelected}
+              onChange={toggleSelectAllVariants}
+              className="rounded border-neutral-400"
+            />
+            {he.adminBulkSelectAll}
+          </label>
+          <div className="flex flex-wrap items-center gap-2">
+            {selectedVariantIds.size > 0 ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setSelectedVariantIds(new Set())}
+                  className="text-xs text-neutral-600 underline hover:text-neutral-900"
+                >
+                  {he.adminBulkClearSelection}
+                </button>
+                <button
+                  type="button"
+                  disabled={pending}
+                  onClick={handleBulkDeleteVariants}
+                  className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100 disabled:opacity-50"
+                >
+                  {he.adminBulkDeleteSelected} ({selectedVariantIds.size})
+                </button>
+              </>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+
       {msg ? (
         <p className="text-xs text-green-700" dir="rtl">
           {msg}
@@ -538,60 +769,32 @@ export function SectionEditor({
       ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2 sm:items-stretch">
-        {variants.length === 0 ? (
-          <div
-            className="flex min-h-[min(420px,70vh)] flex-col gap-3 rounded-lg border border-neutral-200 bg-neutral-50/50 p-3 sm:min-h-[440px] sm:p-4"
-            dir="rtl"
-          >
-            <div className="flex shrink-0 items-start justify-between gap-2">
-              <div className="min-w-0 flex-1 space-y-1">
-                <span className="font-medium">{he.adminVariantOriginalDesign}</span>
-              </div>
-              <button
-                type="button"
-                onClick={() =>
-                  openVariantEditor({
-                    ...emptyVariantDraft(def.key, 0),
-                    name_he: he.adminVariantOriginalDesign,
-                  })
-                }
-                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-neutral-300 bg-white text-neutral-600 transition hover:bg-neutral-100"
-                title={he.adminEditVariant}
-                aria-label={he.adminEditVariant}
-              >
-                <PencilIcon />
-              </button>
-            </div>
-            {canPreview ? (
-              <div className="relative min-h-0 flex-1 basis-0">
-                <AdminVariantPreview
-                  sectionKey={def.key}
-                  content={previewContent}
-                  variantStyleOverrides={EMPTY_OVERRIDES}
-                  previewId="admin-placeholder-original"
-                  size="thumb"
-                  fillContainer
-                />
-              </div>
-            ) : null}
-          </div>
-        ) : (
-          variants.map((v) => (
+        {displayItems.map((item, index) => {
+          const isImplicit = item.kind === "implicit";
+          const v = item.kind === "persisted" ? item.row : null;
+          const previewId = isImplicit
+            ? "admin-implicit-default"
+            : `admin-row-${v!.id}`;
+          const styleOverrides = v?.style_overrides ?? EMPTY_OVERRIDES;
+          const showDefaultBadge = isImplicit || v?.is_default;
+          const title = optionDisplayName(v?.name_he, index);
+
+          return (
             <div
-              key={v.id}
+              key={isImplicit ? "implicit-default" : v!.id}
               className="flex min-h-[min(420px,70vh)] flex-col gap-3 rounded-lg border border-neutral-200 bg-neutral-50/50 p-3 sm:min-h-[440px] sm:p-4"
               dir="rtl"
             >
               <div className="flex shrink-0 items-start justify-between gap-2">
                 <div className="min-w-0 flex-1 space-y-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-medium">{v.name_he}</span>
-                    {v.is_default ? (
+                    <span className="font-medium">{title}</span>
+                    {showDefaultBadge ? (
                       <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-700">
                         {he.adminVariantDefault}
                       </span>
                     ) : null}
-                    {!v.enabled ? (
+                    {v && !v.enabled ? (
                       <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-[10px] text-neutral-600">
                         {he.adminSectionDisabled}
                       </span>
@@ -599,25 +802,45 @@ export function SectionEditor({
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
+                  {v ? (
+                    <label className="inline-flex cursor-pointer items-center p-1">
+                      <input
+                        type="checkbox"
+                        checked={selectedVariantIds.has(v.id)}
+                        onChange={() => toggleSelectVariant(v.id)}
+                        className="size-4 rounded border-neutral-400"
+                        aria-label={he.adminVariantCheckboxAria}
+                      />
+                    </label>
+                  ) : null}
                   <button
                     type="button"
-                    onClick={() => openVariantEditor({ ...v })}
+                    onClick={() =>
+                      isImplicit
+                        ? openVariantEditor({
+                            ...emptyVariantDraft(def.key, 0),
+                            is_default: true,
+                          })
+                        : openVariantEditor({ ...v })
+                    }
                     className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-300 bg-white text-neutral-600 transition hover:bg-neutral-100"
                     title={he.adminEditVariant}
                     aria-label={he.adminEditVariant}
                   >
                     <PencilIcon />
                   </button>
-                  <button
-                    type="button"
-                    disabled={pending}
-                    onClick={() => handleDeleteVariant(v.id)}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 text-red-600 transition hover:bg-red-50 disabled:opacity-50"
-                    title={he.adminDeleteVariant}
-                    aria-label={he.adminDeleteVariant}
-                  >
-                    <TrashIcon />
-                  </button>
+                  {v ? (
+                    <button
+                      type="button"
+                      disabled={pending}
+                      onClick={() => handleDeleteVariant(v.id)}
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 text-red-600 transition hover:bg-red-50 disabled:opacity-50"
+                      title={he.adminDeleteVariant}
+                      aria-label={he.adminDeleteVariant}
+                    >
+                      <TrashIcon />
+                    </button>
+                  ) : null}
                 </div>
               </div>
               {canPreview ? (
@@ -625,16 +848,16 @@ export function SectionEditor({
                   <AdminVariantPreview
                     sectionKey={def.key}
                     content={previewContent}
-                    variantStyleOverrides={v.style_overrides ?? EMPTY_OVERRIDES}
-                    previewId={`admin-row-${v.id}`}
+                    variantStyleOverrides={styleOverrides}
+                    previewId={previewId}
                     size="thumb"
                     fillContainer
                   />
                 </div>
               ) : null}
             </div>
-          ))
-        )}
+          );
+        })}
       </div>
 
       {variantEditorModalOpen && editingVariant ? (
@@ -671,100 +894,6 @@ export function SectionEditor({
                 previewContent={previewContent}
                 previewSize="large"
               />
-            </ModalBody>
-          </ModalPanel>
-        </Modal>
-      ) : null}
-
-      {definitionModalOpen ? (
-        <Modal
-          labelledBy="section-definition-editor-title"
-          onRequestClose={() => setDefinitionModalOpen(false)}
-          backdropAriaLabel={he.closeSettings}
-          zClassName="z-[100]"
-        >
-          <ModalPanel maxWidthClassName="max-w-lg" dir="rtl">
-            <ModalHeader
-              titleId="section-definition-editor-title"
-              title={he.adminSectionDetails}
-              onClose={() => setDefinitionModalOpen(false)}
-              closeAriaLabel={he.closeSettings}
-              dense
-            />
-            <ModalBody className="space-y-4 p-4 sm:p-5">
-              <div className="grid gap-3 sm:grid-cols-1">
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-neutral-600">
-                    {he.adminSectionTitle}
-                  </label>
-                  <input
-                    type="text"
-                    value={def.title_he}
-                    onChange={(e) => setDef({ ...def, title_he: e.target.value })}
-                    className="block w-full text-sm"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-neutral-600">
-                    {he.adminSectionCategory}
-                  </label>
-                  <select
-                    value={def.category_slug}
-                    onChange={(e) => setDef({ ...def, category_slug: e.target.value })}
-                    className="block w-full text-sm"
-                  >
-                    {categories.map((c) => (
-                      <option key={c.slug} value={c.slug}>
-                        {c.name_he}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-neutral-600">
-                  {he.adminSectionDescription}
-                </label>
-                <textarea
-                  value={def.description_he}
-                  onChange={(e) => setDef({ ...def, description_he: e.target.value })}
-                  rows={3}
-                  className="block w-full text-sm"
-                />
-              </div>
-
-              <div className="flex flex-wrap items-center gap-4">
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={def.enabled}
-                    onChange={(e) => setDef({ ...def, enabled: e.target.checked })}
-                    className="rounded"
-                  />
-                  {he.adminSectionEnabled}
-                </label>
-                <div className="flex items-center gap-2">
-                  <label className="text-xs text-neutral-600">סדר:</label>
-                  <input
-                    type="number"
-                    value={def.sort_order}
-                    onChange={(e) =>
-                      setDef({ ...def, sort_order: Number(e.target.value) })
-                    }
-                    className="w-16 text-sm"
-                  />
-                </div>
-              </div>
-
-              <button
-                type="button"
-                disabled={pending}
-                onClick={handleSaveDef}
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-50"
-              >
-                {he.adminSave}
-              </button>
             </ModalBody>
           </ModalPanel>
         </Modal>

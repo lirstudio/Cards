@@ -33,7 +33,7 @@ export type SectionVariantRow = {
   updated_at: string;
 };
 
-/** וריאנט לבחירה בעורך (רשימה ציבורית, enabled בלבד). */
+/** כרטיס עיצוב לבחירה בעורך העמוד (רשימה ציבורית מסקשנים מופעלים). */
 export type SectionVariantPickerRow = {
   id: string;
   section_key: string;
@@ -61,6 +61,18 @@ export const sectionStyleOverridesSchema = z.object({
   /** For sections with text + image: side‑by‑side (default) or stacked order. */
   imageTextLayout: z
     .enum(["default", "stack_text_above", "stack_image_above"])
+    .optional(),
+  /** סקשן checklist_with_image: תמונה לצד הרשימה או רשימה ממורכזת בלבד. */
+  checklistLayout: z.enum(["with_image", "text_only"]).optional(),
+  /** סקשן testimonials_row: עיצוב כרטיסי ההמלצות. */
+  testimonialsLayout: z
+    .enum([
+      "marquee",
+      "photo_cards",
+      "star_cards",
+      "quote_side",
+      "cinematic",
+    ])
     .optional(),
 });
 

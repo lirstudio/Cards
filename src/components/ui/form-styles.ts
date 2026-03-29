@@ -4,8 +4,9 @@ export const settingsTextInputClass =
 
 export const settingsLabelClass = "text-sm font-medium text-neutral-800";
 
+/** סעיפים במודאל הגדרות — בלי כרטיס ממוסגר; קו מפריד תחתון בלבד */
 export const settingsSectionClass =
-  "rounded-2xl border border-neutral-100/80 bg-gradient-to-b from-neutral-50/90 to-neutral-50/40 p-4 shadow-sm";
+  "border-b border-neutral-100 pb-6 last:border-b-0 last:pb-0";
 
 export const settingsHexInputClass =
   "min-w-0 flex-1 font-mono text-xs uppercase tracking-wide text-neutral-800";

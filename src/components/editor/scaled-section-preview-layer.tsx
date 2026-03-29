@@ -11,11 +11,11 @@ type Props = {
 };
 
 /**
- * שכבת תצוגה מקדימה ממוזערת — ממורכזת אנכית ואופקית בתוך המסגרת (אדמין, וריאנטים, פלטה).
+ * שכבת תצוגה מקדימה ממוזערת — ממורכזת אנכית ואופקית בתוך המסגרת (אדמין, כרטיסי עיצוב, פלטה).
  */
 export function ScaledSectionPreviewLayer({
   children,
-  canvasWidthClass = "w-[min(840px,200vw)]",
+  canvasWidthClass = "w-[min(1200px,200vw)]",
   scale,
   className = "",
 }: Props) {
@@ -28,7 +28,7 @@ export function ScaledSectionPreviewLayer({
       }}
       aria-hidden
     >
-      {children}
+      <div className="lc-page-root min-w-0">{children}</div>
     </div>
   );
 }

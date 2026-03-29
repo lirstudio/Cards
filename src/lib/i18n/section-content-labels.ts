@@ -9,6 +9,7 @@ const LABELS: Record<string, string> = {
   headline: "כותרת",
   subheadline: "כותרת משנה",
   heroImage: "תמונת הירו",
+  heroBackdropCircle: "עיגול צבע מאחורי התמונה (שדרוג עיצובי)",
   headerCta: "כפתור בראש העמוד",
   heroCta: "כפתור פעולה בהירו",
   navLinks: "קישורי ניווט",
@@ -58,6 +59,8 @@ const TESTIMONIAL_LABELS: Record<string, string> = {
   body: "תוכן ההמלצה",
   authorName: "שם הממליץ",
   authorTitle: "תפקיד או תואר",
+  authorImage: "תמונת הממליץ",
+  starRating: "דירוג (כוכבים)",
 };
 
 export function testimonialFieldLabel(key: string): string {

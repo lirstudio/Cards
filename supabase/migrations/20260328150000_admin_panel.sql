@@ -154,7 +154,7 @@ insert into public.section_definitions (key, title_he, description_he, category_
   ('split_three_qa_image', 'מי אנחנו + תמונה',         'שלוש שאלות ותשובות לצד תמונה רחבה.',                              'content',    true, 2),
   ('testimonials_row',     'המלצות',                    'כרטיסי המלצות בגלילה אופקית.',                                    'content',    true, 3),
   ('center_richtext_cta',  'טקסט מרכזי + כפתור',       'כותרת, פסקאות ו־CTA — למשל על הסדנה.',                            'content',    true, 4),
-  ('checklist_with_image', 'רשימת מה כלול + תמונה',    'כותרת, פריטים עם וי כחול ותמונה.',                                'content',    true, 5),
+  ('checklist_with_image', 'רשימה',                  'כותרת ופריטים עם וי כחול — ניתן לבחור תצוגה עם תמונה או רשימה בלבד (וריאנט).', 'content',    true, 5),
   ('pricing_banner',       'באנר מחיר',                 'כותרת מחיר, טקסט הסבר וכפתור.',                                   'conversion', true, 6),
   ('services_grid',        'רשת שירותים',               'תגית, כותרת וארבעה כרטיסים (כולל מודגש).',                        'content',    true, 7),
   ('gallery_row',          'גלריית תמונות',             'שורת תמונות מעוגלות.',                                            'content',    true, 8),
