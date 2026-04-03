@@ -20,7 +20,6 @@ import { imageSrcIsProvided, LandingImagePlaceholder } from "./image-placeholder
 import { submitLandingLead } from "@/app/actions/forms";
 import { LC_SECTION_PX, LC_SECTION_SHELL } from "@/lib/landing/section-shell";
 import {
-  buildNavLinksFromPage,
   landingSectionDomId,
   LANDING_SECTION_ANCHOR_CLASS,
   resolveHeaderCtaHref,

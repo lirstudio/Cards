@@ -83,7 +83,7 @@ export const he = {
   forgotPasswordSubmit: "שליחת קישור לאיפוס",
   forgotPasswordTitle: "איפוס סיסמה",
   forgotPasswordHint:
-    "נשלח אליך מייל עם קישור לאיפוס הסיסמה. אם אין חשבון עם האימייל הזה, לא יישלח דבר.",
+    "נשלח מייל עם קישור לאיפוס — רק אם נרשמת לאותו אימייל בפרויקט. בדוק גם תיקיית ספאם/קידומי מייל. אם לא הגיע תוך דקות ספורות — ב־Supabase: Authentication → Logs.",
   backToLogin: "חזרה להתחברות",
   newPassword: "סיסמה חדשה",
   confirmPassword: "אימות סיסמה",
@@ -108,7 +108,8 @@ export const he = {
   settingsAccount: "חשבון",
   settingsSubscription: "מנוי",
   profileUpdated: "הפרופיל עודכן",
-  passwordResetSent: "נשלח מייל לאיפוס סיסמה (אם האימייל קיים במערכת)",
+  passwordResetSent:
+    "אם האימייל רשום אצלנו, נשלח אליו קישור לאיפוס. בדוק גם ספאם. אין מייל? ודא שנרשמת עם אותה כתובת, ושהאתר ב־Vercel כולל NEXT_PUBLIC_SUPABASE_URL ו־NEXT_PUBLIC_SITE_URL (כתובת הפריסה).",
   sectionLibrary: "ספריית סקשנים",
   libraryHint:
     "לחצו על + ליד סוג סקשן כדי למלא תוכן ולהוסיף לעמוד. לחצו על סקשן בתצוגה המקדימה כדי לערוך.",
