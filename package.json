@@ -12,7 +12,8 @@
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",
     "supabase:status": "supabase status",
-    "db:push:remote": "node scripts/db-push-remote.mjs"
+    "db:push:remote": "node scripts/db-push-remote.mjs",
+    "check:auth-env": "node scripts/check-auth-env.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

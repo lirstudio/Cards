@@ -2,7 +2,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Auth emails (password reset)
 
-Reset and signup emails are sent by **Supabase Auth**, not by this app. If mail does not arrive, follow [docs/supabase-auth-email.md](docs/supabase-auth-email.md).
+Reset and signup emails are sent by **Supabase Auth**, not by this app. If mail does not arrive, follow [docs/supabase-auth-email.md](docs/supabase-auth-email.md). Copy [`.env.example`](.env.example) to `.env.local` and run `npm run check:auth-env` before deploy.
 
 ## Getting Started
 

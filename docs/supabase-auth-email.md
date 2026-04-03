@@ -1,5 +1,7 @@
 # Supabase Auth: password reset emails
 
+In this repo, run `npm run check:auth-env` to validate `NEXT_PUBLIC_*` before deploy (uses `.env.local` if present).
+
 The app does **not** send email itself. Forgot-password calls `supabase.auth.resetPasswordForEmail` (see `src/app/actions/auth.ts`); **Supabase Auth** delivers the message (hosted default mailer or custom SMTP in the Supabase project).
 
 **Local dev:** With `supabase start`, messages go to **Mailpit/Inbucket** (see `supabase status` for the URL). They do not leave your machine.

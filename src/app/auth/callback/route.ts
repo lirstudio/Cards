@@ -15,5 +15,13 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.redirect(new URL("/login?error=auth_callback", url.origin));
+  const errCode = url.searchParams.get("error_code");
+  const err = url.searchParams.get("error");
+  let authError = "auth_callback";
+  if (errCode === "otp_expired") authError = "otp_expired";
+  else if (err === "access_denied") authError = "access_denied";
+
+  return NextResponse.redirect(
+    new URL(`/login?auth_error=${encodeURIComponent(authError)}`, url.origin),
+  );
 }
