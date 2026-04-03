@@ -37,8 +37,10 @@ export async function requestPasswordReset(
   if (!user?.email) return { error: "לא מחובר" };
 
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const callback = new URL("/auth/callback", site);
+  callback.searchParams.set("next", "/reset-password");
   const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
-    redirectTo: `${site}/login`,
+    redirectTo: callback.toString(),
   });
 
   if (error) return { error: error.message };
