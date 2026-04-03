@@ -113,7 +113,7 @@ export const he = {
   settingsSubscription: "מנוי",
   profileUpdated: "הפרופיל עודכן",
   passwordResetSent:
-    "אם האימייל רשום אצלנו, נשלח אליו קישור לאיפוס. בדוק גם ספאם. אין מייל? ודא שנרשמת עם אותה כתובת, ושב־Supabase מותר ה־redirect (ראה Authentication → URL configuration).",
+    "נשלח קישור לאיפוס — בדוק גם ספאם/קידומי מייל.",
   passwordResetSiteUrlHint:
     "מומלץ להגדיר ב־Vercel את NEXT_PUBLIC_SITE_URL לכתובת האתר המדויקת (כולל דומיין מותאם), כדי שהקישור במייל יתאים ל־Redirect URLs ב־Supabase.",
   sectionLibrary: "ספריית סקשנים",

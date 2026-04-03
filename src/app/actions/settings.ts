@@ -38,6 +38,17 @@ export async function requestPasswordReset(
   } = await supabase.auth.getUser();
   if (!user?.email) return { error: "לא מחובר" };
 
+  const hasResend = Boolean(
+    process.env.RESEND_API_KEY?.trim() && process.env.SUPABASE_SERVICE_ROLE_KEY?.trim(),
+  );
+
+  if (hasResend) {
+    const { sendPasswordResetEmail } = await import("@/lib/email/send-password-reset");
+    const err = await sendPasswordResetEmail(user.email);
+    if (err) return { error: err };
+    return { ok: true, warnNoExplicitSiteUrl: false };
+  }
+
   const { origin, usedEnvOverride } = await resolvePublicOrigin();
   const callback = new URL("/auth/callback", origin);
   callback.searchParams.set("next", "/reset-password");

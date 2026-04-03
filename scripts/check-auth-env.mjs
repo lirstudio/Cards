@@ -83,6 +83,13 @@ console.log(
 console.log("  NEXT_PUBLIC_SITE_URL:", env.NEXT_PUBLIC_SITE_URL?.trim() || "(unset)");
 if (env.VERCEL_URL) console.log("  VERCEL_URL:", env.VERCEL_URL);
 
+const hasResend = env.RESEND_API_KEY?.trim() && env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+console.log("\n  Email delivery mode:", hasResend ? "Resend (bypasses Supabase rate limits)" : "Supabase built-in mailer (rate limited; add RESEND_API_KEY + SUPABASE_SERVICE_ROLE_KEY to enable Resend)");
+
+if (!hasResend) {
+  hints.push("Password reset emails are sent via Supabase built-in mailer (max ~2/hour on free tier). Add RESEND_API_KEY + SUPABASE_SERVICE_ROLE_KEY to switch to Resend.");
+}
+
 hints.forEach((h) => console.log("\nHint:", h));
 
 if (issues.length) {

@@ -26,6 +26,21 @@ export async function requestPasswordReset(
 ): Promise<{ error?: string; ok?: boolean; warnNoExplicitSiteUrl?: boolean } | null> {
   const email = String(formData.get("email") ?? "").trim();
   if (!email) return { error: "נא להזין כתובת אימייל" };
+
+  // If Resend + Service Role Key are configured, bypass Supabase mailer entirely
+  // (avoids rate limits and custom SMTP dependency).
+  const hasResend = Boolean(
+    process.env.RESEND_API_KEY?.trim() && process.env.SUPABASE_SERVICE_ROLE_KEY?.trim(),
+  );
+
+  if (hasResend) {
+    const { sendPasswordResetEmail } = await import("@/lib/email/send-password-reset");
+    const err = await sendPasswordResetEmail(email);
+    if (err) return { error: err };
+    return { ok: true, warnNoExplicitSiteUrl: false };
+  }
+
+  // Fallback: Supabase built-in mailer (subject to rate limits)
   const supabase = await createClient();
   const { origin, usedEnvOverride } = await resolvePublicOrigin();
   const callback = new URL("/auth/callback", origin);
