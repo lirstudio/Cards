@@ -2,6 +2,8 @@ export const RESERVED_SLUGS = new Set([
   "dashboard",
   "login",
   "signup",
+  "forgot-password",
+  "reset-password",
   "auth",
   "admin",
   "api",

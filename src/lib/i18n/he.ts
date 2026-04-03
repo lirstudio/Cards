@@ -79,6 +79,26 @@ export const he = {
   submit: "שליחה",
   noPages: "אין עדיין עמודים. צור עמוד חדש.",
   loginTitle: "התחברות לחשבון",
+  forgotPassword: "שכחתי סיסמה",
+  forgotPasswordSubmit: "שליחת קישור לאיפוס",
+  forgotPasswordTitle: "איפוס סיסמה",
+  forgotPasswordHint:
+    "נשלח מייל עם קישור לאיפוס — רק אם נרשמת לאותו אימייל בפרויקט. בדוק גם תיקיית ספאם/קידומי מייל. אם לא הגיע תוך דקות ספורות — ב־Supabase: Authentication → Logs.",
+  backToLogin: "חזרה להתחברות",
+  newPassword: "סיסמה חדשה",
+  confirmPassword: "אימות סיסמה",
+  setNewPassword: "עדכון סיסמה",
+  resetPasswordTitle: "בחירת סיסמה חדשה",
+  resetPasswordHint: "לאחר לחיצה על הקישור במייל, הזינו כאן סיסמה חדשה.",
+  passwordsDoNotMatch: "הסיסמאות אינן תואמות",
+  authCallbackError: "הקישור פג תוקף או שגוי. נסה לבקש איפוס מחדש.",
+  authOtpExpired:
+    "הקישור מהמייל פג תוקף או כבר נוצל. בקשו קישור חדש מ״שכחתי סיסמה״ או מ־Supabase — ואז לחצו עליו בהקדם.",
+  authAccessDenied:
+    "ההתחברות דרך הקישור נדחתה. בדקו ב־Supabase ש־Site URL וה־Redirect URLs תואמים לאתר האמיתי (לא רק localhost).",
+  resetSessionMissing:
+    "לא זוהתה הפעלת איפוס. פתחו שוב את הקישור מהמייל או בקשו איפוס חדש.",
+  passwordTooShort: "הסיסמה חייבת להכיל לפחות 6 תווים",
   signupTitle: "יצירת חשבון",
   heroCta: "דברו איתנו",
   contactSuccess: "תודה! נחזור אליך בקרוב.",
@@ -92,7 +112,10 @@ export const he = {
   settingsAccount: "חשבון",
   settingsSubscription: "מנוי",
   profileUpdated: "הפרופיל עודכן",
-  passwordResetSent: "נשלח מייל לאיפוס סיסמה (אם האימייל קיים במערכת)",
+  passwordResetSent:
+    "נשלח קישור לאיפוס — בדוק גם ספאם/קידומי מייל.",
+  passwordResetSiteUrlHint:
+    "מומלץ להגדיר ב־Vercel את NEXT_PUBLIC_SITE_URL לכתובת האתר המדויקת (כולל דומיין מותאם), כדי שהקישור במייל יתאים ל־Redirect URLs ב־Supabase.",
   sectionLibrary: "ספריית סקשנים",
   libraryHint:
     "לחצו על + ליד סוג סקשן כדי למלא תוכן ולהוסיף לעמוד. לחצו על סקשן בתצוגה המקדימה כדי לערוך.",

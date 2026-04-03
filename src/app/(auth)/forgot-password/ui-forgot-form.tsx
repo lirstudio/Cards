@@ -1,17 +1,28 @@
 "use client";
 
-import Link from "next/link";
 import { useActionState } from "react";
-import { signInWithEmail } from "@/app/actions/auth";
+import { requestPasswordReset } from "@/app/actions/auth";
 import { he } from "@/lib/i18n/he";
 
-export function LoginForm() {
-  const [state, action] = useActionState(signInWithEmail, null);
+export function ForgotPasswordForm() {
+  const [state, action] = useActionState(requestPasswordReset, null);
 
   return (
     <form action={action} className="mt-8 space-y-4">
       {state?.error ? (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{state.error}</p>
+      ) : null}
+      {state?.ok ? (
+        <div className="space-y-2">
+          <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+            {he.passwordResetSent}
+          </p>
+          {state.warnNoExplicitSiteUrl ? (
+            <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
+              {he.passwordResetSiteUrlHint}
+            </p>
+          ) : null}
+        </div>
       ) : null}
       <div>
         <label htmlFor="email" className="mb-1 block text-sm font-medium">
@@ -27,29 +38,11 @@ export function LoginForm() {
           className="w-full text-start text-sm"
         />
       </div>
-      <div>
-        <label htmlFor="password" className="mb-1 block text-sm font-medium">
-          {he.password}
-        </label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          required
-          autoComplete="current-password"
-          className="w-full text-sm"
-        />
-        <p className="mt-2 text-end text-sm">
-          <Link href="/forgot-password" className="font-medium text-[var(--lc-primary)]">
-            {he.forgotPassword}
-          </Link>
-        </p>
-      </div>
       <button
         type="submit"
         className="w-full rounded-full bg-[var(--lc-primary)] py-3 text-sm font-medium text-white"
       >
-        {he.login}
+        {he.forgotPasswordSubmit}
       </button>
     </form>
   );

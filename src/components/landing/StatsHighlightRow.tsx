@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { LC_SECTION_PX } from "@/lib/landing/section-shell";
 import {
   landingSectionDomId,
@@ -31,34 +31,33 @@ function formatAnimated(prefix: string, suffix: string, current: number, decimal
   return `${prefix}${body}${suffix}`;
 }
 
-function AnimatedStatValue({
+function usePrefersReducedMotion() {
+  return useSyncExternalStore(
+    (onChange) => {
+      const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+      mq.addEventListener("change", onChange);
+      return () => mq.removeEventListener("change", onChange);
+    },
+    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    () => false,
+  );
+}
+
+function AnimatedStatValueInner({
   value,
   headingColor,
-  reducedMotion,
-  runAnimation,
+  parsed,
 }: {
   value: string;
   headingColor: string;
-  reducedMotion: boolean;
-  runAnimation: boolean;
+  parsed: NonNullable<ReturnType<typeof parseStatValue>>;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [text, setText] = useState(() => {
-    if (!runAnimation) return value;
-    const p = parseStatValue(value);
-    if (!p) return value;
-    return formatAnimated(p.prefix, p.suffix, 0, p.decimals);
-  });
+  const [text, setText] = useState(() =>
+    formatAnimated(parsed.prefix, parsed.suffix, 0, parsed.decimals),
+  );
 
   useEffect(() => {
-    const parsed = parseStatValue(value);
-    if (!parsed || !runAnimation || reducedMotion) {
-      setText(value);
-      return;
-    }
-
-    setText(formatAnimated(parsed.prefix, parsed.suffix, 0, parsed.decimals));
-
     const el = containerRef.current;
     if (!el) return;
 
@@ -100,7 +99,7 @@ function AnimatedStatValue({
       observer?.disconnect();
       cancelAnimationFrame(rafId);
     };
-  }, [value, runAnimation, reducedMotion]);
+  }, [value, parsed.prefix, parsed.suffix, parsed.target, parsed.decimals]);
 
   return (
     <div
@@ -110,6 +109,34 @@ function AnimatedStatValue({
     >
       {text}
     </div>
+  );
+}
+
+function AnimatedStatValue({
+  value,
+  headingColor,
+  reducedMotion,
+  runAnimation,
+}: {
+  value: string;
+  headingColor: string;
+  reducedMotion: boolean;
+  runAnimation: boolean;
+}) {
+  const parsed = parseStatValue(value);
+  if (!parsed || !runAnimation || reducedMotion) {
+    return (
+      <div
+        className="text-4xl font-bold tabular-nums tracking-tight md:text-5xl"
+        style={{ color: headingColor }}
+      >
+        {value}
+      </div>
+    );
+  }
+
+  return (
+    <AnimatedStatValueInner key={value} value={value} headingColor={headingColor} parsed={parsed} />
   );
 }
 
@@ -138,14 +165,7 @@ export function StatsHighlightRow({
   const sectionPad =
     sectionPaddingClass ?? (embedded ? "py-3 @md:py-4" : "py-16 @md:py-20");
 
-  const [reducedMotion, setReducedMotion] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReducedMotion(mq.matches);
-    const fn = () => setReducedMotion(mq.matches);
-    mq.addEventListener("change", fn);
-    return () => mq.removeEventListener("change", fn);
-  }, []);
+  const reducedMotion = usePrefersReducedMotion();
 
   const runAnimation = !(editorPreview && embedded) && !disableCountUp;
 

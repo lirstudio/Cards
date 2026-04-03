@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { resolvePublicOrigin } from "@/lib/public-site-url";
+import { formatAuthEmailError } from "@/lib/supabase-auth-errors";
 
 export async function updateProfileDisplayName(
   _prev: { error?: string; ok?: boolean } | null,
@@ -25,9 +27,9 @@ export async function updateProfileDisplayName(
 }
 
 export async function requestPasswordReset(
-  previousState: { error?: string; ok?: boolean } | null,
+  previousState: { error?: string; ok?: boolean; warnNoExplicitSiteUrl?: boolean } | null,
   formData: FormData,
-): Promise<{ error?: string; ok?: boolean } | null> {
+): Promise<{ error?: string; ok?: boolean; warnNoExplicitSiteUrl?: boolean } | null> {
   void previousState;
   void formData;
   const supabase = await createClient();
@@ -36,11 +38,24 @@ export async function requestPasswordReset(
   } = await supabase.auth.getUser();
   if (!user?.email) return { error: "לא מחובר" };
 
-  const site = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const hasResend = Boolean(
+    process.env.RESEND_API_KEY?.trim() && process.env.SUPABASE_SERVICE_ROLE_KEY?.trim(),
+  );
+
+  if (hasResend) {
+    const { sendPasswordResetEmail } = await import("@/lib/email/send-password-reset");
+    const err = await sendPasswordResetEmail(user.email);
+    if (err) return { error: err };
+    return { ok: true, warnNoExplicitSiteUrl: false };
+  }
+
+  const { origin, usedEnvOverride } = await resolvePublicOrigin();
+  const callback = new URL("/auth/callback", origin);
+  callback.searchParams.set("next", "/reset-password");
   const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
-    redirectTo: `${site}/login`,
+    redirectTo: callback.toString(),
   });
 
-  if (error) return { error: error.message };
-  return { ok: true };
+  if (error) return { error: formatAuthEmailError(error.message) };
+  return { ok: true, warnNoExplicitSiteUrl: !usedEnvOverride };
 }
