@@ -13,7 +13,14 @@ export function PasswordResetForm() {
         <p className="mb-2 text-sm text-red-600">{state.error}</p>
       ) : null}
       {state?.ok ? (
-        <p className="mb-2 text-sm text-green-700">{he.passwordResetSent}</p>
+        <div className="mb-2 space-y-2">
+          <p className="text-sm text-green-700">{he.passwordResetSent}</p>
+          {state.warnNoExplicitSiteUrl ? (
+            <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
+              {he.passwordResetSiteUrlHint}
+            </p>
+          ) : null}
+        </div>
       ) : null}
       <button
         type="submit"

@@ -13,7 +13,16 @@ export function ForgotPasswordForm() {
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{state.error}</p>
       ) : null}
       {state?.ok ? (
-        <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">{he.passwordResetSent}</p>
+        <div className="space-y-2">
+          <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+            {he.passwordResetSent}
+          </p>
+          {state.warnNoExplicitSiteUrl ? (
+            <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
+              {he.passwordResetSiteUrlHint}
+            </p>
+          ) : null}
+        </div>
       ) : null}
       <div>
         <label htmlFor="email" className="mb-1 block text-sm font-medium">

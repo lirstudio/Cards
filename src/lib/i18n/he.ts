@@ -109,7 +109,9 @@ export const he = {
   settingsSubscription: "מנוי",
   profileUpdated: "הפרופיל עודכן",
   passwordResetSent:
-    "אם האימייל רשום אצלנו, נשלח אליו קישור לאיפוס. בדוק גם ספאם. אין מייל? ודא שנרשמת עם אותה כתובת, ושהאתר ב־Vercel כולל NEXT_PUBLIC_SUPABASE_URL ו־NEXT_PUBLIC_SITE_URL (כתובת הפריסה).",
+    "אם האימייל רשום אצלנו, נשלח אליו קישור לאיפוס. בדוק גם ספאם. אין מייל? ודא שנרשמת עם אותה כתובת, ושב־Supabase מותר ה־redirect (ראה Authentication → URL configuration).",
+  passwordResetSiteUrlHint:
+    "מומלץ להגדיר ב־Vercel את NEXT_PUBLIC_SITE_URL לכתובת האתר המדויקת (כולל דומיין מותאם), כדי שהקישור במייל יתאים ל־Redirect URLs ב־Supabase.",
   sectionLibrary: "ספריית סקשנים",
   libraryHint:
     "לחצו על + ליד סוג סקשן כדי למלא תוכן ולהוסיף לעמוד. לחצו על סקשן בתצוגה המקדימה כדי לערוך.",

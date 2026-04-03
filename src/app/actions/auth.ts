@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { he } from "@/lib/i18n/he";
+import { resolvePublicOrigin } from "@/lib/public-site-url";
+import { formatAuthEmailError } from "@/lib/supabase-auth-errors";
 
 export async function signInWithEmail(
   _prev: { error?: string } | null,
@@ -19,20 +21,23 @@ export async function signInWithEmail(
 }
 
 export async function requestPasswordReset(
-  _prev: { error?: string; ok?: boolean } | null,
+  _prev: { error?: string; ok?: boolean; warnNoExplicitSiteUrl?: boolean } | null,
   formData: FormData,
-): Promise<{ error?: string; ok?: boolean } | null> {
+): Promise<{ error?: string; ok?: boolean; warnNoExplicitSiteUrl?: boolean } | null> {
   const email = String(formData.get("email") ?? "").trim();
   if (!email) return { error: "נא להזין כתובת אימייל" };
   const supabase = await createClient();
-  const site = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-  const callback = new URL("/auth/callback", site);
+  const { origin, usedEnvOverride } = await resolvePublicOrigin();
+  const callback = new URL("/auth/callback", origin);
   callback.searchParams.set("next", "/reset-password");
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: callback.toString(),
   });
-  if (error) return { error: error.message };
-  return { ok: true };
+  if (error) return { error: formatAuthEmailError(error.message) };
+  return {
+    ok: true,
+    warnNoExplicitSiteUrl: !usedEnvOverride,
+  };
 }
 
 export async function updatePasswordAfterReset(
@@ -58,12 +63,12 @@ export async function signUpWithEmail(
   const password = String(formData.get("password") ?? "");
   const displayName = String(formData.get("displayName") ?? "");
   const supabase = await createClient();
-  const site = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const { origin } = await resolvePublicOrigin();
   const { error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      emailRedirectTo: `${site}/dashboard`,
+      emailRedirectTo: `${origin}/dashboard`,
       data: { display_name: displayName },
     },
   });

@@ -39,4 +39,4 @@ Not required for Supabase Cloud to send mail, but recommended for deliverability
 ## Environment variables (hosting)
 
 - `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` — must point to the same Supabase project you checked above.
-- `NEXT_PUBLIC_SITE_URL` — public site origin for correct `redirectTo` in reset links.
+- `NEXT_PUBLIC_SITE_URL` — **recommended**: set to your real public origin (production domain or exact Vercel URL). This must match an entry under **Redirect URLs** in Supabase. If unset, the app falls back to `VERCEL_URL` or the request host so links still work; custom domains should still set `NEXT_PUBLIC_SITE_URL` explicitly.
