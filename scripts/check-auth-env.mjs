@@ -66,6 +66,12 @@ if (!env.NEXT_PUBLIC_SITE_URL?.trim()) {
       "NEXT_PUBLIC_SITE_URL points to localhost on Vercel — email links will break for real users.",
     );
   }
+  const supa = env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  if (supa && !/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(supa.replace(/\/$/, ""))) {
+    hints.push(
+      "NEXT_PUBLIC_SUPABASE_URL should be https://<project-ref>.supabase.co — verify it matches Dashboard → Settings → API.",
+    );
+  }
 }
 
 console.log("Auth / Supabase env check\n");

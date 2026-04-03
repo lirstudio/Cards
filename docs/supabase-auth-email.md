@@ -1,53 +1,96 @@
-# Supabase Auth: password reset emails
+# Supabase Auth: full scenario — reset emails, links, SMTP
 
-In this repo, run `npm run check:auth-env` to validate `NEXT_PUBLIC_*` before deploy (uses `.env.local` if present).
+Run `npm run check:auth-env` before deploy (reads `.env.local` if present).
 
-The app does **not** send email itself. Forgot-password calls `supabase.auth.resetPasswordForEmail` (see `src/app/actions/auth.ts`); **Supabase Auth** delivers the message (hosted default mailer or custom SMTP in the Supabase project).
+The app does **not** send SMTP itself. It calls `supabase.auth.resetPasswordForEmail` ([`src/app/actions/auth.ts`](../src/app/actions/auth.ts)); **Supabase Auth** sends the email (built-in mailer or **custom SMTP in the Supabase project only**).
 
-**Local dev:** With `supabase start`, messages go to **Mailpit/Inbucket** (see `supabase status` for the URL). They do not leave your machine.
+**Local dev:** With `supabase start`, email goes to **Mailpit/Inbucket** (`supabase status`), not to the public internet.
 
-Use this checklist if reset emails do not arrive in production.
+---
 
-## 1. Confirm the user exists (Authentication → Users)
+## Who builds the link in the email?
 
-- Open the [Supabase Dashboard](https://supabase.com/dashboard) → your project → **Authentication** → **Users**.
-- Search for the exact email used on “Forgot password”.
-- If the user is missing, no reset mail is sent for that address (the UI may still show a generic success message).
+| Source | What sets the base URL in the recovery email |
+|--------|-----------------------------------------------|
+| **Your app** (“Forgot password”) | `redirectTo` from code: `{origin}/auth/callback?next=/reset-password`. `origin` from [`resolvePublicOrigin`](../src/lib/public-site-url.ts): `NEXT_PUBLIC_SITE_URL`, else `VERCEL_URL`, else request host. Must be listed under **Redirect URLs**. |
+| **Supabase Dashboard** (User → “Send password recovery”) | Uses **Site URL** from **Authentication → URL configuration**. If **Site URL** is `http://localhost:3000`, the email link points at localhost. |
 
-## 2. URL configuration (Authentication → URL configuration)
+Use one canonical **Site URL** for production (the URL users actually open). Reserve localhost only for pure local testing.
 
-Set **Site URL** to your **live** app origin (production or preview you actually use), e.g. `https://your-app.vercel.app` or `https://cardsbylir.example.com` — **not** `http://localhost:3000` unless you only develop locally.
+---
 
-If **Site URL** is `localhost`, then:
+## 1. Rate limit: “only request this after X seconds”
 
-- **Password reset from the Supabase Dashboard** (Users → “Send password recovery”) generates links pointing at `localhost`, which will fail on a real device or after the link expires.
-- Align **Site URL** with where users open the app, and add **Redirect URLs** for every origin you use (production, preview, local).
+If the Dashboard or API returns something like **“For security purposes, you can only request this after N seconds”** after `POST …/auth/v1/recover`, that is a **cooldown between recovery requests**, not a broken SMTP and not a missing Resend integration.
 
-Under **Redirect URLs**, allow the callback used after the user clicks the email link:
+**Action:** wait at least **N seconds** (often ~10–60), then send again. Repeated rapid clicks from the UI trigger this.
 
-- `https://<your-production-host>/auth/callback`
-- `http://localhost:3000/auth/callback` (optional, for local `next dev`)
+If it still fails after waiting, check **Authentication → Logs** for that project.
 
-The app builds `redirectTo` as `{origin}/auth/callback?next=/reset-password` (`origin` from `NEXT_PUBLIC_SITE_URL`, else `VERCEL_URL`, else the request host). **Supabase must list every `…/auth/callback` origin** you rely on.
+---
 
-### Hash errors (`#error=otp_expired`)
+## 2. Confirm the user exists (Authentication → Users)
 
-If you land on any page with `#error=access_denied&error_code=otp_expired`, the link was invalid or expired (or pointed at the wrong host). Request a new reset after fixing **Site URL** / **Redirect URLs**. The app redirects those hash errors to `/login` with a Hebrew message.
+- [Supabase Dashboard](https://supabase.com/dashboard) → your project → **Authentication** → **Users**.
+- Search the exact email. No user ⇒ no mail for that address (the public UI may still show a generic success).
 
-## 3. Auth logs after a send attempt
+---
 
-- **Authentication** → **Logs** (or project **Logs** filtered for Auth).
-- Trigger “Forgot password” again and check for errors (rate limits, SMTP, invalid redirect, etc.).
+## 3. URL configuration (Authentication → URL configuration)
 
-## 4. Optional: custom SMTP (e.g. Resend)
+**Site URL:** your live origin, e.g. `https://your-app.vercel.app` or `https://yourdomain.com` — **not** `http://localhost:3000` for production users.
 
-Not required for Supabase Cloud to send mail, but recommended for deliverability and branding.
+**Redirect URLs** — add every origin where the app runs, each with `/auth/callback`:
 
-- **Authentication** → **SMTP settings** (or **Settings** → email, depending on dashboard version).
-- Configure your provider (Resend, SendGrid, etc.) per their SMTP docs.
-- Resend is configured **in Supabase**, not in this Next.js repo, for Auth emails.
+- `https://<production-domain>/auth/callback`
+- Custom domain: same pattern for that host.
+- Preview (if used): `https://*.vercel.app/auth/callback` when the dashboard supports wildcards, **or** each preview URL explicitly.
+- Local (optional): `http://localhost:3000/auth/callback`
 
-## Environment variables (hosting)
+The app’s `redirectTo` must match one of these entries exactly (scheme + host + path).
 
-- `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` — must point to the same Supabase project you checked above.
-- `NEXT_PUBLIC_SITE_URL` — **recommended**: set to your real public origin (production domain or exact Vercel URL). This must match an entry under **Redirect URLs** in Supabase. If unset, the app falls back to `VERCEL_URL` or the request host so links still work; custom domains should still set `NEXT_PUBLIC_SITE_URL` explicitly.
+### Hash/query errors (`otp_expired`)
+
+Old or wrong-host links show errors. After fixing **Site URL** / **Redirect URLs**, request a **new** reset and open the link **once**. The app maps common hash errors to `/login` with Hebrew copy ([`AuthHashRedirect`](../src/components/auth/auth-hash-redirect.tsx)).
+
+---
+
+## 4. Vercel / hosting environment variables
+
+Keep **one** Supabase project per deployment environment unless you intend otherwise.
+
+| Variable | Purpose |
+|----------|---------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Must be `https://<project-ref>.supabase.co` for the same project you configure in the dashboard. |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Anon key from **Settings → API** for that project. |
+| `NEXT_PUBLIC_SITE_URL` | **Should match** Supabase **Site URL** (canonical public origin, no trailing slash unless you always use it). Critical for custom domains. If unset on Vercel, the app falls back to `https://${VERCEL_URL}`. |
+
+Run `npm run check:auth-env` in CI or locally; it fails the build if `NEXT_PUBLIC_SITE_URL` is localhost while deployed on Vercel.
+
+---
+
+## 5. Auth logs after a send attempt
+
+- **Authentication** → **Logs** (or project **Logs** → filter Auth).
+- Use after “Forgot password” or Dashboard recovery to see redirect errors, SMTP errors, or rate limits.
+
+---
+
+## 6. Custom SMTP (optional: Resend, SendGrid, …)
+
+**Not required** for Supabase Cloud to send mail. Use when you need better deliverability, your own **from** domain, or fewer messages marked as spam.
+
+- Configure in **Supabase Dashboard → Authentication → SMTP** (not in this Next.js repo; no `npm install resend` needed for Auth emails).
+- Follow your provider’s SMTP hostname, port, user, and password/API key.
+- **Resend:** create SMTP credentials in Resend, paste into Supabase SMTP settings.
+
+---
+
+## 7. Quick checklist (production)
+
+1. **Site URL** = public app URL users use.  
+2. **Redirect URLs** include `{that-url}/auth/callback` (+ previews/local if needed).  
+3. **Vercel** `NEXT_PUBLIC_*` matches that project and **Site URL**.  
+4. **New** recovery email after any URL change; don’t reuse old links.  
+5. If many resets while testing: respect **seconds-between-requests** cooldown.  
+6. Optional: **SMTP** in Supabase for production-grade deliverability.
