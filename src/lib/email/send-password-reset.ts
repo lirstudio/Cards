@@ -13,10 +13,14 @@ import { resolvePublicOrigin } from "@/lib/public-site-url";
  * Returns null on success, error string on failure.
  */
 export async function sendPasswordResetEmail(email: string): Promise<string | null> {
+  console.log("[sendPasswordResetEmail] starting for:", email);
+  console.log("[sendPasswordResetEmail] FROM_EMAIL:", FROM_EMAIL);
+
   const admin = createAdminClient();
   const { origin } = await resolvePublicOrigin();
   const callback = new URL("/auth/callback", origin);
   callback.searchParams.set("next", "/reset-password");
+  console.log("[sendPasswordResetEmail] callback URL:", callback.toString());
 
   const { data, error: genError } = await admin.auth.admin.generateLink({
     type: "recovery",
@@ -25,13 +29,17 @@ export async function sendPasswordResetEmail(email: string): Promise<string | nu
   });
 
   if (genError || !data?.properties?.action_link) {
-    return genError?.message ?? "לא ניתן ליצור קישור איפוס";
+    const msg = genError?.message ?? "לא ניתן ליצור קישור איפוס";
+    console.error("[sendPasswordResetEmail] generateLink error:", msg, genError);
+    return msg;
   }
+
+  console.log("[sendPasswordResetEmail] generateLink OK, action_link generated");
 
   const actionLink = data.properties.action_link;
 
   const resend = createResendClient();
-  const { error: mailError } = await resend.emails.send({
+  const { data: sendData, error: mailError } = await resend.emails.send({
     from: FROM_EMAIL,
     to: email,
     subject: "איפוס סיסמה — Cards",
@@ -70,7 +78,15 @@ export async function sendPasswordResetEmail(email: string): Promise<string | nu
     text: `איפוס סיסמה — Cards\n\nלחץ על הקישור לאיפוס הסיסמה:\n${actionLink}\n\nהקישור בתוקף ל-60 דקות.`,
   });
 
-  if (mailError) return mailError.message ?? "שגיאה בשליחת המייל";
+  if (mailError) {
+    // Resend error object shape: { name, message, statusCode }
+    const errMsg =
+      (mailError as { message?: string; name?: string; statusCode?: number }).message ??
+      JSON.stringify(mailError);
+    console.error("[sendPasswordResetEmail] Resend send error:", errMsg, mailError);
+    return `שגיאה בשליחת מייל (Resend): ${errMsg}`;
+  }
 
+  console.log("[sendPasswordResetEmail] Resend send OK, id:", sendData?.id);
   return null;
 }
