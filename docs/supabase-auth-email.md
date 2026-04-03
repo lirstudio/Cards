@@ -14,14 +14,23 @@ Use this checklist if reset emails do not arrive in production.
 
 ## 2. URL configuration (Authentication → URL configuration)
 
-Set **Site URL** to your live app origin, e.g. `https://your-app.vercel.app` (no trailing slash unless you always use it consistently).
+Set **Site URL** to your **live** app origin (production or preview you actually use), e.g. `https://your-app.vercel.app` or `https://cardsbylir.example.com` — **not** `http://localhost:3000` unless you only develop locally.
+
+If **Site URL** is `localhost`, then:
+
+- **Password reset from the Supabase Dashboard** (Users → “Send password recovery”) generates links pointing at `localhost`, which will fail on a real device or after the link expires.
+- Align **Site URL** with where users open the app, and add **Redirect URLs** for every origin you use (production, preview, local).
 
 Under **Redirect URLs**, allow the callback used after the user clicks the email link:
 
 - `https://<your-production-host>/auth/callback`
-- For local testing: `http://localhost:3000/auth/callback`
+- `http://localhost:3000/auth/callback` (optional, for local `next dev`)
 
-The app builds `redirectTo` as `{NEXT_PUBLIC_SITE_URL}/auth/callback?next=/reset-password`. Ensure `NEXT_PUBLIC_SITE_URL` in Vercel (or your host) matches the **Site URL** you expect users to use.
+The app builds `redirectTo` as `{origin}/auth/callback?next=/reset-password` (`origin` from `NEXT_PUBLIC_SITE_URL`, else `VERCEL_URL`, else the request host). **Supabase must list every `…/auth/callback` origin** you rely on.
+
+### Hash errors (`#error=otp_expired`)
+
+If you land on any page with `#error=access_denied&error_code=otp_expired`, the link was invalid or expired (or pointed at the wrong host). Request a new reset after fixing **Site URL** / **Redirect URLs**. The app redirects those hash errors to `/login` with a Hebrew message.
 
 ## 3. Auth logs after a send attempt
 

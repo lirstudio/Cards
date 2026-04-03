@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Heebo } from "next/font/google";
+import { AuthHashRedirect } from "@/components/auth/auth-hash-redirect";
 import "./globals.css";
 
 const heebo = Heebo({
@@ -29,6 +30,7 @@ export default function RootLayout({
   return (
     <html lang="he" dir="rtl" className={`${heebo.variable} h-full`}>
       <body className="min-h-full bg-[#f8f9fa] font-sans text-neutral-900 antialiased">
+        <AuthHashRedirect />
         {children}
       </body>
     </html>

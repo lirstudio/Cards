@@ -92,6 +92,10 @@ export const he = {
   resetPasswordHint: "לאחר לחיצה על הקישור במייל, הזינו כאן סיסמה חדשה.",
   passwordsDoNotMatch: "הסיסמאות אינן תואמות",
   authCallbackError: "הקישור פג תוקף או שגוי. נסה לבקש איפוס מחדש.",
+  authOtpExpired:
+    "הקישור מהמייל פג תוקף או כבר נוצל. בקשו קישור חדש מ״שכחתי סיסמה״ או מ־Supabase — ואז לחצו עליו בהקדם.",
+  authAccessDenied:
+    "ההתחברות דרך הקישור נדחתה. בדקו ב־Supabase ש־Site URL וה־Redirect URLs תואמים לאתר האמיתי (לא רק localhost).",
   resetSessionMissing:
     "לא זוהתה הפעלת איפוס. פתחו שוב את הקישור מהמייל או בקשו איפוס חדש.",
   passwordTooShort: "הסיסמה חייבת להכיל לפחות 6 תווים",
