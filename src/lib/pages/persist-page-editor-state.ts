@@ -13,14 +13,7 @@ export type PersistPageEditorRowInput = {
   section_key: string;
   content: Record<string, unknown>;
   visible: boolean;
-  variant_id: string | null;
 };
-
-function normalizeVariantId(v: string | null | undefined): string | null {
-  if (v === null || v === undefined) return null;
-  const t = String(v).trim();
-  return t === "" ? null : t;
-}
 
 export type PersistPageEditorStateResult =
   | { ok: true; slug: string; orderedSectionIds: string[] }
@@ -43,7 +36,7 @@ export async function runPersistPageEditorState(
 
   const { data: existingRows, error: secErr } = await supabase
     .from("page_sections")
-    .select("id,section_key,content,visible,variant_id")
+    .select("id,section_key,content,visible")
     .eq("landing_page_id", pageId);
 
   if (secErr) return { ok: false, error: secErr.message };
@@ -55,7 +48,6 @@ export async function runPersistPageEditorState(
         section_key: r.section_key as string,
         content: r.content as Record<string, unknown>,
         visible: r.visible as boolean,
-        variant_id: (r.variant_id as string | null) ?? null,
       },
     ]),
   );
@@ -75,33 +67,6 @@ export async function runPersistPageEditorState(
     for (const id of toDelete) dbMap.delete(id);
   }
 
-  const sectionKeys = [...new Set(rows.map((r) => r.section_key))];
-  const { data: variantRows, error: varErr } = await supabase
-    .from("section_variants")
-    .select("id,section_key")
-    .eq("enabled", true)
-    .in("section_key", sectionKeys);
-
-  if (varErr) return { ok: false, error: varErr.message };
-
-  const validVariantByKey = new Map<string, Set<string>>();
-  for (const vr of variantRows ?? []) {
-    const sk = vr.section_key as string;
-    const vid = vr.id as string;
-    if (!validVariantByKey.has(sk)) validVariantByKey.set(sk, new Set());
-    validVariantByKey.get(sk)!.add(vid);
-  }
-
-  for (const row of rows) {
-    const vid = normalizeVariantId(row.variant_id);
-    if (vid !== null) {
-      const allowed = validVariantByKey.get(row.section_key);
-      if (!allowed?.has(vid)) {
-        return { ok: false, error: "כרטיס עיצוב לא תקף" };
-      }
-    }
-  }
-
   for (const row of rows) {
     if (isLegacyNavHeroStatsKey(row.section_key)) {
       const check = safeParseLegacyNavHeroStats(row.content);
@@ -114,27 +79,23 @@ export async function runPersistPageEditorState(
     }
   }
 
-  const insertPayload = rows
-    .filter((r) => !r.id)
-    .map((r) => {
-      const vid = normalizeVariantId(r.variant_id);
-      let contentOut: Record<string, unknown> = r.content;
-      if (isLegacyNavHeroStatsKey(r.section_key)) {
-        const check = safeParseLegacyNavHeroStats(r.content);
-        if (check.success) contentOut = check.data as Record<string, unknown>;
-      } else {
-        const check = safeParseSectionContent(r.section_key as SectionKey, r.content);
-        if (check.success) contentOut = check.data as Record<string, unknown>;
-      }
-      return {
-        landing_page_id: pageId,
-        section_key: r.section_key,
-        sort_order: 0,
-        content: contentOut as object,
-        visible: r.visible,
-        ...(vid ? { variant_id: vid } : {}),
-      };
-    });
+  const insertPayload = rows.filter((r) => !r.id).map((r) => {
+    let contentOut: Record<string, unknown> = r.content;
+    if (isLegacyNavHeroStatsKey(r.section_key)) {
+      const check = safeParseLegacyNavHeroStats(r.content);
+      if (check.success) contentOut = check.data as Record<string, unknown>;
+    } else {
+      const check = safeParseSectionContent(r.section_key as SectionKey, r.content);
+      if (check.success) contentOut = check.data as Record<string, unknown>;
+    }
+    return {
+      landing_page_id: pageId,
+      section_key: r.section_key,
+      sort_order: 0,
+      content: contentOut as object,
+      visible: r.visible,
+    };
+  });
 
   let insertedIds: string[] = [];
   if (insertPayload.length > 0) {
@@ -160,7 +121,6 @@ export async function runPersistPageEditorState(
     const prev = dbMap.get(row.id);
     if (!prev) return { ok: false, error: "סקשן לא נמצא" };
 
-    const vid = normalizeVariantId(row.variant_id);
     let contentForDb: Record<string, unknown> = row.content;
     if (isLegacyNavHeroStatsKey(row.section_key)) {
       const check = safeParseLegacyNavHeroStats(row.content);
@@ -172,14 +132,12 @@ export async function runPersistPageEditorState(
 
     const contentChanged = JSON.stringify(prev.content) !== JSON.stringify(contentForDb);
     const visibleChanged = prev.visible !== row.visible;
-    const variantChanged = normalizeVariantId(prev.variant_id) !== vid;
 
-    if (!contentChanged && !visibleChanged && !variantChanged) continue;
+    if (!contentChanged && !visibleChanged) continue;
 
     const patch: Record<string, unknown> = {};
     if (contentChanged) patch.content = contentForDb;
     if (visibleChanged) patch.visible = row.visible;
-    if (variantChanged) patch.variant_id = vid;
 
     const { error: upErr } = await supabase
       .from("page_sections")

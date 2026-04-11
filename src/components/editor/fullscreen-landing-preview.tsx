@@ -13,7 +13,6 @@ export type FullscreenPreviewRow = {
   section_key: string;
   content: Record<string, unknown>;
   visible: boolean;
-  variantId?: string | null;
 };
 
 type Props = {
@@ -23,7 +22,7 @@ type Props = {
   theme: PageTheme;
   pageBackground: string;
   rows: FullscreenPreviewRow[];
-  getVariantOverridesForSectionId: (sectionId: string) => SectionStyleOverrides | undefined;
+  getDefinitionStyleForSectionKey: (sectionKey: string) => SectionStyleOverrides | undefined;
   pageNavSections: PageNavSectionRow[];
 };
 
@@ -34,7 +33,7 @@ export function FullscreenLandingPreview({
   theme,
   pageBackground,
   rows,
-  getVariantOverridesForSectionId,
+  getDefinitionStyleForSectionKey,
   pageNavSections,
 }: Props) {
   useEffect(() => {
@@ -92,7 +91,7 @@ export function FullscreenLandingPreview({
               sectionId={s.id}
               editorPreview={false}
               embedded={false}
-              variantStyleOverrides={getVariantOverridesForSectionId(s.id)}
+              variantStyleOverrides={getDefinitionStyleForSectionKey(s.section_key)}
               pageNavSections={pageNavSections}
             />
           ))}

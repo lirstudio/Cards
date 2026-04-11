@@ -36,11 +36,14 @@ function AnimatedStatValue({
   headingColor,
   reducedMotion,
   runAnimation,
+  relaxedIntersection,
 }: {
   value: string;
   headingColor: string;
   reducedMotion: boolean;
   runAnimation: boolean;
+  /** Thumbnail previews: lower intersection threshold so count-up starts reliably. */
+  relaxedIntersection?: boolean;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [text, setText] = useState(() => {
@@ -92,7 +95,9 @@ function AnimatedStatValue({
         observer = null;
         startAnimation();
       },
-      { threshold: 0.2, rootMargin: "0px 0px -8% 0px" },
+      relaxedIntersection
+        ? { threshold: 0, rootMargin: "0px 0px 40% 0px" }
+        : { threshold: 0.2, rootMargin: "0px 0px -8% 0px" },
     );
     observer.observe(el);
 
@@ -100,7 +105,7 @@ function AnimatedStatValue({
       observer?.disconnect();
       cancelAnimationFrame(rafId);
     };
-  }, [value, runAnimation, reducedMotion]);
+  }, [value, runAnimation, reducedMotion, relaxedIntersection]);
 
   return (
     <div
@@ -122,6 +127,7 @@ export function StatsHighlightRow({
   editorPreview,
   dir,
   disableCountUp = false,
+  allowCountUpInEmbeddedPreview = false,
   sectionId,
 }: {
   stats: StatHighlightItem[];
@@ -133,6 +139,7 @@ export function StatsHighlightRow({
   editorPreview: boolean;
   dir?: string;
   disableCountUp?: boolean;
+  allowCountUpInEmbeddedPreview?: boolean;
   sectionId: string;
 }) {
   const sectionPad =
@@ -147,7 +154,9 @@ export function StatsHighlightRow({
     return () => mq.removeEventListener("change", fn);
   }, []);
 
-  const runAnimation = !(editorPreview && embedded) && !disableCountUp;
+  const runAnimation =
+    !disableCountUp &&
+    (!(editorPreview && embedded) || allowCountUpInEmbeddedPreview);
 
   return (
     <section
@@ -172,13 +181,14 @@ export function StatsHighlightRow({
             return (
               <div
                 key={`${s.value}-${i}`}
-                className="flex flex-col items-center text-center"
+                className="flex flex-col items-center text-center motion-safe:transition-transform motion-safe:duration-300 motion-safe:hover:scale-[1.04]"
               >
                 <AnimatedStatValue
                   value={s.value}
                   headingColor={headingColor}
                   reducedMotion={reducedMotion}
                   runAnimation={runAnimation}
+                  relaxedIntersection={allowCountUpInEmbeddedPreview}
                 />
                 {label ? (
                   <p

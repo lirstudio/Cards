@@ -35,7 +35,7 @@ export function FaqAccordion({
       <div className="mx-auto min-w-0 max-w-3xl text-center">
         <div className="mb-4 flex items-center justify-center gap-2 text-sm font-medium text-[#a1a4a5]">
           <span
-            className="flex h-8 w-8 items-center justify-center rounded-full text-white text-sm"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-sm text-white transition-[transform,filter] duration-200 motion-safe:hover:scale-110 motion-safe:hover:brightness-110"
             style={{ backgroundColor: primary }}
           >
             ?
@@ -52,21 +52,31 @@ export function FaqAccordion({
               <li key={i}>
                 <button
                   type="button"
-                  className="flex w-full min-w-0 items-center justify-between gap-3 rounded-xl bg-white/5 px-4 py-4 text-start shadow-[0_0_0_1px_rgba(176,199,217,0.145)] transition hover:shadow-[0_0_0_1px_rgba(214,235,253,0.19)] sm:gap-4 sm:px-5"
+                  aria-expanded={isOpen}
+                  className="flex w-full min-w-0 items-center justify-between gap-3 rounded-xl bg-white/5 px-4 py-4 text-start shadow-[0_0_0_1px_rgba(176,199,217,0.145)] transition-[box-shadow,background-color,transform] duration-200 hover:bg-white/[0.07] hover:shadow-[0_0_0_1px_rgba(214,235,253,0.22)] motion-safe:active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 sm:gap-4 sm:px-5"
+                  style={{ outlineColor: primary }}
                   onClick={() => setOpen(isOpen ? null : i)}
                 >
                   <span className="min-w-0 flex-1 break-words text-base font-semibold text-[#f0f0f0] sm:text-lg">
                     {item.question}
                   </span>
-                  <span className="shrink-0 text-2xl font-light text-[#464a4d]">
-                    {isOpen ? "−" : "+"}
+                  <span
+                    className={`inline-flex size-8 shrink-0 items-center justify-center text-[0.65rem] font-normal leading-none text-[#464a4d] transition-transform duration-200 ease-out motion-reduce:transition-none ${isOpen ? "rotate-180" : ""}`}
+                    aria-hidden
+                  >
+                    ▼
                   </span>
                 </button>
-                {isOpen ? (
-                  <div className="mx-2 mt-2 break-words rounded-lg bg-white/5 px-4 py-3 text-sm text-[#a1a4a5] sm:px-5 sm:text-base">
-                    {item.answer}
+                <div
+                  className={`grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+                  aria-hidden={!isOpen}
+                >
+                  <div className="min-h-0 overflow-hidden">
+                    <div className="mx-2 mt-2 break-words rounded-lg bg-white/5 px-4 py-3 text-sm text-[#a1a4a5] opacity-90 sm:px-5 sm:text-base">
+                      {item.answer}
+                    </div>
                   </div>
-                ) : null}
+                </div>
               </li>
             );
           })}

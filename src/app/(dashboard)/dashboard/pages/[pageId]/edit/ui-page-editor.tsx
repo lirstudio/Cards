@@ -46,19 +46,15 @@ import {
   ModalHeader,
   ModalPanel,
 } from "@/components/ui/modal";
-import {
-  SectionTypePreview,
-  SectionVariantPreviewThumb,
-} from "@/components/editor/section-type-preview";
+import { SectionTypePreview } from "@/components/editor/section-type-preview";
 import type { PageTheme } from "@/types/landing";
-import type {
-  SectionDefinitionRow,
-  SectionStyleOverrides,
-  SectionVariantPickerRow,
-} from "@/types/admin";
+import type { SectionDefinitionRow, SectionStyleOverrides } from "@/types/admin";
 
 const EMBEDDED_HERO_PREVIEW_KEYS = new Set<string>([
   "hero_image_split",
+  "hero_editorial_split",
+  "hero_immersive_bg",
+  "hero_showcase_float",
   LEGACY_NAV_HERO_STATS_KEY,
 ]);
 
@@ -69,8 +65,6 @@ type SectionRow = {
   section_key: string;
   content: Record<string, unknown>;
   visible: boolean;
-  /** מזהה כרטיס העיצוב שנבחר בעת הוספה מקומית — נשמר ב־Supabase בלחיצה על ״שמור שינויים״ */
-  variantId?: string | null;
 };
 
 function clonePageSections(rows: SectionRow[]): SectionRow[] {
@@ -90,7 +84,6 @@ function isPageDirty(current: SectionRow[], baseline: SectionRow[]): boolean {
     const b = byId.get(s.id);
     if (!b) return true;
     if (b.visible !== s.visible) return true;
-    if ((b.variantId ?? null) !== (s.variantId ?? null)) return true;
     if (JSON.stringify(b.content) !== JSON.stringify(s.content)) return true;
   }
   return false;
@@ -274,16 +267,13 @@ function PaletteCard({
   sectionKey,
   onAdd,
   titleHe,
-  descriptionHe,
 }: {
   sectionKey: SectionKey;
   onAdd: (key: SectionKey) => void;
   titleHe?: string;
-  descriptionHe?: string;
 }) {
   const meta = sectionCatalog[sectionKey];
   const title = titleHe ?? meta?.titleHe ?? sectionKey;
-  const desc = descriptionHe ?? meta?.descriptionHe ?? "";
   return (
     <div className="relative rounded-xl border border-[rgba(214,235,253,0.19)] bg-white/5 p-2 pt-10 text-start transition hover:border-[var(--lc-primary)]">
       <button
@@ -297,7 +287,6 @@ function PaletteCard({
       <SectionTypePreview sectionKey={sectionKey} />
       <div className="mt-2 px-1">
         <div className="text-sm font-medium">{title}</div>
-        <div className="mt-0.5 text-xs text-[#464a4d] line-clamp-2">{desc}</div>
       </div>
     </div>
   );
@@ -335,8 +324,7 @@ export function PageEditor({
   initialTheme,
   sections: initialSections,
   sectionDefs,
-  variantStyleBySectionId = {},
-  variantsBySectionKey = {},
+  definitionStyleBySectionKey = {},
 }: {
   pageId: string;
   slug: string;
@@ -356,8 +344,7 @@ export function PageEditor({
   };
   sections: SectionRow[];
   sectionDefs?: SectionDefinitionRow[];
-  variantStyleBySectionId?: Record<string, SectionStyleOverrides>;
-  variantsBySectionKey?: Record<string, SectionVariantPickerRow[]>;
+  definitionStyleBySectionKey?: Record<string, SectionStyleOverrides>;
 }) {
   const router = useRouter();
   const [sections, setSections] = useState(initialSections);
@@ -371,7 +358,6 @@ export function PageEditor({
   const [addSectionKey, setAddSectionKey] = useState<SectionKey | null>(null);
   const [addFormNonce, setAddFormNonce] = useState(0);
   const [addPreviewDraft, setAddPreviewDraft] = useState<Record<string, unknown>>({});
-  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [livePreviewViewport, setLivePreviewViewport] = useState<PreviewViewport>("wide");
   const [addModalPreviewViewport, setAddModalPreviewViewport] = useState<PreviewViewport>("wide");
@@ -389,17 +375,10 @@ export function PageEditor({
     [sections, baselineSections],
   );
 
-  const variantOverridesForSection = useCallback(
-    (section: SectionRow): SectionStyleOverrides | undefined => {
-      const vid = section.variantId;
-      if (vid) {
-        const list = variantsBySectionKey[section.section_key as SectionKey] ?? [];
-        const found = list.find((v) => v.id === vid);
-        if (found) return found.style_overrides;
-      }
-      return variantStyleBySectionId[section.id];
-    },
-    [variantStyleBySectionId, variantsBySectionKey],
+  const styleForSectionKey = useCallback(
+    (sectionKey: string): SectionStyleOverrides | undefined =>
+      definitionStyleBySectionKey[sectionKey],
+    [definitionStyleBySectionKey],
   );
 
   useEffect(() => {
@@ -420,7 +399,6 @@ export function PageEditor({
       section_key: s.section_key,
       content: s.content,
       visible: s.visible,
-      variant_id: s.variantId ?? null,
     }));
 
     const r = await persistPageEditorState(pageId, rows);
@@ -573,9 +551,14 @@ export function PageEditor({
         .sort((a, b) => a.sort_order - b.sort_order)
         .map((d) => d.key as SectionKey);
     }
-    const order: SectionKey[] = ["hero", "content", "conversion"].flatMap((cat) =>
-      SECTION_KEYS.filter((k) => sectionCatalog[k].category === cat),
-    );
+    const order: SectionKey[] = [
+      "hero",
+      "content",
+      "conversion",
+      "footer",
+      "gallery",
+      "faq",
+    ].flatMap((cat) => SECTION_KEYS.filter((k) => sectionCatalog[k].category === cat));
     return order;
   }, [sectionDefs]);
 
@@ -592,14 +575,9 @@ export function PageEditor({
 
   function openAddSection(key: SectionKey) {
     setAddPreviewDraft(getDefaultContent(key));
-    const list = variantsBySectionKey[key] ?? [];
-    setSelectedVariantId(list.find((v) => v.is_default)?.id ?? list[0]?.id ?? null);
     setAddSectionKey(key);
     setAddFormNonce((n) => n + 1);
   }
-
-  const addModalVariantList = addSectionKey ? (variantsBySectionKey[addSectionKey] ?? []) : [];
-  const selectedAddVariant = addModalVariantList.find((v) => v.id === selectedVariantId);
 
   return (
     <>
@@ -776,71 +754,23 @@ export function PageEditor({
               */}
               <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:gap-4">
                 <div className="order-2 min-w-0 w-full flex-1 lg:order-1">
-                  {addModalVariantList.length > 0 ? (
-                    <div className="mb-2 min-w-0 max-w-full border-b border-[rgba(214,235,253,0.19)] pb-2">
-                      <h3 className="mb-1.5 text-sm font-semibold text-[#a1a4a5]">
-                        {addModalVariantList.length > 1
-                          ? he.chooseSectionVariant
-                          : he.sectionVariantSingle}
-                      </h3>
-                      {addModalVariantList.length === 1 ? (
-                        <p className="mb-2 text-xs leading-snug text-[#464a4d]">
-                          {he.variantPickerOnlyActive}
-                        </p>
-                      ) : null}
-                      <div className="flex gap-3 overflow-x-auto pb-1" dir="rtl">
-                        {addModalVariantList.map((v) => (
-                          <button
-                            key={v.id}
-                            type="button"
-                            onClick={() => setSelectedVariantId(v.id)}
-                            className={`w-44 shrink-0 rounded-xl border-2 bg-white/5 p-2 text-start transition ${
-                              selectedVariantId === v.id
-                                ? "border-[var(--lc-primary)]"
-                                : "border-[rgba(214,235,253,0.19)] hover:border-white/20"
-                            }`}
-                          >
-                            <SectionVariantPreviewThumb
-                              sectionKey={addSectionKey}
-                              theme={themeForRenderer}
-                              variantStyleOverrides={v.style_overrides}
-                            />
-                            <div className="mt-2 line-clamp-2 text-center text-xs font-medium leading-tight">
-                              {v.name_he}
-                            </div>
-                            {v.is_default ? (
-                              <div className="mt-0.5 text-center text-[10px] text-[#464a4d]">
-                                {he.adminVariantDefault}
-                              </div>
-                            ) : null}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ) : null}
                   <SectionInspectorForm
                     key={`add-${addSectionKey}-${addFormNonce}`}
                     embedded
                     pageId={pageId}
                     sectionKey={addSectionKey}
                     content={getDefaultContent(addSectionKey)}
-                    variantStyleOverrides={selectedAddVariant?.style_overrides}
                     pageNavSections={
                       addSectionKey === "site_header_nav" ? pageNavSections : undefined
                     }
                     onDraftChange={setAddPreviewDraft}
                     onAdd={async (draft) => {
-                      const variantArg =
-                        addModalVariantList.length > 0
-                          ? (selectedVariantId ?? undefined)
-                          : undefined;
                       const tempId = `${TEMP_SECTION_PREFIX}${crypto.randomUUID()}`;
                       const row: SectionRow = {
                         id: tempId,
                         section_key: addSectionKey,
                         content: draft,
                         visible: true,
-                        ...(variantArg ? { variantId: variantArg } : {}),
                       };
                       setSections((prev) => [...prev, row]);
                       setAddSectionKey(null);
@@ -877,7 +807,7 @@ export function PageEditor({
                           sectionId={`add-preview-${addSectionKey}`}
                           editorPreview
                           embedded={EMBEDDED_HERO_PREVIEW_KEYS.has(addSectionKey)}
-                          variantStyleOverrides={selectedAddVariant?.style_overrides}
+                          variantStyleOverrides={styleForSectionKey(addSectionKey)}
                           pageNavSections={pageNavSections}
                         />
                       </SectionLivePreviewStage>
@@ -997,7 +927,7 @@ export function PageEditor({
                                     sectionId={section.id}
                                     editorPreview
                                     embedded={EMBEDDED_HERO_PREVIEW_KEYS.has(section.section_key)}
-                                    variantStyleOverrides={variantOverridesForSection(section)}
+                                    variantStyleOverrides={styleForSectionKey(section.section_key)}
                                     pageNavSections={pageNavSections}
                                   />
                                 </div>
@@ -1028,7 +958,6 @@ export function PageEditor({
                         sectionKey={k}
                         onAdd={openAddSection}
                         titleHe={dbDef?.title_he}
-                        descriptionHe={dbDef?.description_he}
                       />
                     );
                   })}
@@ -1043,56 +972,6 @@ export function PageEditor({
                 >
                   ← {he.backToLibrary}
                 </button>
-                {(() => {
-                  const vk = selected.section_key as SectionKey;
-                  const vlist = variantsBySectionKey[vk] ?? [];
-                  if (vlist.length <= 1) return null;
-                  const effectiveVariantId =
-                    selected.variantId ??
-                    vlist.find((v) => v.is_default)?.id ??
-                    vlist[0]?.id;
-                  return (
-                    <div className="mb-4 border-b border-[rgba(214,235,253,0.19)] pb-3">
-                      <h3 className="mb-2 text-sm font-semibold text-[#a1a4a5]">
-                        {he.chooseSectionVariant}
-                      </h3>
-                      <div className="flex gap-3 overflow-x-auto pb-1" dir="rtl">
-                        {vlist.map((v) => (
-                          <button
-                            key={v.id}
-                            type="button"
-                            onClick={() =>
-                              setSections((prev) =>
-                                prev.map((s) =>
-                                  s.id === selected.id ? { ...s, variantId: v.id } : s,
-                                ),
-                              )
-                            }
-                            className={`w-40 shrink-0 rounded-xl border-2 bg-white/5 p-2 text-start transition ${
-                              effectiveVariantId === v.id
-                                ? "border-[var(--lc-primary)]"
-                                : "border-[rgba(214,235,253,0.19)] hover:border-white/20"
-                            }`}
-                          >
-                            <SectionVariantPreviewThumb
-                              sectionKey={vk}
-                              theme={themeForRenderer}
-                              variantStyleOverrides={v.style_overrides}
-                            />
-                            <div className="mt-2 line-clamp-2 text-center text-xs font-medium leading-tight">
-                              {v.name_he}
-                            </div>
-                            {v.is_default ? (
-                              <div className="mt-0.5 text-center text-[10px] text-[#464a4d]">
-                                {he.adminVariantDefault}
-                              </div>
-                            ) : null}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })()}
                 <SectionInspectorForm
                   pageId={pageId}
                   sectionId={selected.id}
@@ -1100,7 +979,6 @@ export function PageEditor({
                     selected.section_key as SectionKey | typeof LEGACY_NAV_HERO_STATS_KEY
                   }
                   content={selected.content}
-                  variantStyleOverrides={variantOverridesForSection(selected)}
                   deferPersistence
                   onDraftChange={handleDraftChange}
                   pageNavSections={
@@ -1123,10 +1001,7 @@ export function PageEditor({
         theme={themeForRenderer}
         pageBackground={initialTheme.background}
         rows={sections}
-        getVariantOverridesForSectionId={(sectionId) => {
-          const sec = sections.find((s) => s.id === sectionId);
-          return sec ? variantOverridesForSection(sec) : undefined;
-        }}
+        getDefinitionStyleForSectionKey={styleForSectionKey}
         pageNavSections={pageNavSections}
       />
     </>

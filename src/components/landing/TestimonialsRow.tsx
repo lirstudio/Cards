@@ -8,7 +8,7 @@ import {
 } from "@/lib/landing/page-nav";
 import { ManualHorizontalCarousel } from "./manual-horizontal-carousel";
 import { imageSrcIsProvided } from "./image-placeholder";
-import type { SectionStyleOverrides } from "@/types/admin";
+import type { TestimonialsVisualLayout } from "@/lib/sections/schemas";
 
 export type TestimonialItem = {
   headline: string;
@@ -19,8 +19,6 @@ export type TestimonialItem = {
   /** 0 = ללא כוכבים; אם חסר — נחשב כ־5 (תאימות לאחור) */
   starRating?: number;
 };
-
-export type TestimonialsLayout = NonNullable<SectionStyleOverrides["testimonialsLayout"]>;
 
 // ── shared defaults ────────────────────────────────────────────────────────────
 
@@ -110,14 +108,14 @@ function MarqueeCard({ t }: { t: TestimonialItem }) {
 function PhotoCard({ t }: { t: TestimonialItem }) {
   return (
     <article
-      className={`relative aspect-[3/4] ${PHOTO_CARD_W} overflow-hidden rounded-3xl text-start ring-1 ring-white/10`}
+      className={`group relative aspect-[3/4] ${PHOTO_CARD_W} overflow-hidden rounded-3xl text-start ring-1 ring-white/10 transition-[transform,box-shadow] duration-300 motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-[0_24px_50px_-28px_rgba(0,0,0,0.55)]`}
     >
       {imageSrcIsProvided(t.authorImage) ? (
         <Image
           src={t.authorImage!}
           alt={t.authorName}
           fill
-          className="object-cover"
+          className="lc-media-hover-zoom object-cover"
           unoptimized
         />
       ) : (
@@ -153,7 +151,7 @@ function PhotoCard({ t }: { t: TestimonialItem }) {
 
 function StarCard({ t }: { t: TestimonialItem }) {
   return (
-    <article className="flex min-w-0 flex-col rounded-2xl border border-[rgba(214,235,253,0.19)] bg-white/5 p-6 text-start shadow-[0_0_0_1px_rgba(176,199,217,0.145)] @sm:p-7">
+    <article className="flex min-w-0 flex-col rounded-2xl border border-[rgba(214,235,253,0.19)] bg-white/5 p-6 text-start shadow-[0_0_0_1px_rgba(176,199,217,0.145)] transition-[transform,box-shadow] duration-300 @sm:p-7 motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-[0_20px_44px_-26px_rgba(0,0,0,0.45)]">
       <Stars count={normalizedStarCount(t)} />
       <p className="mt-4 flex-1 text-sm leading-relaxed text-[#a1a4a5] @sm:text-base">
         {t.headline}
@@ -189,7 +187,7 @@ function StarCard({ t }: { t: TestimonialItem }) {
 
 function QuoteSideCard({ t }: { t: TestimonialItem }) {
   return (
-    <article className="flex min-w-0 flex-col overflow-hidden rounded-3xl border border-[rgba(214,235,253,0.19)] bg-white/5 shadow-[0_0_0_1px_rgba(176,199,217,0.145)] @lg:flex-row">
+    <article className="group flex min-w-0 flex-col overflow-hidden rounded-3xl border border-[rgba(214,235,253,0.19)] bg-white/5 shadow-[0_0_0_1px_rgba(176,199,217,0.145)] transition-[transform,box-shadow] duration-300 @lg:flex-row motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-[0_22px_48px_-28px_rgba(0,0,0,0.5)]">
       {/* text side (right in RTL) */}
       <div className="flex flex-1 flex-col justify-center p-8 text-start @md:p-10">
         <span className="mb-4 block text-6xl leading-none text-[rgba(214,235,253,0.19)] font-serif" aria-hidden>
@@ -225,12 +223,12 @@ function QuoteSideCard({ t }: { t: TestimonialItem }) {
       </div>
       {/* image side (left in RTL) */}
       {imageSrcIsProvided(t.authorImage) ? (
-        <div className="relative h-56 w-full shrink-0 @lg:h-auto @lg:w-[320px] xl:@lg:w-[360px]">
+        <div className="relative h-56 w-full shrink-0 overflow-hidden @lg:h-auto @lg:w-[320px] xl:@lg:w-[360px]">
           <Image
             src={t.authorImage!}
             alt={t.authorName}
             fill
-            className="object-cover"
+            className="lc-media-hover-zoom object-cover"
             unoptimized
           />
         </div>
@@ -249,13 +247,13 @@ function QuoteSideCard({ t }: { t: TestimonialItem }) {
 
 function CinematicCard({ t }: { t: TestimonialItem }) {
   return (
-    <article className="relative min-h-[340px] w-full overflow-hidden rounded-3xl ring-1 ring-white/10 @md:min-h-[420px]">
+    <article className="group relative min-h-[340px] w-full overflow-hidden rounded-3xl ring-1 ring-white/10 transition-[transform,box-shadow] duration-300 @md:min-h-[420px] motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-[0_28px_60px_-32px_rgba(0,0,0,0.65)]">
       {imageSrcIsProvided(t.authorImage) ? (
         <Image
           src={t.authorImage!}
           alt={t.authorName}
           fill
-          className="object-cover object-center"
+          className="lc-media-hover-zoom object-cover object-center"
           unoptimized
         />
       ) : (
@@ -297,7 +295,7 @@ export function TestimonialsRow({
   items: TestimonialItem[];
   noSectionAnimations?: boolean;
   sectionId: string;
-  layout?: TestimonialsLayout;
+  layout?: TestimonialsVisualLayout;
   sectionPadClass?: string;
 }) {
   if (items.length === 0) return null;

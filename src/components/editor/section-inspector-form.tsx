@@ -3,6 +3,9 @@
 import { useEffect, useState, useTransition } from "react";
 import { updateSectionContent } from "@/app/actions/pages";
 import {
+  FAQ_EDITOR_SECTION_KEYS,
+  isChecklistSectionKey,
+  isTestimonialsSectionKey,
   LEGACY_NAV_HERO_STATS_KEY,
   type SectionKey,
 } from "@/lib/sections/schemas";
@@ -14,7 +17,6 @@ import {
 import { ImageUploadField } from "./image-upload-field";
 import { HeaderNavLinksEditor } from "./header-nav-links-editor";
 import type { PageNavSectionRow } from "@/lib/landing/page-nav";
-import type { SectionStyleOverrides } from "@/types/admin";
 
 function linkRow(
   v: { label: string; href: string },
@@ -50,14 +52,11 @@ export function SectionInspectorForm({
   embedded,
   deferPersistence = false,
   pageNavSections,
-  variantStyleOverrides,
 }: {
   pageId: string;
   sectionId?: string;
   sectionKey: SectionKey | typeof LEGACY_NAV_HERO_STATS_KEY;
   content: Record<string, unknown>;
-  /** עיצוב נבחר בעמוד — משפיע על סקשן רשימה (הסתרת שדה תמונה ב״רשימה בלבד״). */
-  variantStyleOverrides?: SectionStyleOverrides;
   onSaved?: () => void;
   /** תצוגה מקדימה חיה: נקרא כשמשתנה הטיוטה המובנית. */
   onDraftChange?: (draft: Record<string, unknown>) => void;
@@ -135,6 +134,127 @@ export function SectionInspectorForm({
             {he.navLinksAutoHint}
           </p>
         )}
+      </div>
+    );
+  } else if (sk === "hero_immersive_bg") {
+    const d = draft as Record<string, unknown>;
+    body = (
+      <div className="space-y-3 text-sm">
+        <ImageUploadField
+          pageId={pageId}
+          label={sectionContentFieldLabel("backgroundImage")}
+          value={String(d.backgroundImage ?? "")}
+          onChange={(url) => setDraft({ ...d, backgroundImage: url })}
+        />
+        {["headline", "subheadline"].map((k) => (
+          <label key={k} className="block">
+            <span className="text-[#a1a4a5]">
+              {k === "headline" ? "כותרת ראשית" : sectionContentFieldLabel(k)}
+            </span>
+            <textarea
+              className="mt-1 w-full text-sm"
+              rows={3}
+              value={String(d[k] ?? "")}
+              onChange={(e) => setDraft({ ...d, [k]: e.target.value })}
+            />
+          </label>
+        ))}
+        <div>
+          <div className="text-[#a1a4a5]">{sectionContentFieldLabel("heroCta")}</div>
+          {linkRow(
+            (d.heroCta as { label: string; href: string }) ?? { label: "", href: "" },
+            (v) => setDraft({ ...d, heroCta: v }),
+          )}
+        </div>
+        <div>
+          <div className="text-[#a1a4a5]">{sectionContentFieldLabel("secondaryCta")}</div>
+          {linkRow(
+            (d.secondaryCta as { label: string; href: string }) ?? { label: "", href: "" },
+            (v) => setDraft({ ...d, secondaryCta: v }),
+          )}
+        </div>
+      </div>
+    );
+  } else if (sk === "hero_editorial_split") {
+    const d = draft as Record<string, unknown>;
+    body = (
+      <div className="space-y-3 text-sm">
+        <label className="block">
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("eyebrow")}</span>
+          <textarea
+            className="lc-textarea-compact mt-1 w-full text-sm"
+            rows={1}
+            value={String(d.eyebrow ?? "")}
+            onChange={(e) => setDraft({ ...d, eyebrow: e.target.value })}
+          />
+        </label>
+        {["headline", "subheadline"].map((k) => (
+          <label key={k} className="block">
+            <span className="text-[#a1a4a5]">
+              {k === "headline" ? "כותרת ראשית" : sectionContentFieldLabel(k)}
+            </span>
+            <textarea
+              className="mt-1 w-full text-sm"
+              rows={3}
+              value={String(d[k] ?? "")}
+              onChange={(e) => setDraft({ ...d, [k]: e.target.value })}
+            />
+          </label>
+        ))}
+        <ImageUploadField
+          pageId={pageId}
+          label={sectionContentFieldLabel("heroImage")}
+          value={String(d.heroImage ?? "")}
+          onChange={(url) => setDraft({ ...d, heroImage: url })}
+        />
+        <div>
+          <div className="text-[#a1a4a5]">{sectionContentFieldLabel("heroCta")}</div>
+          {linkRow(
+            (d.heroCta as { label: string; href: string }) ?? { label: "", href: "" },
+            (v) => setDraft({ ...d, heroCta: v }),
+          )}
+        </div>
+      </div>
+    );
+  } else if (sk === "hero_showcase_float") {
+    const d = draft as Record<string, unknown>;
+    body = (
+      <div className="space-y-3 text-sm">
+        <label className="block">
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("badge")}</span>
+          <textarea
+            className="lc-textarea-compact mt-1 w-full text-sm"
+            rows={1}
+            value={String(d.badge ?? "")}
+            onChange={(e) => setDraft({ ...d, badge: e.target.value })}
+          />
+        </label>
+        {["headline", "subheadline"].map((k) => (
+          <label key={k} className="block">
+            <span className="text-[#a1a4a5]">
+              {k === "headline" ? "כותרת ראשית" : sectionContentFieldLabel(k)}
+            </span>
+            <textarea
+              className="mt-1 w-full text-sm"
+              rows={3}
+              value={String(d[k] ?? "")}
+              onChange={(e) => setDraft({ ...d, [k]: e.target.value })}
+            />
+          </label>
+        ))}
+        <ImageUploadField
+          pageId={pageId}
+          label={sectionContentFieldLabel("heroImage")}
+          value={String(d.heroImage ?? "")}
+          onChange={(url) => setDraft({ ...d, heroImage: url })}
+        />
+        <div>
+          <div className="text-[#a1a4a5]">{sectionContentFieldLabel("heroCta")}</div>
+          {linkRow(
+            (d.heroCta as { label: string; href: string }) ?? { label: "", href: "" },
+            (v) => setDraft({ ...d, heroCta: v }),
+          )}
+        </div>
       </div>
     );
   } else if (sk === "hero_image_split" || sk === LEGACY_NAV_HERO_STATS_KEY) {
@@ -257,7 +377,7 @@ export function SectionInspectorForm({
         ))}
       </div>
     );
-  } else if (sk === "testimonials_row") {
+  } else if (isTestimonialsSectionKey(sk)) {
     const d = draft as Record<string, unknown>;
     body = (
       <div className="space-y-3 text-sm">
@@ -396,10 +516,9 @@ export function SectionInspectorForm({
         </div>
       </div>
     );
-  } else if (sk === "checklist_with_image") {
+  } else if (isChecklistSectionKey(sk)) {
     const d = draft as Record<string, unknown>;
-    const checklistTextOnly =
-      (variantStyleOverrides?.checklistLayout ?? "with_image") === "text_only";
+    const checklistTextOnly = sk === "checklist_text_only";
     body = (
       <div className="space-y-3 text-sm">
         <label className="block">
@@ -601,6 +720,64 @@ export function SectionInspectorForm({
         </button>
       </div>
     );
+  } else if (sk === "gallery_grid_even" || sk === "gallery_spotlight" || sk === "gallery_bento") {
+    const d = draft as Record<string, unknown>;
+    body = (
+      <div className="space-y-3 text-sm">
+        <label className="block">
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("title")}</span>
+          <input
+            className="mt-1 w-full text-sm"
+            value={String(d.title ?? "")}
+            onChange={(e) => setDraft({ ...d, title: e.target.value })}
+          />
+        </label>
+        <label className="block">
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("subtitle")}</span>
+          <input
+            className="mt-1 w-full text-sm"
+            value={String(d.subtitle ?? "")}
+            onChange={(e) => setDraft({ ...d, subtitle: e.target.value })}
+          />
+        </label>
+        {((d.images as { src: string; alt?: string }[]) ?? []).map((im, i) => (
+          <div key={i} className="lc-field-stack-item space-y-2">
+            <ImageUploadField
+              pageId={pageId}
+              label={`תמונה ${i + 1}`}
+              value={im.src}
+              onChange={(url) => {
+                const arr = [...((d.images as typeof im[]) ?? [])];
+                arr[i] = { ...im, src: url };
+                setDraft({ ...d, images: arr });
+              }}
+            />
+            <input
+              className="mt-2 w-full text-xs"
+              placeholder={he.imageAltPlaceholder}
+              value={im.alt ?? ""}
+              onChange={(e) => {
+                const arr = [...((d.images as typeof im[]) ?? [])];
+                arr[i] = { ...im, alt: e.target.value };
+                setDraft({ ...d, images: arr });
+              }}
+            />
+          </div>
+        ))}
+        <button
+          type="button"
+          className="text-[var(--lc-primary)]"
+          onClick={() =>
+            setDraft({
+              ...d,
+              images: [...((d.images as { src: string; alt?: string }[]) ?? []), { src: "", alt: "" }],
+            })
+          }
+        >
+          + תמונה
+        </button>
+      </div>
+    );
   } else if (sk === "how_it_works_blue") {
     const d = draft as Record<string, unknown>;
     body = (
@@ -662,7 +839,7 @@ export function SectionInspectorForm({
         ))}
       </div>
     );
-  } else if (sk === "faq_accordion") {
+  } else if ((FAQ_EDITOR_SECTION_KEYS as readonly string[]).includes(sk)) {
     const d = draft as Record<string, unknown>;
     body = (
       <div className="space-y-3 text-sm">
@@ -871,6 +1048,336 @@ export function SectionInspectorForm({
             </label>
           </div>
         ))}
+      </div>
+    );
+  } else if (sk === "footer_minimal") {
+    const d = draft as Record<string, unknown>;
+    body = (
+      <div className="space-y-3 text-sm">
+        <label className="block">
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("brandText")}</span>
+          <input
+            className="mt-1 w-full text-sm"
+            value={String(d.brandText ?? "")}
+            onChange={(e) => setDraft({ ...d, brandText: e.target.value })}
+          />
+        </label>
+        <p className="text-xs text-[#464a4d]">{he.siteLogoHint}</p>
+        <div className="text-[#a1a4a5]">{sectionContentFieldLabel("navLinks")}</div>
+        {((d.links as { label: string; href: string }[]) ?? []).map((l, i) => (
+          <div key={i} className="flex flex-wrap items-end gap-2">
+            {linkRow(l, (v) => {
+              const arr = [...((d.links as typeof l[]) ?? [])];
+              arr[i] = v;
+              setDraft({ ...d, links: arr });
+            })}
+            <button
+              type="button"
+              className="text-xs text-red-600"
+              onClick={() =>
+                setDraft({
+                  ...d,
+                  links: ((d.links as typeof l[]) ?? []).filter((_, j) => j !== i),
+                })
+              }
+            >
+              הסר
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          className="text-[var(--lc-primary)]"
+          onClick={() =>
+            setDraft({
+              ...d,
+              links: [...((d.links as { label: string; href: string }[]) ?? []), { label: "", href: "#" }],
+            })
+          }
+        >
+          + קישור
+        </button>
+        <label className="block">
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("copyright")}</span>
+          <input
+            className="mt-1 w-full text-sm"
+            value={String(d.copyright ?? "")}
+            onChange={(e) => setDraft({ ...d, copyright: e.target.value })}
+          />
+        </label>
+      </div>
+    );
+  } else if (sk === "footer_columns") {
+    const d = draft as Record<string, unknown>;
+    body = (
+      <div className="space-y-3 text-sm">
+        <label className="block">
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("brandText")}</span>
+          <input
+            className="mt-1 w-full text-sm"
+            value={String(d.brandText ?? "")}
+            onChange={(e) => setDraft({ ...d, brandText: e.target.value })}
+          />
+        </label>
+        <label className="block">
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("aboutTitle")}</span>
+          <input
+            className="mt-1 w-full text-sm"
+            value={String(d.aboutTitle ?? "")}
+            onChange={(e) => setDraft({ ...d, aboutTitle: e.target.value })}
+          />
+        </label>
+        <label className="block">
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("aboutBody")}</span>
+          <textarea
+            className="mt-1 w-full text-sm"
+            rows={3}
+            value={String(d.aboutBody ?? "")}
+            onChange={(e) => setDraft({ ...d, aboutBody: e.target.value })}
+          />
+        </label>
+        <label className="block">
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("linksTitle")}</span>
+          <input
+            className="mt-1 w-full text-sm"
+            value={String(d.linksTitle ?? "")}
+            onChange={(e) => setDraft({ ...d, linksTitle: e.target.value })}
+          />
+        </label>
+        <div className="text-[#a1a4a5]">{sectionContentFieldLabel("navLinks")}</div>
+        {((d.links as { label: string; href: string }[]) ?? []).map((l, i) => (
+          <div key={i} className="flex flex-wrap items-end gap-2">
+            {linkRow(l, (v) => {
+              const arr = [...((d.links as typeof l[]) ?? [])];
+              arr[i] = v;
+              setDraft({ ...d, links: arr });
+            })}
+            <button
+              type="button"
+              className="text-xs text-red-600"
+              onClick={() =>
+                setDraft({
+                  ...d,
+                  links: ((d.links as typeof l[]) ?? []).filter((_, j) => j !== i),
+                })
+              }
+            >
+              הסר
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          className="text-[var(--lc-primary)]"
+          onClick={() =>
+            setDraft({
+              ...d,
+              links: [...((d.links as { label: string; href: string }[]) ?? []), { label: "", href: "#" }],
+            })
+          }
+        >
+          + קישור
+        </button>
+        <label className="block">
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("contactTitle")}</span>
+          <input
+            className="mt-1 w-full text-sm"
+            value={String(d.contactTitle ?? "")}
+            onChange={(e) => setDraft({ ...d, contactTitle: e.target.value })}
+          />
+        </label>
+        <label className="block">
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("email")}</span>
+          <input
+            dir="ltr"
+            className="mt-1 w-full text-sm"
+            value={String(d.email ?? "")}
+            onChange={(e) => setDraft({ ...d, email: e.target.value })}
+          />
+        </label>
+        <label className="block">
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("phone")}</span>
+          <input
+            dir="ltr"
+            className="mt-1 w-full text-sm"
+            value={String(d.phone ?? "")}
+            onChange={(e) => setDraft({ ...d, phone: e.target.value })}
+          />
+        </label>
+        <div className="text-[#a1a4a5]">{sectionContentFieldLabel("social")}</div>
+        {((d.social as { network: string; href: string }[]) ?? []).map((s, i) => (
+          <div key={i} className="flex flex-wrap items-end gap-2">
+            <label className="block shrink-0">
+              <span className="text-xs text-[#464a4d]">{sectionContentFieldLabel("network")}</span>
+              <input
+                className="mt-0.5 w-28 text-sm"
+                value={s.network}
+                onChange={(e) => {
+                  const arr = [...((d.social as typeof s[]) ?? [])];
+                  arr[i] = { ...s, network: e.target.value };
+                  setDraft({ ...d, social: arr });
+                }}
+              />
+            </label>
+            <label className="block min-w-0 flex-1">
+              <span className="text-xs text-[#464a4d]">{sectionContentFieldLabel("href")}</span>
+              <input
+                dir="ltr"
+                className="mt-0.5 w-full text-sm"
+                value={s.href}
+                onChange={(e) => {
+                  const arr = [...((d.social as typeof s[]) ?? [])];
+                  arr[i] = { ...s, href: e.target.value };
+                  setDraft({ ...d, social: arr });
+                }}
+              />
+            </label>
+            <button
+              type="button"
+              className="text-xs text-red-600"
+              onClick={() =>
+                setDraft({
+                  ...d,
+                  social: ((d.social as typeof s[]) ?? []).filter((_, j) => j !== i),
+                })
+              }
+            >
+              הסר
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          className="text-[var(--lc-primary)]"
+          onClick={() =>
+            setDraft({
+              ...d,
+              social: [...((d.social as { network: string; href: string }[]) ?? []), { network: "instagram", href: "" }],
+            })
+          }
+        >
+          + רשת
+        </button>
+        <label className="block">
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("bottomBar")}</span>
+          <input
+            className="mt-1 w-full text-sm"
+            value={String(d.bottomBar ?? "")}
+            onChange={(e) => setDraft({ ...d, bottomBar: e.target.value })}
+          />
+        </label>
+      </div>
+    );
+  } else if (sk === "footer_newsletter") {
+    const d = draft as Record<string, unknown>;
+    body = (
+      <div className="space-y-3 text-sm">
+        <label className="block">
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("headline")}</span>
+          <textarea
+            className="mt-1 w-full text-sm"
+            rows={2}
+            value={String(d.headline ?? "")}
+            onChange={(e) => setDraft({ ...d, headline: e.target.value })}
+          />
+        </label>
+        <label className="block">
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("subheadline")}</span>
+          <textarea
+            className="mt-1 w-full text-sm"
+            rows={2}
+            value={String(d.subheadline ?? "")}
+            onChange={(e) => setDraft({ ...d, subheadline: e.target.value })}
+          />
+        </label>
+        <label className="block">
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("brandTagline")}</span>
+          <textarea
+            className="mt-1 w-full text-sm"
+            rows={2}
+            value={String(d.brandTagline ?? "")}
+            onChange={(e) => setDraft({ ...d, brandTagline: e.target.value })}
+          />
+        </label>
+        <label className="block">
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("emailLabel")}</span>
+          <input
+            className="mt-1 w-full text-sm"
+            value={String(d.emailLabel ?? "")}
+            onChange={(e) => setDraft({ ...d, emailLabel: e.target.value })}
+          />
+        </label>
+        <label className="block">
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("submitLabel")}</span>
+          <input
+            className="mt-1 w-full text-sm"
+            value={String(d.submitLabel ?? "")}
+            onChange={(e) => setDraft({ ...d, submitLabel: e.target.value })}
+          />
+        </label>
+        <label className="block">
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("privacyNote")}</span>
+          <textarea
+            className="mt-1 w-full text-sm"
+            rows={2}
+            value={String(d.privacyNote ?? "")}
+            onChange={(e) => setDraft({ ...d, privacyNote: e.target.value })}
+          />
+        </label>
+        <div className="text-[#a1a4a5]">{sectionContentFieldLabel("social")}</div>
+        {((d.social as { network: string; href: string }[]) ?? []).map((s, i) => (
+          <div key={i} className="flex flex-wrap items-end gap-2">
+            <label className="block shrink-0">
+              <span className="text-xs text-[#464a4d]">{sectionContentFieldLabel("network")}</span>
+              <input
+                className="mt-0.5 w-28 text-sm"
+                value={s.network}
+                onChange={(e) => {
+                  const arr = [...((d.social as typeof s[]) ?? [])];
+                  arr[i] = { ...s, network: e.target.value };
+                  setDraft({ ...d, social: arr });
+                }}
+              />
+            </label>
+            <label className="block min-w-0 flex-1">
+              <span className="text-xs text-[#464a4d]">{sectionContentFieldLabel("href")}</span>
+              <input
+                dir="ltr"
+                className="mt-0.5 w-full text-sm"
+                value={s.href}
+                onChange={(e) => {
+                  const arr = [...((d.social as typeof s[]) ?? [])];
+                  arr[i] = { ...s, href: e.target.value };
+                  setDraft({ ...d, social: arr });
+                }}
+              />
+            </label>
+            <button
+              type="button"
+              className="text-xs text-red-600"
+              onClick={() =>
+                setDraft({
+                  ...d,
+                  social: ((d.social as typeof s[]) ?? []).filter((_, j) => j !== i),
+                })
+              }
+            >
+              הסר
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          className="text-[var(--lc-primary)]"
+          onClick={() =>
+            setDraft({
+              ...d,
+              social: [...((d.social as { network: string; href: string }[]) ?? []), { network: "instagram", href: "" }],
+            })
+          }
+        >
+          + רשת
+        </button>
       </div>
     );
   }

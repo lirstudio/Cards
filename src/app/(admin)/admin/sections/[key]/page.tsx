@@ -10,7 +10,7 @@ export default async function AdminSectionDetailPage({
   params: Promise<{ key: string }>;
 }) {
   const { key } = await params;
-  const { definition, variants, categories } = await getSectionDefinition(key);
+  const { definition, categories } = await getSectionDefinition(key);
 
   if (!definition) notFound();
 
@@ -22,11 +22,7 @@ export default async function AdminSectionDetailPage({
       >
         ← {he.adminSections}
       </Link>
-      <SectionEditor
-        definition={definition}
-        initialVariants={variants}
-        categories={categories}
-      />
+      <SectionEditor definition={definition} categories={categories} />
     </div>
   );
 }

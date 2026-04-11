@@ -29,7 +29,7 @@ export function GalleryRowMarquee({
   const anchor = LANDING_SECTION_ANCHOR_CLASS;
 
   const cellClass =
-    "relative aspect-[3/4] w-[38vw] max-w-[220px] overflow-hidden rounded-3xl @min-[640px]:w-44 @min-[1024px]:w-52";
+    "group relative aspect-[3/4] w-[38vw] max-w-[220px] overflow-hidden rounded-3xl shadow-[0_0_0_1px_rgba(176,199,217,0.12)] transition-[box-shadow] duration-300 hover:shadow-[0_0_0_1px_rgba(214,235,253,0.2),0_16px_40px_-24px_rgba(0,0,0,0.45)] @min-[640px]:w-44 @min-[1024px]:w-52";
 
   const cells = images.map((im, i) => (
     <div key={`gallery-slot-${i}`} className={cellClass}>
@@ -38,12 +38,12 @@ export function GalleryRowMarquee({
           src={im.src}
           alt={im.alt ?? ""}
           fill
-          className="object-cover"
+          className="lc-media-hover-zoom object-cover"
           sizes="(max-width: 768px) 38vw, 208px"
           unoptimized
         />
       ) : (
-        <LandingImagePlaceholder className="absolute inset-0 size-full rounded-3xl" />
+        <LandingImagePlaceholder className="lc-media-hover-zoom absolute inset-0 size-full rounded-3xl" />
       )}
     </div>
   ));
@@ -77,12 +77,12 @@ export function GalleryRowMarquee({
                   src={im.src}
                   alt={im.alt ?? ""}
                   fill
-                  className="object-cover"
+                  className="lc-media-hover-zoom object-cover"
                   sizes="(max-width: 768px) 38vw, 208px"
                   unoptimized
                 />
               ) : (
-                <LandingImagePlaceholder className="absolute inset-0 size-full rounded-3xl" />
+                <LandingImagePlaceholder className="lc-media-hover-zoom absolute inset-0 size-full rounded-3xl" />
               )}
             </div>
           ))}

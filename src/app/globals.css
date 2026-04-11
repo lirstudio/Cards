@@ -187,10 +187,15 @@ textarea:not(.lc-input-framed)::placeholder {
 
 /* המלצות — ריחוף עדין על כרטיס */
 .lc-testimonial-card {
-  transition: box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  transition:
+    box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.lc-testimonial-card:hover {
-  box-shadow: 0 0 0 1px var(--ring-shadow), 0 22px 48px -26px rgba(0, 0, 0, 0.4);
+@media (prefers-reduced-motion: no-preference) {
+  .lc-testimonial-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0 0 1px var(--ring-shadow), 0 22px 48px -26px rgba(0, 0, 0, 0.4);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -200,4 +205,67 @@ textarea:not(.lc-input-framed)::placeholder {
   .lc-testimonial-card:hover {
     box-shadow: 0 0 0 1px var(--ring-shadow);
   }
+}
+
+/* Landing media: subtle zoom on frame hover (.group parent). */
+.lc-media-hover-zoom {
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .group:hover .lc-media-hover-zoom {
+    transform: scale(1.04);
+  }
+}
+
+/* כפתורי CTA / קישורי פעולה — אחיד */
+.lc-cta-interactive {
+  transition:
+    transform 0.2s ease-out,
+    opacity 0.2s ease-out,
+    filter 0.2s ease-out,
+    box-shadow 0.25s ease-out;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .lc-cta-interactive:hover {
+    transform: scale(1.02);
+    filter: brightness(1.08);
+  }
+  .lc-cta-interactive:active {
+    transform: scale(0.98);
+  }
+}
+.lc-cta-interactive:disabled {
+  transform: none !important;
+  filter: none !important;
+}
+
+/* ספריית סקשנים באדמין — כניסה עדינה לכרטיסי הרשת בטעינת העמוד */
+@keyframes lc-admin-section-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.lc-admin-section-card-in {
+  animation: lc-admin-section-card-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lc-admin-section-card-in {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* תפריט קטגוריה בספריית סקשנים — רקע אטום (פורטל; מניעת שקיפות מכל שכבת Tailwind) */
+.lc-admin-category-dropdown-panel,
+.lc-admin-category-dropdown-panel-scroll {
+  background: #0a0a0a !important;
+  background-color: #0a0a0a !important;
+  background-image: none !important;
+  opacity: 1 !important;
 }

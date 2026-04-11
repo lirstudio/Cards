@@ -27,20 +27,6 @@ function slugify(input: string) {
     .replace(/^-|-$/g, "");
 }
 
-async function defaultVariantIdForSection(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  sectionKey: SectionKey,
-): Promise<string | null> {
-  const { data } = await supabase
-    .from("section_variants")
-    .select("id")
-    .eq("section_key", sectionKey)
-    .eq("enabled", true)
-    .eq("is_default", true)
-    .maybeSingle();
-  return (data?.id as string | undefined) ?? null;
-}
-
 const DEFAULT_NEW_PAGE_THEME = {
   primary: "#3b9eff",
   background: "#000000",
@@ -327,7 +313,6 @@ export async function addSectionToPage(
     .eq("landing_page_id", pageId);
 
   const sortOrder = count ?? 0;
-  const variantId = await defaultVariantIdForSection(supabase, sectionKey);
 
   const { data: inserted, error } = await supabase
     .from("page_sections")
@@ -337,7 +322,6 @@ export async function addSectionToPage(
       sort_order: sortOrder,
       content: getDefaultContent(sectionKey),
       visible: true,
-      ...(variantId ? { variant_id: variantId } : {}),
     })
     .select("id")
     .single();
@@ -355,8 +339,6 @@ export async function insertSectionAt(
   sectionKey: SectionKey,
   index: number,
   contentOverride?: Record<string, unknown>,
-  /** מזהה כרטיס עיצוב שנבחר בעורך; אם לא הועבר — נטען כרטיס ברירת־המחדל מה־DB */
-  explicitVariantId?: string,
 ): Promise<{ ok: boolean; error?: string; sectionId?: string }> {
   const supabase = await createClient();
   const {
@@ -389,12 +371,6 @@ export async function insertSectionAt(
 
   const ids = (rows ?? []).map((r) => r.id);
   const insertIndex = Math.max(0, Math.min(index, ids.length));
-  let variantId: string | null = null;
-  if (explicitVariantId !== undefined && String(explicitVariantId).trim() !== "") {
-    variantId = String(explicitVariantId).trim();
-  } else {
-    variantId = await defaultVariantIdForSection(supabase, sectionKey);
-  }
 
   const { data: inserted, error: insErr } = await supabase
     .from("page_sections")
@@ -404,7 +380,6 @@ export async function insertSectionAt(
       sort_order: insertIndex,
       content: contentToInsert,
       visible: true,
-      ...(variantId ? { variant_id: variantId } : {}),
     })
     .select("id")
     .single();
@@ -468,63 +443,6 @@ export async function updateSectionContent(
     .update({ content: check.data as object })
     .eq("id", sectionId)
     .eq("landing_page_id", pageId);
-
-  revalidatePath("/dashboard");
-  revalidatePath(`/${page.slug}`);
-  return { ok: true };
-}
-
-/** מעדכן כרטיס עיצוב לסקשן קיים בעמוד (בחירה מחדש ללא מחיקת הסקשן). */
-export async function updatePageSectionVariant(
-  pageId: string,
-  sectionId: string,
-  variantId: string | null,
-): Promise<{ ok: boolean; error?: string }> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "לא מחובר" };
-
-  const { data: page } = await supabase
-    .from("landing_pages")
-    .select("slug")
-    .eq("id", pageId)
-    .eq("user_id", user.id)
-    .maybeSingle();
-  if (!page) return { ok: false, error: "אין גישה" };
-
-  const { data: sec } = await supabase
-    .from("page_sections")
-    .select("section_key")
-    .eq("id", sectionId)
-    .eq("landing_page_id", pageId)
-    .maybeSingle();
-  if (!sec) return { ok: false, error: "סקשן לא נמצא" };
-
-  const sectionKey = sec.section_key as string;
-
-  let nextVariant: string | null = null;
-  if (variantId !== null && String(variantId).trim() !== "") {
-    const vid = String(variantId).trim();
-    const { data: vrow } = await supabase
-      .from("section_variants")
-      .select("id")
-      .eq("id", vid)
-      .eq("section_key", sectionKey)
-      .eq("enabled", true)
-      .maybeSingle();
-    if (!vrow) return { ok: false, error: "כרטיס עיצוב לא תקף" };
-    nextVariant = vid;
-  }
-
-  const { error } = await supabase
-    .from("page_sections")
-    .update({ variant_id: nextVariant })
-    .eq("id", sectionId)
-    .eq("landing_page_id", pageId);
-
-  if (error) return { ok: false, error: error.message };
 
   revalidatePath("/dashboard");
   revalidatePath(`/${page.slug}`);

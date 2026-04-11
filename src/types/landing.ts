@@ -29,7 +29,6 @@ export type PageSectionRow = {
   sort_order: number;
   content: Record<string, unknown>;
   visible: boolean;
-  variant_id: string | null;
   created_at: string;
   updated_at: string;
 };

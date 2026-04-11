@@ -32,6 +32,7 @@ export function SectionTypePreview({ sectionKey }: { sectionKey: SectionKey }) {
           sectionId={`palette-${sectionKey}`}
           editorPreview
           embedded
+          libraryPreviewMotion
         />
       </ScaledSectionPreviewLayer>
     </div>
@@ -65,9 +66,13 @@ export function SectionVariantPreviewThumb({
           editorPreview
           embedded={
             sectionKey === "hero_image_split" ||
+            sectionKey === "hero_editorial_split" ||
+            sectionKey === "hero_immersive_bg" ||
+            sectionKey === "hero_showcase_float" ||
             sectionKey === "stats_highlight_row" ||
             sectionKey === "site_header_nav"
           }
+          libraryPreviewMotion
           variantStyleOverrides={variantStyleOverrides}
         />
       </ScaledSectionPreviewLayer>

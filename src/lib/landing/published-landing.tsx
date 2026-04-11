@@ -29,15 +29,15 @@ export async function PublishedLandingRoot({ slug }: { slug: string }) {
 
   const typedSections = (sections ?? []) as unknown as PageSectionRow[];
 
-  const variantIds = typedSections.map((s) => s.variant_id).filter(Boolean) as string[];
-  const variantMap = new Map<string, SectionStyleOverrides>();
-  if (variantIds.length > 0) {
-    const { data: variants } = await supabase
-      .from("section_variants")
-      .select("id, style_overrides")
-      .in("id", variantIds);
-    for (const v of variants ?? []) {
-      variantMap.set(v.id, v.style_overrides as SectionStyleOverrides);
+  const sectionKeys = [...new Set(typedSections.map((s) => s.section_key))];
+  const defStyleByKey = new Map<string, SectionStyleOverrides>();
+  if (sectionKeys.length > 0) {
+    const { data: defs } = await supabase
+      .from("section_definitions")
+      .select("key, style_overrides")
+      .in("key", sectionKeys);
+    for (const d of defs ?? []) {
+      defStyleByKey.set(d.key as string, (d.style_overrides ?? {}) as SectionStyleOverrides);
     }
   }
 
@@ -64,7 +64,7 @@ export async function PublishedLandingRoot({ slug }: { slug: string }) {
           theme={page.theme ?? {}}
           landingPageId={page.id}
           sectionId={s.id}
-          variantStyleOverrides={s.variant_id ? variantMap.get(s.variant_id) : undefined}
+          variantStyleOverrides={defStyleByKey.get(s.section_key)}
           pageNavSections={pageNavSections}
         />
       ))}

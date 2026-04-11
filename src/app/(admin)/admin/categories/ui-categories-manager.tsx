@@ -25,6 +25,26 @@ import {
 import { he } from "@/lib/i18n/he";
 import type { SectionCategoryRow } from "@/types/admin";
 
+/** מזהה טכני ייחודי במסד — נגזר משם התצוגה (כולל עברית). */
+function makeUniqueCategorySlug(nameHe: string, takenSlugs: Set<string>): string {
+  const raw = nameHe
+    .trim()
+    .normalize("NFC")
+    .replace(/\s+/g, "-")
+    .replace(/[^\p{L}\p{N}-]/gu, "")
+    .replace(/-{2,}/g, "-")
+    .replace(/^-|-$/g, "");
+  const base = raw.slice(0, 96) || `cat-${Date.now()}`;
+  let candidate = base;
+  let i = 2;
+  while (takenSlugs.has(candidate)) {
+    const suffix = `-${i}`;
+    candidate = `${base.slice(0, Math.max(1, 96 - suffix.length))}${suffix}`;
+    i += 1;
+  }
+  return candidate;
+}
+
 function SortableCategoryRow({
   cat,
   onDelete,
@@ -56,11 +76,8 @@ function SortableCategoryRow({
       >
         ⋮⋮
       </button>
-      <div className="flex-1">
-        <span className="font-medium">{cat.name_he}</span>
-        <span className="ms-2 text-xs text-[#464a4d]" dir="ltr">
-          ({cat.slug})
-        </span>
+      <div className="min-w-0 flex-1">
+        <span className="font-medium text-[#f0f0f0]">{cat.name_he}</span>
       </div>
       <button
         type="button"
@@ -80,7 +97,6 @@ export function CategoriesManager({
   initialCategories: SectionCategoryRow[];
 }) {
   const [categories, setCategories] = useState(initialCategories);
-  const [newSlug, setNewSlug] = useState("");
   const [newName, setNewName] = useState("");
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
@@ -109,9 +125,11 @@ export function CategoriesManager({
   }
 
   function handleAdd() {
-    const slug = newSlug.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "");
     const name = newName.trim();
-    if (!slug || !name) return;
+    if (!name) return;
+
+    const taken = new Set(categories.map((c) => c.slug));
+    const slug = makeUniqueCategorySlug(name, taken);
 
     startTransition(async () => {
       const res = await upsertCategory({
@@ -125,7 +143,6 @@ export function CategoriesManager({
           ...prev,
           { slug, name_he: name, sort_order: prev.length, created_at: new Date().toISOString() },
         ]);
-        setNewSlug("");
         setNewName("");
         setError("");
       } else {
@@ -176,37 +193,20 @@ export function CategoriesManager({
         </SortableContext>
       </DndContext>
 
-      <div className="flex items-end gap-3 rounded-xl border border-dashed border-[rgba(214,235,253,0.19)] bg-white/5 p-4">
-        <div className="flex-1 space-y-1">
-          <label className="text-xs font-medium text-[#a1a4a5]">
-            {he.adminCategorySlug}
-          </label>
-          <input
-            type="text"
-            value={newSlug}
-            onChange={(e) => setNewSlug(e.target.value)}
-            placeholder="e.g. interactive"
-            dir="ltr"
-            className="block w-full text-sm"
-          />
-        </div>
-        <div className="flex-1 space-y-1">
-          <label className="text-xs font-medium text-[#a1a4a5]">
-            {he.adminCategoryName}
-          </label>
-          <input
-            type="text"
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            placeholder="אינטראקטיבי"
-            className="block w-full text-sm"
-          />
-        </div>
+      <div className="flex flex-col gap-2 rounded-xl border border-[rgba(214,235,253,0.14)] bg-white/5 p-3 sm:flex-row sm:items-stretch sm:gap-2">
+        <input
+          type="text"
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          placeholder={he.adminCategoryNewPlaceholder}
+          aria-label={he.adminCategoryName}
+          className="min-h-[2.5rem] min-w-0 flex-1 rounded-lg border border-[rgba(214,235,253,0.19)] bg-[#0a0a0a] px-3 py-2 text-sm text-[#f0f0f0] placeholder:text-[#464a4d]"
+        />
         <button
           type="button"
-          disabled={pending || !newSlug.trim() || !newName.trim()}
+          disabled={pending || !newName.trim()}
           onClick={handleAdd}
-          className="rounded-lg bg-[var(--lc-primary)] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
+          className="shrink-0 rounded-lg bg-[var(--lc-primary)] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
         >
           {he.adminAddCategory}
         </button>

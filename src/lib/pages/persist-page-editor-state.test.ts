@@ -4,6 +4,7 @@ import { getDefaultContent } from "@/lib/sections/defaults";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 const hero = () => getDefaultContent("hero_image_split");
+const heroImmersive = () => getDefaultContent("hero_immersive_bg");
 
 describe("runPersistPageEditorState", () => {
   it("calls reorder rpc once when data unchanged", async () => {
@@ -13,7 +14,6 @@ describe("runPersistPageEditorState", () => {
         section_key: "hero_image_split",
         content: hero(),
         visible: true,
-        variant_id: null as string | null,
       },
     ];
 
@@ -29,15 +29,6 @@ describe("runPersistPageEditorState", () => {
                 eq: () => ({
                   maybeSingle: async () => ({ data: { slug: "slug-a" }, error: null }),
                 }),
-              }),
-            }),
-          };
-        }
-        if (table === "section_variants") {
-          return {
-            select: () => ({
-              eq: () => ({
-                in: async () => ({ data: [], error: null }),
               }),
             }),
           };
@@ -59,7 +50,6 @@ describe("runPersistPageEditorState", () => {
         section_key: "hero_image_split",
         content: hero(),
         visible: true,
-        variant_id: null,
       },
     ]);
 
@@ -69,6 +59,56 @@ describe("runPersistPageEditorState", () => {
       p_page_id: "page-1",
       p_ordered_ids: ["sec-1"],
     });
+  });
+
+  it("accepts hero_immersive_bg default content shape", async () => {
+    const existing = [
+      {
+        id: "sec-h1",
+        section_key: "hero_immersive_bg",
+        content: heroImmersive(),
+        visible: true,
+      },
+    ];
+
+    const rpc = vi.fn().mockResolvedValue({ error: null });
+
+    const supabase = {
+      rpc,
+      from(table: string) {
+        if (table === "landing_pages") {
+          return {
+            select: () => ({
+              eq: () => ({
+                eq: () => ({
+                  maybeSingle: async () => ({ data: { slug: "slug-imm" }, error: null }),
+                }),
+              }),
+            }),
+          };
+        }
+        if (table === "page_sections") {
+          return {
+            select: () => ({
+              eq: async () => ({ data: existing, error: null }),
+            }),
+          };
+        }
+        throw new Error(`unexpected table ${table}`);
+      },
+    } as unknown as SupabaseClient;
+
+    const r = await runPersistPageEditorState(supabase, "user-1", "page-imm", [
+      {
+        id: "sec-h1",
+        section_key: "hero_immersive_bg",
+        content: heroImmersive(),
+        visible: true,
+      },
+    ]);
+
+    expect(r.ok).toBe(true);
+    expect(rpc).toHaveBeenCalledTimes(1);
   });
 
   it("batch-inserts new sections then reorders once", async () => {
@@ -85,15 +125,6 @@ describe("runPersistPageEditorState", () => {
                 eq: () => ({
                   maybeSingle: async () => ({ data: { slug: "slug-b" }, error: null }),
                 }),
-              }),
-            }),
-          };
-        }
-        if (table === "section_variants") {
-          return {
-            select: () => ({
-              eq: () => ({
-                in: async () => ({ data: [], error: null }),
               }),
             }),
           };
@@ -126,14 +157,12 @@ describe("runPersistPageEditorState", () => {
         section_key: "hero_image_split",
         content: hero(),
         visible: true,
-        variant_id: null,
       },
       {
         id: null,
         section_key: "hero_image_split",
         content: hero(),
         visible: true,
-        variant_id: null,
       },
     ]);
 

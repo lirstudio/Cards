@@ -139,7 +139,7 @@ export function ManualHorizontalCarousel({
           <button
             type="button"
             aria-label={he.carouselNextAria}
-            className="absolute left-1 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-[rgba(214,235,253,0.19)] bg-[#0a0a0a] text-[#f0f0f0] transition @md:left-2"
+            className="absolute left-1 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-[rgba(214,235,253,0.19)] bg-[#0a0a0a] text-[#f0f0f0] transition-[transform,background-color,box-shadow] duration-200 hover:bg-white/10 hover:shadow-[0_0_0_1px_rgba(214,235,253,0.22)] motion-safe:active:scale-95 @md:left-2"
             onClick={scrollPrev}
           >
             <Chevron direction="prev" />
@@ -147,7 +147,7 @@ export function ManualHorizontalCarousel({
           <button
             type="button"
             aria-label={he.carouselPrevAria}
-            className="absolute right-1 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-[rgba(214,235,253,0.19)] bg-[#0a0a0a] text-[#f0f0f0] transition @md:right-2"
+            className="absolute right-1 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-[rgba(214,235,253,0.19)] bg-[#0a0a0a] text-[#f0f0f0] transition-[transform,background-color,box-shadow] duration-200 hover:bg-white/10 hover:shadow-[0_0_0_1px_rgba(214,235,253,0.22)] motion-safe:active:scale-95 @md:right-2"
             onClick={scrollNext}
           >
             <Chevron direction="next" />
