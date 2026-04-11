@@ -359,4 +359,19 @@ export const he = {
   adminDeleteUserDeleting: "מוחק...",
   adminActionSuccess: "בוצע בהצלחה",
   adminActionFailed: "שגיאה — לא בוצע",
+
+  // Dashboard enhanced
+  dashboardTotalPages: "סה\"כ עמודים",
+  dashboardPublished: "מפורסמים",
+  dashboardDrafts: "טיוטות",
+  dashboardTotalLeads: "לידים",
+  dashboardViews: "צפיות",
+  dashboardLeads: "לידים",
+  dashboardSections: "סקשנים",
+  dashboardLastUpdated: "עודכן",
+  dashboardPublishedAt: "פורסם",
+  dashboardCreatedAt: "נוצר",
+  dashboardNeverPublished: "טרם פורסם",
+  dashboardEmptyTitle: "עדיין אין עמודי נחיתה",
+  dashboardEmptySubtitle: "צרו את עמוד הנחיתה הראשון שלכם עכשיו — זה לוקח פחות מדקה.",
 } as const;

@@ -32,6 +32,7 @@ export type HeroEditorialSplitProps = BaseHeroProps & {
   subheadline: string;
   heroCta: { label: string; href: string };
   layout: HeroImageTextLayout;
+  __hidden?: string[];
 };
 
 const editorialFrame =
@@ -50,10 +51,12 @@ export function HeroEditorialSplit({
   sectionId,
   pageNavSections,
   layout,
+  __hidden,
 }: HeroEditorialSplitProps) {
   const heroSecId = landingSectionDomId(sectionId);
   const heroAnchor = LANDING_SECTION_ANCHOR_CLASS;
   const ctaHref = resolveHeaderCtaHref(heroCta.href, pageNavSections);
+  const hidden = new Set(__hidden ?? []);
 
   const imageCol = (
     <div className="relative flex justify-center @min-[1024px]:justify-center">
@@ -80,27 +83,33 @@ export function HeroEditorialSplit({
     <div
       className={`min-w-0 space-y-5 text-center ${layout === "default" ? "@min-[1024px]:text-start" : ""} ${embedded ? "space-y-3" : ""}`}
     >
-      {eyebrow?.trim() ? (
+      {!hidden.has("eyebrow") && eyebrow?.trim() ? (
         <p className="text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: primary }}>
           {eyebrow}
         </p>
       ) : null}
-      <h1
-        className="break-words text-3xl font-extrabold leading-[1.08] tracking-tight md:text-4xl lg:text-[2.65rem]"
-        style={{ color: heading }}
-      >
-        {headline}
-      </h1>
-      <p className="text-lg leading-relaxed md:text-xl" style={{ color: body }}>
-        {subheadline}
-      </p>
-      <a
-        href={ctaHref}
-        className={`${pillClass()} px-10 py-4 text-base`}
-        style={{ backgroundColor: primary }}
-      >
-        {heroCta.label}
-      </a>
+      {!hidden.has("headline") && (
+        <h1
+          className="break-words text-3xl font-extrabold leading-[1.08] tracking-tight md:text-4xl lg:text-[2.65rem]"
+          style={{ color: heading }}
+        >
+          {headline}
+        </h1>
+      )}
+      {!hidden.has("subheadline") && (
+        <p className="text-lg leading-relaxed md:text-xl" style={{ color: body }}>
+          {subheadline}
+        </p>
+      )}
+      {!hidden.has("heroCta") && (
+        <a
+          href={ctaHref}
+          className={`${pillClass()} px-10 py-4 text-base`}
+          style={{ backgroundColor: primary }}
+        >
+          {heroCta.label}
+        </a>
+      )}
     </div>
   );
 
@@ -142,6 +151,7 @@ export type HeroImmersiveBgProps = BaseHeroProps & {
   subheadline: string;
   heroCta: { label: string; href: string };
   secondaryCta: { label: string; href: string };
+  __hidden?: string[];
 };
 
 export function HeroImmersiveBg({
@@ -156,9 +166,11 @@ export function HeroImmersiveBg({
   embedded,
   sectionId,
   pageNavSections,
+  __hidden,
 }: HeroImmersiveBgProps) {
   const heroSecId = landingSectionDomId(sectionId);
   const heroAnchor = LANDING_SECTION_ANCHOR_CLASS;
+  const hidden = new Set(__hidden ?? []);
   const primaryHref = resolveHeaderCtaHref(heroCta.href, pageNavSections);
   const secondaryHref = resolveHeaderCtaHref(secondaryCta.href, pageNavSections);
   const minH = embedded ? "min-h-[200px]" : "min-h-[min(85vh,760px)]";
@@ -195,33 +207,43 @@ export function HeroImmersiveBg({
         className={`relative z-10 flex flex-1 flex-col items-center justify-center px-4 py-12 text-center sm:px-6 lg:px-8 ${embedded ? "py-8" : "py-20 @min-[1024px]:py-28"}`}
       >
         <div className="mx-auto max-w-3xl space-y-6">
-          <h1
-            className="break-words text-3xl font-extrabold leading-tight text-white drop-shadow-sm md:text-4xl lg:text-5xl"
-            style={{ color: heading }}
-          >
-            {headline}
-          </h1>
-          <p
-            className="mx-auto max-w-2xl text-lg leading-relaxed text-white/85 md:text-xl"
-            style={{ color: body }}
-          >
-            {subheadline}
-          </p>
-          <div className="flex flex-col items-center justify-center gap-3 pt-2 sm:flex-row sm:gap-4">
-            <a
-              href={primaryHref}
-              className={`${pillClass()} px-10 py-4 text-base shadow-lg shadow-black/25`}
-              style={{ backgroundColor: primary }}
+          {!hidden.has("headline") && (
+            <h1
+              className="break-words text-3xl font-extrabold leading-tight text-white drop-shadow-sm md:text-4xl lg:text-5xl"
+              style={{ color: heading }}
             >
-              {heroCta.label}
-            </a>
-            <a
-              href={secondaryHref}
-              className="lc-cta-interactive inline-flex max-w-full items-center justify-center break-words rounded-full border-2 border-white/35 bg-white/5 px-8 py-3.5 text-center text-sm font-semibold text-white backdrop-blur-sm hover:border-white/55 hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/35 sm:px-10 sm:text-base"
+              {headline}
+            </h1>
+          )}
+          {!hidden.has("subheadline") && (
+            <p
+              className="mx-auto max-w-2xl text-lg leading-relaxed text-white/85 md:text-xl"
+              style={{ color: body }}
             >
-              {secondaryCta.label}
-            </a>
-          </div>
+              {subheadline}
+            </p>
+          )}
+          {(!hidden.has("heroCta") || !hidden.has("secondaryCta")) && (
+            <div className="flex flex-col items-center justify-center gap-3 pt-2 sm:flex-row sm:gap-4">
+              {!hidden.has("heroCta") && (
+                <a
+                  href={primaryHref}
+                  className={`${pillClass()} px-10 py-4 text-base shadow-lg shadow-black/25`}
+                  style={{ backgroundColor: primary }}
+                >
+                  {heroCta.label}
+                </a>
+              )}
+              {!hidden.has("secondaryCta") && (
+                <a
+                  href={secondaryHref}
+                  className="lc-cta-interactive inline-flex max-w-full items-center justify-center break-words rounded-full border-2 border-white/35 bg-white/5 px-8 py-3.5 text-center text-sm font-semibold text-white backdrop-blur-sm hover:border-white/55 hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/35 sm:px-10 sm:text-base"
+                >
+                  {secondaryCta.label}
+                </a>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </section>
@@ -235,6 +257,7 @@ export type HeroShowcaseFloatProps = BaseHeroProps & {
   subheadline: string;
   heroCta: { label: string; href: string };
   layout: HeroImageTextLayout;
+  __hidden?: string[];
 };
 
 export function HeroShowcaseFloat({
@@ -250,10 +273,12 @@ export function HeroShowcaseFloat({
   sectionId,
   pageNavSections,
   layout,
+  __hidden,
 }: HeroShowcaseFloatProps) {
   const heroSecId = landingSectionDomId(sectionId);
   const heroAnchor = LANDING_SECTION_ANCHOR_CLASS;
   const ctaHref = resolveHeaderCtaHref(heroCta.href, pageNavSections);
+  const hidden = new Set(__hidden ?? []);
 
   const floatFrame =
     "relative overflow-hidden rounded-[1.75rem] shadow-[0_32px_64px_-28px_rgba(0,0,0,0.65),0_0_0_1px_rgba(214,235,253,0.12)] ring-1 ring-white/10 transition-[transform,box-shadow] duration-500 motion-safe:hover:-translate-y-1 motion-safe:hover:shadow-[0_40px_80px_-32px_rgba(0,0,0,0.7)] @md:rounded-[2rem] motion-safe:lg:rotate-2";
@@ -283,7 +308,7 @@ export function HeroShowcaseFloat({
     <div
       className={`min-w-0 space-y-5 text-center ${layout === "default" ? "@min-[1024px]:text-start" : ""} ${embedded ? "space-y-3" : ""}`}
     >
-      {badge?.trim() ? (
+      {!hidden.has("badge") && badge?.trim() ? (
         <span
           className="inline-flex rounded-full px-4 py-1.5 text-xs font-semibold text-white/95 ring-1 ring-white/20"
           style={{ backgroundColor: `${primary}33` }}
@@ -291,22 +316,28 @@ export function HeroShowcaseFloat({
           {badge}
         </span>
       ) : null}
-      <h1
-        className="break-words text-3xl font-extrabold leading-[1.05] tracking-tight md:text-4xl lg:text-[2.85rem]"
-        style={{ color: heading }}
-      >
-        {headline}
-      </h1>
-      <p className="max-w-xl text-lg leading-relaxed md:text-xl" style={{ color: body }}>
-        {subheadline}
-      </p>
-      <a
-        href={ctaHref}
-        className={`${pillClass()} px-10 py-4 text-base`}
-        style={{ backgroundColor: primary }}
-      >
-        {heroCta.label}
-      </a>
+      {!hidden.has("headline") && (
+        <h1
+          className="break-words text-3xl font-extrabold leading-[1.05] tracking-tight md:text-4xl lg:text-[2.85rem]"
+          style={{ color: heading }}
+        >
+          {headline}
+        </h1>
+      )}
+      {!hidden.has("subheadline") && (
+        <p className="max-w-xl text-lg leading-relaxed md:text-xl" style={{ color: body }}>
+          {subheadline}
+        </p>
+      )}
+      {!hidden.has("heroCta") && (
+        <a
+          href={ctaHref}
+          className={`${pillClass()} px-10 py-4 text-base`}
+          style={{ backgroundColor: primary }}
+        >
+          {heroCta.label}
+        </a>
+      )}
     </div>
   );
 

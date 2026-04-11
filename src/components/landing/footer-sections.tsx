@@ -108,9 +108,11 @@ export function FooterMinimalSection({
           ))}
         </nav>
       </div>
-      <p className="mx-auto mt-8 max-w-6xl text-center text-xs text-[#a1a4a5] @md:text-start">
-        {data.copyright}
-      </p>
+      {!data.__hidden?.includes("copyright") && data.copyright?.trim() ? (
+        <p className="mx-auto mt-8 max-w-6xl text-center text-xs text-[#a1a4a5] @md:text-start">
+          {data.copyright}
+        </p>
+      ) : null}
     </section>
   );
 }
@@ -134,12 +136,20 @@ export function FooterColumnsSection({
     >
       <div className="mx-auto grid w-full min-w-0 max-w-6xl grid-cols-1 gap-10 @md:grid-cols-2 @lg:grid-cols-4 @lg:gap-12">
         <div className="min-w-0 space-y-3">
-          <p className="text-lg font-bold text-[#f0f0f0]">{data.brandText}</p>
-          <h3 className="text-sm font-semibold text-[#f0f0f0]">{data.aboutTitle}</h3>
-          <p className="text-sm leading-relaxed text-[#a1a4a5]">{data.aboutBody}</p>
+          {!data.__hidden?.includes("brandText") && data.brandText?.trim() ? (
+            <p className="text-lg font-bold text-[#f0f0f0]">{data.brandText}</p>
+          ) : null}
+          {!data.__hidden?.includes("aboutTitle") && data.aboutTitle?.trim() ? (
+            <h3 className="text-sm font-semibold text-[#f0f0f0]">{data.aboutTitle}</h3>
+          ) : null}
+          {!data.__hidden?.includes("aboutBody") && data.aboutBody?.trim() ? (
+            <p className="text-sm leading-relaxed text-[#a1a4a5]">{data.aboutBody}</p>
+          ) : null}
         </div>
         <div className="min-w-0 space-y-3">
-          <h3 className="text-sm font-semibold text-[#f0f0f0]">{data.linksTitle}</h3>
+          {!data.__hidden?.includes("linksTitle") && data.linksTitle?.trim() ? (
+            <h3 className="text-sm font-semibold text-[#f0f0f0]">{data.linksTitle}</h3>
+          ) : null}
           <ul className="space-y-2 text-sm">
             {data.links.map((l, i) => (
               <li key={`${l.href}-${i}`}>
@@ -191,9 +201,11 @@ export function FooterColumnsSection({
           </div>
         </div>
       </div>
-      <div className="mx-auto mt-12 max-w-6xl border-t border-[rgba(176,199,217,0.12)] pt-8 text-center text-xs text-[#a1a4a5] @md:text-start">
-        {data.bottomBar}
-      </div>
+      {!data.__hidden?.includes("bottomBar") && data.bottomBar?.trim() ? (
+        <div className="mx-auto mt-12 max-w-6xl border-t border-[rgba(176,199,217,0.12)] pt-8 text-center text-xs text-[#a1a4a5] @md:text-start">
+          {data.bottomBar}
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -223,11 +235,17 @@ export function FooterNewsletterSection({
       style={sectionStyle(primary)}
     >
       <div className="mx-auto w-full min-w-0 max-w-3xl text-center">
-        <h2 className="text-2xl font-bold tracking-tight text-[#f0f0f0] sm:text-3xl">{data.headline}</h2>
-        <p className="mt-2 text-sm text-[#a1a4a5] sm:text-base">{data.subheadline}</p>
-        <p className="mx-auto mt-6 max-w-xl text-xl font-bold leading-snug text-[#f0f0f0] sm:text-2xl">
-          {data.brandTagline}
-        </p>
+        {!data.__hidden?.includes("headline") && data.headline?.trim() ? (
+          <h2 className="text-2xl font-bold tracking-tight text-[#f0f0f0] sm:text-3xl">{data.headline}</h2>
+        ) : null}
+        {!data.__hidden?.includes("subheadline") && data.subheadline?.trim() ? (
+          <p className="mt-2 text-sm text-[#a1a4a5] sm:text-base">{data.subheadline}</p>
+        ) : null}
+        {!data.__hidden?.includes("brandTagline") && data.brandTagline?.trim() ? (
+          <p className="mx-auto mt-6 max-w-xl text-xl font-bold leading-snug text-[#f0f0f0] sm:text-2xl">
+            {data.brandTagline}
+          </p>
+        ) : null}
 
         {state?.message && !editorPreview ? (
           <p
@@ -306,7 +324,7 @@ export function FooterNewsletterSection({
           ))}
         </div>
 
-        <p className="mx-auto mt-8 max-w-lg text-xs leading-relaxed text-[#464a4d]">{data.privacyNote}</p>
+        {!data.__hidden?.includes("privacyNote") && data.privacyNote?.trim() ? (<p className="mx-auto mt-8 max-w-lg text-xs leading-relaxed text-[#464a4d]">{data.privacyNote}</p>) : null}
       </div>
     </section>
   );

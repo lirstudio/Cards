@@ -296,11 +296,13 @@ export function SectionRenderer({
     subheadline: string;
     heroCta: { label: string; href: string };
     heroBackdropCircle?: boolean;
+    __hidden?: string[];
   }) {
     const heroSecId = landingSectionDomId(sectionId);
     const heroAnchor = LANDING_SECTION_ANCHOR_CLASS;
     const layout = imageTextLayoutMode(vo);
     const showBackdrop = c.heroBackdropCircle === true;
+    const hidden = new Set(c.__hidden ?? []);
     const heroImageCol = (
       <div className="relative flex justify-center">
         {showBackdrop ? (
@@ -332,22 +334,28 @@ export function SectionRenderer({
       <div
         className={`min-w-0 text-center ${layout === "default" ? "@min-[1024px]:text-start" : ""} ${embedded ? "space-y-3" : "space-y-6"}`}
       >
-        <h1
-          className="break-words text-3xl font-extrabold leading-tight md:text-4xl"
-          style={{ color: heading }}
-        >
-          {c.headline}
-        </h1>
-        <p className="text-lg leading-relaxed" style={{ color: body }}>
-          {c.subheadline}
-        </p>
-        <a
-          href={resolveHeaderCtaHref(c.heroCta.href, pageNavSections)}
-          className={`${pillClass()} px-10 py-4 text-base`}
-          style={{ backgroundColor: primary }}
-        >
-          {c.heroCta.label}
-        </a>
+        {!hidden.has("headline") && (
+          <h1
+            className="break-words text-3xl font-extrabold leading-tight md:text-4xl"
+            style={{ color: heading }}
+          >
+            {c.headline}
+          </h1>
+        )}
+        {!hidden.has("subheadline") && (
+          <p className="text-lg leading-relaxed" style={{ color: body }}>
+            {c.subheadline}
+          </p>
+        )}
+        {!hidden.has("heroCta") && (
+          <a
+            href={resolveHeaderCtaHref(c.heroCta.href, pageNavSections)}
+            className={`${pillClass()} px-10 py-4 text-base`}
+            style={{ backgroundColor: primary }}
+          >
+            {c.heroCta.label}
+          </a>
+        )}
       </div>
     );
     return layout === "default" ? (
@@ -416,6 +424,7 @@ export function SectionRenderer({
           sectionId={sectionId}
           pageNavSections={pageNavSections}
           layout={imageTextLayoutMode(vo)}
+          __hidden={c.__hidden}
         />
       </div>
     );
@@ -438,6 +447,7 @@ export function SectionRenderer({
           embedded={embedded}
           sectionId={sectionId}
           pageNavSections={pageNavSections}
+          __hidden={c.__hidden}
         />
       </div>
     );
@@ -461,6 +471,7 @@ export function SectionRenderer({
           sectionId={sectionId}
           pageNavSections={pageNavSections}
           layout={imageTextLayoutMode(vo)}
+          __hidden={c.__hidden}
         />
       </div>
     );
@@ -643,29 +654,35 @@ export function SectionRenderer({
         dir="rtl"
       >
         <div className="mx-auto min-w-0 max-w-3xl text-center">
-          <h2
-            className="mb-6 break-words text-2xl font-bold sm:mb-8 sm:text-3xl md:text-4xl"
-            style={{ color: heading }}
-          >
-            {c.title}
-          </h2>
-          <div
-            className="mb-8 space-y-4 text-base leading-relaxed sm:mb-10 sm:space-y-5 sm:text-lg"
-            style={{ color: body }}
-          >
-            {c.paragraphs.map((p, i) => (
-              <p key={i} className="break-words">
-                {p}
-              </p>
-            ))}
-          </div>
-          <a
-            href={resolveHeaderCtaHref(c.cta.href, pageNavSections)}
-            className={pillClass()}
-            style={{ backgroundColor: primary }}
-          >
-            {c.cta.label}
-          </a>
+          {!c.__hidden?.includes("title") && c.title?.trim() ? (
+            <h2
+              className="mb-6 break-words text-2xl font-bold sm:mb-8 sm:text-3xl md:text-4xl"
+              style={{ color: heading }}
+            >
+              {c.title}
+            </h2>
+          ) : null}
+          {c.paragraphs.length > 0 && (
+            <div
+              className="mb-8 space-y-4 text-base leading-relaxed sm:mb-10 sm:space-y-5 sm:text-lg"
+              style={{ color: body }}
+            >
+              {c.paragraphs.map((p, i) => (
+                <p key={i} className="break-words">
+                  {p}
+                </p>
+              ))}
+            </div>
+          )}
+          {!c.__hidden?.includes("cta") && c.cta ? (
+            <a
+              href={resolveHeaderCtaHref(c.cta.href, pageNavSections)}
+              className={pillClass()}
+              style={{ backgroundColor: primary }}
+            >
+              {c.cta.label}
+            </a>
+          ) : null}
         </div>
       </section>
     );
@@ -681,12 +698,14 @@ export function SectionRenderer({
     const layout = imageTextLayoutMode(vo);
     const checklistCol = (
       <div className="min-w-0 text-start">
-        <h2
-          className="mb-6 break-words text-2xl font-bold sm:mb-8 sm:text-3xl md:text-4xl"
-          style={{ color: heading }}
-        >
-          {c.title}
-        </h2>
+        {!c.__hidden?.includes("title") && c.title?.trim() ? (
+          <h2
+            className="mb-6 break-words text-2xl font-bold sm:mb-8 sm:text-3xl md:text-4xl"
+            style={{ color: heading }}
+          >
+            {c.title}
+          </h2>
+        ) : null}
         <ul className="space-y-6">
           {c.items.map((item, i) => (
             <li
@@ -795,25 +814,31 @@ export function SectionRenderer({
         className={`${LC_SECTION_SHELL} ${LANDING_SECTION_ANCHOR_CLASS} py-12 text-center sm:py-16`}
         dir="rtl"
       >
-        <h2
-          className="mx-auto mb-4 max-w-3xl break-words text-2xl font-bold sm:mb-6 sm:text-3xl md:text-4xl"
-          style={{ color: heading }}
-        >
-          {c.headline}
-        </h2>
-        <p
-          className="mx-auto mb-8 max-w-2xl text-base sm:mb-10 sm:text-lg"
-          style={{ color: body }}
-        >
-          {c.body}
-        </p>
-        <a
-          href={resolveHeaderCtaHref(c.cta.href, pageNavSections)}
-          className={pillClass()}
-          style={{ backgroundColor: primary }}
-        >
-          {c.cta.label}
-        </a>
+        {!c.__hidden?.includes("headline") && c.headline?.trim() ? (
+          <h2
+            className="mx-auto mb-4 max-w-3xl break-words text-2xl font-bold sm:mb-6 sm:text-3xl md:text-4xl"
+            style={{ color: heading }}
+          >
+            {c.headline}
+          </h2>
+        ) : null}
+        {!c.__hidden?.includes("body") && c.body?.trim() ? (
+          <p
+            className="mx-auto mb-8 max-w-2xl text-base sm:mb-10 sm:text-lg"
+            style={{ color: body }}
+          >
+            {c.body}
+          </p>
+        ) : null}
+        {!c.__hidden?.includes("cta") && c.cta ? (
+          <a
+            href={resolveHeaderCtaHref(c.cta.href, pageNavSections)}
+            className={pillClass()}
+            style={{ backgroundColor: primary }}
+          >
+            {c.cta.label}
+          </a>
+        ) : null}
       </section>
     );
   }
@@ -828,18 +853,22 @@ export function SectionRenderer({
         dir="rtl"
       >
         <div className="mx-auto min-w-0 max-w-5xl text-center">
-          <div
-            className="mx-auto mb-4 inline-flex max-w-full flex-wrap items-center justify-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition-[background-color,transform] duration-200 sm:px-4 sm:text-sm motion-safe:hover:scale-[1.02] motion-safe:hover:bg-white/[0.04]"
-            style={{ borderColor: primary, color: primary }}
-          >
-            {c.badge}
-          </div>
-          <h2
-            className="mb-8 break-words text-2xl font-bold sm:mb-10 sm:text-3xl md:mb-12 md:text-4xl"
-            style={{ color: heading }}
-          >
-            {c.title}
-          </h2>
+          {!c.__hidden?.includes("badge") && c.badge?.trim() ? (
+            <div
+              className="mx-auto mb-4 inline-flex max-w-full flex-wrap items-center justify-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition-[background-color,transform] duration-200 sm:px-4 sm:text-sm motion-safe:hover:scale-[1.02] motion-safe:hover:bg-white/[0.04]"
+              style={{ borderColor: primary, color: primary }}
+            >
+              {c.badge}
+            </div>
+          ) : null}
+          {!c.__hidden?.includes("title") && c.title?.trim() ? (
+            <h2
+              className="mb-8 break-words text-2xl font-bold sm:mb-10 sm:text-3xl md:mb-12 md:text-4xl"
+              style={{ color: heading }}
+            >
+              {c.title}
+            </h2>
+          ) : null}
           <div className="grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2 @min-[640px]:gap-6">
             {c.cards.map((card, i) => {
               const featured = card.featured;
@@ -896,8 +925,8 @@ export function SectionRenderer({
     const galleryPad = paddingClass ?? "py-12 sm:py-16";
     return (
       <GalleryGridEvenSection
-        title={c.title}
-        subtitle={c.subtitle}
+        title={c.__hidden?.includes("title") ? "" : c.title}
+        subtitle={c.__hidden?.includes("subtitle") ? "" : c.subtitle}
         images={c.images}
         sectionId={sectionId}
         headingColor={heading}
@@ -912,8 +941,8 @@ export function SectionRenderer({
     const galleryPad = paddingClass ?? "py-12 sm:py-16";
     return (
       <GallerySpotlightSection
-        title={c.title}
-        subtitle={c.subtitle}
+        title={c.__hidden?.includes("title") ? "" : c.title}
+        subtitle={c.__hidden?.includes("subtitle") ? "" : c.subtitle}
         images={c.images}
         sectionId={sectionId}
         headingColor={heading}
@@ -928,8 +957,8 @@ export function SectionRenderer({
     const galleryPad = paddingClass ?? "py-12 sm:py-16";
     return (
       <GalleryBentoSection
-        title={c.title}
-        subtitle={c.subtitle}
+        title={c.__hidden?.includes("title") ? "" : c.title}
+        subtitle={c.__hidden?.includes("subtitle") ? "" : c.subtitle}
         images={c.images}
         sectionId={sectionId}
         headingColor={heading}
@@ -964,24 +993,30 @@ export function SectionRenderer({
       >
         <div className="mx-auto min-w-0 max-w-6xl">
           <div className="mb-8 text-center sm:mb-10">
-            <div
-              className="mx-auto mb-4 inline-flex max-w-full flex-wrap items-center justify-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition-[background-color,transform] duration-200 sm:px-4 sm:text-sm motion-safe:hover:scale-[1.02] motion-safe:hover:bg-white/[0.04]"
-              style={{ borderColor: primary, color: primary }}
-            >
-              {c.badge}
-            </div>
-            <h2
-              className="break-words text-2xl font-bold sm:text-3xl md:text-4xl"
-              style={{ color: heading }}
-            >
-              {c.title}
-            </h2>
-            <p
-              className="mx-auto mt-3 max-w-2xl text-sm sm:mt-4 sm:text-base"
-              style={{ color: body }}
-            >
-              {c.intro}
-            </p>
+            {!c.__hidden?.includes("badge") && c.badge?.trim() ? (
+              <div
+                className="mx-auto mb-4 inline-flex max-w-full flex-wrap items-center justify-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition-[background-color,transform] duration-200 sm:px-4 sm:text-sm motion-safe:hover:scale-[1.02] motion-safe:hover:bg-white/[0.04]"
+                style={{ borderColor: primary, color: primary }}
+              >
+                {c.badge}
+              </div>
+            ) : null}
+            {!c.__hidden?.includes("title") && c.title?.trim() ? (
+              <h2
+                className="break-words text-2xl font-bold sm:text-3xl md:text-4xl"
+                style={{ color: heading }}
+              >
+                {c.title}
+              </h2>
+            ) : null}
+            {!c.__hidden?.includes("intro") && c.intro?.trim() ? (
+              <p
+                className="mx-auto mt-3 max-w-2xl text-sm sm:mt-4 sm:text-base"
+                style={{ color: body }}
+              >
+                {c.intro}
+              </p>
+            ) : null}
           </div>
           <div className="grid grid-cols-1 gap-4 @sm:gap-6 @min-[768px]:grid-cols-3">
             {c.steps.map((s, i) => (

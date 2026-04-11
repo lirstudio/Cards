@@ -405,6 +405,19 @@ export function getDefaultContent(key: SectionKey): Record<string, unknown> {
   return structuredClone(defaults[key]) as Record<string, unknown>;
 }
 
+function emptyStrings(v: unknown): unknown {
+  if (typeof v === "string") return "";
+  if (Array.isArray(v)) return v.map(emptyStrings);
+  if (v !== null && typeof v === "object")
+    return Object.fromEntries(Object.entries(v as Record<string, unknown>).map(([k, val]) => [k, emptyStrings(val)]));
+  return v;
+}
+
+/** תוכן ריק (שמירת מבנה) לאתחול טפסי עריכה — placeholders יגיעו מ-getDefaultContent */
+export function getFormInitialContent(key: SectionKey): Record<string, unknown> {
+  return emptyStrings(structuredClone(defaults[key])) as Record<string, unknown>;
+}
+
 /** תוכן ברירת מחדל לתצוגה מקדימה באדמין (כולל מפתח legacy שלא ב־SECTION_KEYS) */
 export function getDefaultContentForAdminPreview(sectionKey: string): Record<string, unknown> {
   if (isLegacyNavHeroStatsKey(sectionKey)) {

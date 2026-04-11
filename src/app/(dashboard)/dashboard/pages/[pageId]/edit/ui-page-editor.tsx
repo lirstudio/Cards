@@ -30,8 +30,8 @@ import {
   type SectionKey,
 } from "@/lib/sections/schemas";
 
-import { getDefaultContent } from "@/lib/sections/defaults";
-import { sectionCatalog } from "@/lib/sections/catalog";
+import { getDefaultContent, getFormInitialContent } from "@/lib/sections/defaults";
+import { sectionCatalog, type SectionCategory } from "@/lib/sections/catalog";
 import type { PageNavSectionRow } from "@/lib/landing/page-nav";
 import { he } from "@/lib/i18n/he";
 import { FullscreenLandingPreview } from "@/components/editor/fullscreen-landing-preview";
@@ -365,6 +365,7 @@ export function PageEditor({
   const [newDraftHintDismissed, setNewDraftHintDismissed] = useState(false);
   /** מסונכרן עם השרת; מתעדכן מיד אחרי פרסום/ביטול כדי שכפתור הצפייה יופיע בלי להמתין ל־refresh */
   const [isPublishedLive, setIsPublishedLive] = useState(() => isPublishedStatus(status));
+  const [paletteCat, setPaletteCat] = useState<"all" | SectionCategory>("all");
 
   useEffect(() => {
     setIsPublishedLive(isPublishedStatus(status));
@@ -659,9 +660,15 @@ export function PageEditor({
             <button
               type="button"
               disabled={!isDirty || isSaving}
-              className="rounded-full border border-[rgba(214,235,253,0.19)] bg-white/5 px-4 py-2 text-sm font-medium hover:bg-white/10 disabled:opacity-50"
+              className="relative rounded-full border border-[rgba(214,235,253,0.19)] bg-white/5 px-4 py-2 text-sm font-medium hover:bg-white/10 disabled:opacity-50"
               onClick={() => void handleSavePage()}
             >
+              {isDirty && !isSaving && (
+                <span className="absolute -right-1 -top-1 flex h-2.5 w-2.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--lc-primary)] opacity-75" />
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[var(--lc-primary)]" />
+                </span>
+              )}
               {isSaving ? he.savingPageChanges : he.savePageChanges}
             </button>
             {isPublishedLive ? (
@@ -702,14 +709,6 @@ export function PageEditor({
             </button>
           </div>
         </div>
-        {isDirty ? (
-          <p
-            className="rounded-lg bg-amber-50 px-3 py-2 text-xs font-medium text-amber-950 ring-1 ring-amber-200/70"
-            dir="rtl"
-          >
-            {he.unsavedBanner}
-          </p>
-        ) : null}
 
         {settingsOpen ? (
         <PageSettingsDrawer
@@ -759,7 +758,7 @@ export function PageEditor({
                     embedded
                     pageId={pageId}
                     sectionKey={addSectionKey}
-                    content={getDefaultContent(addSectionKey)}
+                    content={getFormInitialContent(addSectionKey)}
                     pageNavSections={
                       addSectionKey === "site_header_nav" ? pageNavSections : undefined
                     }
@@ -949,18 +948,47 @@ export function PageEditor({
               <div className="flex h-full flex-col rounded-2xl border border-[rgba(214,235,253,0.19)] bg-white/5 p-3">
                 <h3 className="mb-2 text-sm font-semibold">{he.sectionLibrary}</h3>
                 <p className="mb-3 text-xs text-[#464a4d]">{he.libraryHint}</p>
-                <div className="flex max-h-[min(78vh,1100px)] flex-col gap-3 overflow-y-auto pe-1">
-                  {paletteKeys.map((k) => {
-                    const dbDef = defsMap.get(k);
-                    return (
-                      <PaletteCard
-                        key={k}
-                        sectionKey={k}
-                        onAdd={openAddSection}
-                        titleHe={dbDef?.title_he}
-                      />
-                    );
-                  })}
+                {/* Category tabs */}
+                <div className="mb-3 flex flex-wrap gap-1.5">
+                  {(
+                    [
+                      ["all", "הכל"],
+                      ["hero", "הירו"],
+                      ["content", "תוכן"],
+                      ["conversion", "המרה"],
+                      ["gallery", "גלריה"],
+                      ["faq", "שאלות נפוצות"],
+                      ["footer", "פוטר"],
+                    ] as const
+                  ).map(([cat, label]) => (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => setPaletteCat(cat)}
+                      className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
+                        paletteCat === cat
+                          ? "bg-[var(--lc-primary)] text-white"
+                          : "bg-white/5 text-[#a1a4a5] hover:bg-white/10 hover:text-[#f0f0f0]"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex max-h-[min(72vh,1100px)] flex-col gap-3 overflow-y-auto pe-1">
+                  {paletteKeys
+                    .filter((k) => paletteCat === "all" || sectionCatalog[k].category === paletteCat)
+                    .map((k) => {
+                      const dbDef = defsMap.get(k);
+                      return (
+                        <PaletteCard
+                          key={k}
+                          sectionKey={k}
+                          onAdd={openAddSection}
+                          titleHe={dbDef?.title_he}
+                        />
+                      );
+                    })}
                 </div>
               </div>
             ) : selected && isEditableSectionKey(selected.section_key) ? (

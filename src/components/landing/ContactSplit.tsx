@@ -238,21 +238,25 @@ export function ContactSplit({
           )}
         </div>
         <div className="order-1 min-w-0 space-y-8 @min-[1024px]:order-2" dir="rtl">
-          <div
-            className="group inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-2.5 text-sm font-medium ring-1 ring-[rgba(214,235,253,0.19)] transition-[transform,background-color] duration-200 motion-safe:hover:scale-[1.02] motion-safe:hover:bg-white/[0.08]"
-            style={{ color: primary }}
-          >
-            <span
-              className="flex h-8 w-8 items-center justify-center rounded-full transition-transform duration-200 motion-safe:group-hover:scale-110"
-              style={{ backgroundColor: `${primary}18`, color: primary }}
+          {!data.__hidden?.includes("badge") && data.badge?.trim() ? (
+            <div
+              className="group inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-2.5 text-sm font-medium ring-1 ring-[rgba(214,235,253,0.19)] transition-[transform,background-color] duration-200 motion-safe:hover:scale-[1.02] motion-safe:hover:bg-white/[0.08]"
+              style={{ color: primary }}
             >
-              <BadgePhoneIcon className="shrink-0" />
-            </span>
-            {data.badge}
-          </div>
-          <h2 className="break-words text-2xl font-bold leading-tight tracking-tight text-[#f0f0f0] sm:text-3xl md:text-4xl">
-            {data.headline}
-          </h2>
+              <span
+                className="flex h-8 w-8 items-center justify-center rounded-full transition-transform duration-200 motion-safe:group-hover:scale-110"
+                style={{ backgroundColor: `${primary}18`, color: primary }}
+              >
+                <BadgePhoneIcon className="shrink-0" />
+              </span>
+              {data.badge}
+            </div>
+          ) : null}
+          {!data.__hidden?.includes("headline") && data.headline?.trim() ? (
+            <h2 className="break-words text-2xl font-bold leading-tight tracking-tight text-[#f0f0f0] sm:text-3xl md:text-4xl">
+              {data.headline}
+            </h2>
+          ) : null}
           <div
             className="grid w-fit max-w-full grid-cols-3 gap-2 @min-[480px]:grid-cols-6"
             aria-label="רשתות חברתיות"
@@ -271,38 +275,42 @@ export function ContactSplit({
             ))}
           </div>
           <div className="space-y-3 text-base sm:text-lg">
-            <div className="flex min-w-0 justify-start">
-              <p
-                className="flex min-w-0 max-w-full flex-row flex-wrap items-center gap-3 sm:gap-3.5"
-                dir="ltr"
-              >
-                <a
-                  href={`mailto:${data.email}`}
-                  className="min-w-0 break-words font-medium text-[#f0f0f0] decoration-[color-mix(in_srgb,var(--lc-primary)_55%,transparent)] underline-offset-2 hover:underline"
+            {!data.__hidden?.includes("email") && data.email?.trim() ? (
+              <div className="flex min-w-0 justify-start">
+                <p
+                  className="flex min-w-0 max-w-full flex-row flex-wrap items-center gap-3 sm:gap-3.5"
+                  dir="ltr"
                 >
-                  {data.email}
-                </a>
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[color-mix(in_srgb,var(--lc-primary)_38%,transparent)] bg-white/10 text-[var(--lc-primary)]">
-                  <MailIcon />
-                </span>
-              </p>
-            </div>
-            <div className="flex min-w-0 justify-start">
-              <p
-                className="flex min-w-0 max-w-full flex-row flex-wrap items-center gap-3 sm:gap-3.5"
-                dir="ltr"
-              >
-                <a
-                  href={`tel:${data.phone.replace(/\D/g, "")}`}
-                  className="shrink-0 font-medium text-[#f0f0f0] decoration-[color-mix(in_srgb,var(--lc-primary)_55%,transparent)] underline-offset-2 hover:underline"
+                  <a
+                    href={`mailto:${data.email}`}
+                    className="min-w-0 break-words font-medium text-[#f0f0f0] decoration-[color-mix(in_srgb,var(--lc-primary)_55%,transparent)] underline-offset-2 hover:underline"
+                  >
+                    {data.email}
+                  </a>
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[color-mix(in_srgb,var(--lc-primary)_38%,transparent)] bg-white/10 text-[var(--lc-primary)]">
+                    <MailIcon />
+                  </span>
+                </p>
+              </div>
+            ) : null}
+            {!data.__hidden?.includes("phone") && data.phone?.trim() ? (
+              <div className="flex min-w-0 justify-start">
+                <p
+                  className="flex min-w-0 max-w-full flex-row flex-wrap items-center gap-3 sm:gap-3.5"
+                  dir="ltr"
                 >
-                  {data.phone}
-                </a>
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[color-mix(in_srgb,var(--lc-primary)_38%,transparent)] bg-white/10 text-[var(--lc-primary)]">
-                  <PhoneHandsetIcon />
-                </span>
-              </p>
-            </div>
+                  <a
+                    href={`tel:${data.phone.replace(/\D/g, "")}`}
+                    className="shrink-0 font-medium text-[#f0f0f0] decoration-[color-mix(in_srgb,var(--lc-primary)_55%,transparent)] underline-offset-2 hover:underline"
+                  >
+                    {data.phone}
+                  </a>
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[color-mix(in_srgb,var(--lc-primary)_38%,transparent)] bg-white/10 text-[var(--lc-primary)]">
+                    <PhoneHandsetIcon />
+                  </span>
+                </p>
+              </div>
+            ) : null}
           </div>
         </div>
       </div>

@@ -16,16 +16,20 @@ function FaqSectionHeader({
 }) {
   return (
     <div className="mx-auto mb-8 max-w-3xl text-center sm:mb-10">
-      <div className="mb-4 flex items-center justify-center gap-2 text-sm font-medium text-[#a1a4a5]">
-        <span
-          className="flex h-8 w-8 items-center justify-center rounded-full text-sm text-white transition-[transform,filter] duration-200 motion-safe:hover:scale-110 motion-safe:hover:brightness-110"
-          style={{ backgroundColor: primary }}
-        >
-          ?
-        </span>
-        {data.badge}
-      </div>
-      <h2 className="break-words text-2xl font-bold text-[#f0f0f0] sm:text-3xl md:text-4xl">{data.title}</h2>
+      {!data.__hidden?.includes("badge") && data.badge?.trim() ? (
+        <div className="mb-4 flex items-center justify-center gap-2 text-sm font-medium text-[#a1a4a5]">
+          <span
+            className="flex h-8 w-8 items-center justify-center rounded-full text-sm text-white transition-[transform,filter] duration-200 motion-safe:hover:scale-110 motion-safe:hover:brightness-110"
+            style={{ backgroundColor: primary }}
+          >
+            ?
+          </span>
+          {data.badge}
+        </div>
+      ) : null}
+      {!data.__hidden?.includes("title") && data.title?.trim() ? (
+        <h2 className="break-words text-2xl font-bold text-[#f0f0f0] sm:text-3xl md:text-4xl">{data.title}</h2>
+      ) : null}
     </div>
   );
 }

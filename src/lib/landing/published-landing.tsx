@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { SectionRenderer } from "@/components/landing/SectionRenderer";
+import { TrackPageView } from "@/components/landing/track-page-view";
 import type { LandingPageRow, PageSectionRow } from "@/types/landing";
 import type { SectionStyleOverrides } from "@/types/admin";
 
@@ -55,6 +56,7 @@ export async function PublishedLandingRoot({ slug }: { slug: string }) {
         backgroundColor: page.theme?.background ?? "#000000",
       }}
     >
+      <TrackPageView landingPageId={page.id} />
       {typedSections.map((s) => (
         <SectionRenderer
           key={s.id}

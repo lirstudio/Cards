@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { updateSectionContent } from "@/app/actions/pages";
 import {
   FAQ_EDITOR_SECTION_KEYS,
@@ -18,6 +18,9 @@ import { ImageUploadField } from "./image-upload-field";
 import { HeaderNavLinksEditor } from "./header-nav-links-editor";
 import type { PageNavSectionRow } from "@/lib/landing/page-nav";
 
+const selectOnFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+  e.target.select();
+
 function linkRow(
   v: { label: string; href: string },
   onChange: (v: { label: string; href: string }) => void,
@@ -27,6 +30,7 @@ function linkRow(
       <input
         className="min-w-0 flex-1 text-sm"
         value={v.label}
+        onFocus={selectOnFocus}
         onChange={(e) => onChange({ ...v, label: e.target.value })}
         placeholder="טקסט"
       />
@@ -34,6 +38,7 @@ function linkRow(
         dir="ltr"
         className="min-w-0 flex-1 text-sm"
         value={v.href}
+        onFocus={selectOnFocus}
         onChange={(e) => onChange({ ...v, href: e.target.value })}
         placeholder="# או URL"
       />
@@ -77,6 +82,7 @@ export function SectionInspectorForm({
   const [draft, setDraft] = useState<Record<string, unknown>>(() => ({ ...content }));
   const [msg, setMsg] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const isMounted = useRef(false);
 
   useEffect(() => {
     // סנכרון בעת מעבר בין סקשנים בלבד — לא בכל עדכון תוכן מההורה (טיוטה חיה)
@@ -86,6 +92,11 @@ export function SectionInspectorForm({
   }, [sectionId]);
 
   useEffect(() => {
+    // לא מפעילים onDraftChange בעת הרכבה ראשונה — מאפשר לתצוגה מקדימה להשתמש בתוכן ברירת המחדל
+    if (!isMounted.current) {
+      isMounted.current = true;
+      return;
+    }
     onDraftChange?.(draft);
   }, [draft, onDraftChange]);
 
@@ -105,28 +116,58 @@ export function SectionInspectorForm({
   }
 
   const sk = sectionKey;
+
+  const hiddenSet = new Set<string>((draft.__hidden as string[] | undefined) ?? []);
+  const isHidden = (k: string) => hiddenSet.has(k);
+  const hideField = (k: string) =>
+    setDraft({ ...draft, __hidden: [...hiddenSet, k] });
+  const restoreField = (k: string) =>
+    setDraft({ ...draft, __hidden: [...hiddenSet].filter((x) => x !== k) });
+
+  /** כותרת שדה עם כפתור הסתרה × */
+  function fieldLabel(key: string, label: React.ReactNode) {
+    return (
+      <span className="flex items-center justify-between">
+        <span className="text-[#a1a4a5]">{label}</span>
+        <button
+          type="button"
+          title="הסתר שדה"
+          className="ml-2 shrink-0 text-xs text-[#464a4d] hover:text-red-400"
+          onClick={() => hideField(key)}
+        >
+          ×
+        </button>
+      </span>
+    );
+  }
+
   let body: React.ReactNode = null;
 
   if (sk === "site_header_nav") {
     const d = draft as Record<string, unknown>;
     body = (
       <div className="space-y-3 text-sm">
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("logoText")}</span>
-          <textarea
-            className="lc-textarea-compact mt-1 w-full text-sm"
-            rows={1}
-            value={String(d.logoText ?? "")}
-            onChange={(e) => setDraft({ ...d, logoText: e.target.value })}
-          />
-        </label>
-        <div>
-          <div className="text-[#a1a4a5]">{sectionContentFieldLabel("headerCta")}</div>
-          {linkRow(
-            (d.headerCta as { label: string; href: string }) ?? { label: "", href: "" },
-            (v) => setDraft({ ...d, headerCta: v }),
-          )}
-        </div>
+        {!isHidden("logoText") && (
+          <label className="block">
+            {fieldLabel("logoText", sectionContentFieldLabel("logoText"))}
+            <textarea
+              className="lc-textarea-compact mt-1 w-full text-sm"
+              rows={1}
+              value={String(d.logoText ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, logoText: e.target.value })}
+            />
+          </label>
+        )}
+        {!isHidden("headerCta") && (
+          <div>
+            {fieldLabel("headerCta", sectionContentFieldLabel("headerCta"))}
+            {linkRow(
+              (d.headerCta as { label: string; href: string }) ?? { label: "", href: "" },
+              (v) => setDraft({ ...d, headerCta: v }),
+            )}
+          </div>
+        )}
         {pageNavSections?.length ? (
           <HeaderNavLinksEditor pageNavSections={pageNavSections} draft={d} setDraft={setDraft} />
         ) : (
@@ -146,57 +187,62 @@ export function SectionInspectorForm({
           value={String(d.backgroundImage ?? "")}
           onChange={(url) => setDraft({ ...d, backgroundImage: url })}
         />
-        {["headline", "subheadline"].map((k) => (
+        {["headline", "subheadline"].filter((k) => !isHidden(k)).map((k) => (
           <label key={k} className="block">
-            <span className="text-[#a1a4a5]">
-              {k === "headline" ? "כותרת ראשית" : sectionContentFieldLabel(k)}
-            </span>
+            {fieldLabel(k, k === "headline" ? "כותרת ראשית" : sectionContentFieldLabel(k))}
             <textarea
               className="mt-1 w-full text-sm"
               rows={3}
               value={String(d[k] ?? "")}
+              onFocus={selectOnFocus}
               onChange={(e) => setDraft({ ...d, [k]: e.target.value })}
             />
           </label>
         ))}
-        <div>
-          <div className="text-[#a1a4a5]">{sectionContentFieldLabel("heroCta")}</div>
-          {linkRow(
-            (d.heroCta as { label: string; href: string }) ?? { label: "", href: "" },
-            (v) => setDraft({ ...d, heroCta: v }),
-          )}
-        </div>
-        <div>
-          <div className="text-[#a1a4a5]">{sectionContentFieldLabel("secondaryCta")}</div>
-          {linkRow(
-            (d.secondaryCta as { label: string; href: string }) ?? { label: "", href: "" },
-            (v) => setDraft({ ...d, secondaryCta: v }),
-          )}
-        </div>
+        {!isHidden("heroCta") && (
+          <div>
+            {fieldLabel("heroCta", sectionContentFieldLabel("heroCta"))}
+            {linkRow(
+              (d.heroCta as { label: string; href: string }) ?? { label: "", href: "" },
+              (v) => setDraft({ ...d, heroCta: v }),
+            )}
+          </div>
+        )}
+        {!isHidden("secondaryCta") && (
+          <div>
+            {fieldLabel("secondaryCta", sectionContentFieldLabel("secondaryCta"))}
+            {linkRow(
+              (d.secondaryCta as { label: string; href: string }) ?? { label: "", href: "" },
+              (v) => setDraft({ ...d, secondaryCta: v }),
+            )}
+          </div>
+        )}
       </div>
     );
   } else if (sk === "hero_editorial_split") {
     const d = draft as Record<string, unknown>;
     body = (
       <div className="space-y-3 text-sm">
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("eyebrow")}</span>
-          <textarea
-            className="lc-textarea-compact mt-1 w-full text-sm"
-            rows={1}
-            value={String(d.eyebrow ?? "")}
-            onChange={(e) => setDraft({ ...d, eyebrow: e.target.value })}
-          />
-        </label>
-        {["headline", "subheadline"].map((k) => (
+        {!isHidden("eyebrow") && (
+          <label className="block">
+            {fieldLabel("eyebrow", sectionContentFieldLabel("eyebrow"))}
+            <textarea
+              className="lc-textarea-compact mt-1 w-full text-sm"
+              rows={1}
+              value={String(d.eyebrow ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, eyebrow: e.target.value })}
+            />
+          </label>
+        )}
+        {["headline", "subheadline"].filter((k) => !isHidden(k)).map((k) => (
           <label key={k} className="block">
-            <span className="text-[#a1a4a5]">
-              {k === "headline" ? "כותרת ראשית" : sectionContentFieldLabel(k)}
-            </span>
+            {fieldLabel(k, k === "headline" ? "כותרת ראשית" : sectionContentFieldLabel(k))}
             <textarea
               className="mt-1 w-full text-sm"
               rows={3}
               value={String(d[k] ?? "")}
+              onFocus={selectOnFocus}
               onChange={(e) => setDraft({ ...d, [k]: e.target.value })}
             />
           </label>
@@ -207,37 +253,41 @@ export function SectionInspectorForm({
           value={String(d.heroImage ?? "")}
           onChange={(url) => setDraft({ ...d, heroImage: url })}
         />
-        <div>
-          <div className="text-[#a1a4a5]">{sectionContentFieldLabel("heroCta")}</div>
-          {linkRow(
-            (d.heroCta as { label: string; href: string }) ?? { label: "", href: "" },
-            (v) => setDraft({ ...d, heroCta: v }),
-          )}
-        </div>
+        {!isHidden("heroCta") && (
+          <div>
+            {fieldLabel("heroCta", sectionContentFieldLabel("heroCta"))}
+            {linkRow(
+              (d.heroCta as { label: string; href: string }) ?? { label: "", href: "" },
+              (v) => setDraft({ ...d, heroCta: v }),
+            )}
+          </div>
+        )}
       </div>
     );
   } else if (sk === "hero_showcase_float") {
     const d = draft as Record<string, unknown>;
     body = (
       <div className="space-y-3 text-sm">
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("badge")}</span>
-          <textarea
-            className="lc-textarea-compact mt-1 w-full text-sm"
-            rows={1}
-            value={String(d.badge ?? "")}
-            onChange={(e) => setDraft({ ...d, badge: e.target.value })}
-          />
-        </label>
-        {["headline", "subheadline"].map((k) => (
+        {!isHidden("badge") && (
+          <label className="block">
+            {fieldLabel("badge", sectionContentFieldLabel("badge"))}
+            <textarea
+              className="lc-textarea-compact mt-1 w-full text-sm"
+              rows={1}
+              value={String(d.badge ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, badge: e.target.value })}
+            />
+          </label>
+        )}
+        {["headline", "subheadline"].filter((k) => !isHidden(k)).map((k) => (
           <label key={k} className="block">
-            <span className="text-[#a1a4a5]">
-              {k === "headline" ? "כותרת ראשית" : sectionContentFieldLabel(k)}
-            </span>
+            {fieldLabel(k, k === "headline" ? "כותרת ראשית" : sectionContentFieldLabel(k))}
             <textarea
               className="mt-1 w-full text-sm"
               rows={3}
               value={String(d[k] ?? "")}
+              onFocus={selectOnFocus}
               onChange={(e) => setDraft({ ...d, [k]: e.target.value })}
             />
           </label>
@@ -248,28 +298,29 @@ export function SectionInspectorForm({
           value={String(d.heroImage ?? "")}
           onChange={(url) => setDraft({ ...d, heroImage: url })}
         />
-        <div>
-          <div className="text-[#a1a4a5]">{sectionContentFieldLabel("heroCta")}</div>
-          {linkRow(
-            (d.heroCta as { label: string; href: string }) ?? { label: "", href: "" },
-            (v) => setDraft({ ...d, heroCta: v }),
-          )}
-        </div>
+        {!isHidden("heroCta") && (
+          <div>
+            {fieldLabel("heroCta", sectionContentFieldLabel("heroCta"))}
+            {linkRow(
+              (d.heroCta as { label: string; href: string }) ?? { label: "", href: "" },
+              (v) => setDraft({ ...d, heroCta: v }),
+            )}
+          </div>
+        )}
       </div>
     );
   } else if (sk === "hero_image_split" || sk === LEGACY_NAV_HERO_STATS_KEY) {
     const d = draft as Record<string, unknown>;
     body = (
       <div className="space-y-3 text-sm">
-        {["headline", "subheadline"].map((k) => (
+        {["headline", "subheadline"].filter((k) => !isHidden(k)).map((k) => (
           <label key={k} className="block">
-            <span className="text-[#a1a4a5]">
-              {k === "headline" ? "כותרת ראשית" : sectionContentFieldLabel(k)}
-            </span>
+            {fieldLabel(k, k === "headline" ? "כותרת ראשית" : sectionContentFieldLabel(k))}
             <textarea
               className="mt-1 w-full text-sm"
               rows={3}
               value={String(d[k] ?? "")}
+              onFocus={selectOnFocus}
               onChange={(e) => setDraft({ ...d, [k]: e.target.value })}
             />
           </label>
@@ -287,15 +338,17 @@ export function SectionInspectorForm({
             checked={Boolean(d.heroBackdropCircle)}
             onChange={(e) => setDraft({ ...d, heroBackdropCircle: e.target.checked })}
           />
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("heroBackdropCircle")}</span>
+          {fieldLabel("heroBackdropCircle", sectionContentFieldLabel("heroBackdropCircle"))}
         </label>
-        <div>
-          <div className="text-[#a1a4a5]">{sectionContentFieldLabel("heroCta")}</div>
-          {linkRow(
-            (d.heroCta as { label: string; href: string }) ?? { label: "", href: "" },
-            (v) => setDraft({ ...d, heroCta: v }),
-          )}
-        </div>
+        {!isHidden("heroCta") && (
+          <div>
+            {fieldLabel("heroCta", sectionContentFieldLabel("heroCta"))}
+            {linkRow(
+              (d.heroCta as { label: string; href: string }) ?? { label: "", href: "" },
+              (v) => setDraft({ ...d, heroCta: v }),
+            )}
+          </div>
+        )}
       </div>
     );
   } else if (sk === "stats_highlight_row") {
@@ -303,7 +356,7 @@ export function SectionInspectorForm({
     body = (
       <div className="space-y-3 text-sm">
         <div>
-          <div className="mb-1 text-[#a1a4a5]">{sectionContentFieldLabel("stats")}</div>
+          <div className="mb-1">{fieldLabel("stats", sectionContentFieldLabel("stats"))}</div>
           {((d.stats as { value: string; label?: string }[]) ?? []).map((s, i) => (
             <div key={i} className="mb-2 flex flex-wrap items-end gap-2">
               <label className="block shrink-0">
@@ -311,6 +364,7 @@ export function SectionInspectorForm({
                 <input
                   className="mt-0.5 w-24 text-sm"
                   value={s.value}
+                  onFocus={selectOnFocus}
                   onChange={(e) => {
                     const arr = [...((d.stats as typeof s[]) ?? [])];
                     arr[i] = { ...s, value: e.target.value };
@@ -324,6 +378,7 @@ export function SectionInspectorForm({
                   className="mt-0.5 w-full text-sm"
                   value={s.label ?? ""}
                   placeholder="תווית (אופציונלי)"
+                  onFocus={selectOnFocus}
                   onChange={(e) => {
                     const arr = [...((d.stats as typeof s[]) ?? [])];
                     arr[i] = { ...s, label: e.target.value };
@@ -331,8 +386,26 @@ export function SectionInspectorForm({
                   }}
                 />
               </label>
+              <button
+                type="button"
+                className="text-xs text-red-600"
+                onClick={() =>
+                  setDraft({ ...d, stats: ((d.stats as unknown[]) ?? []).filter((_, j) => j !== i) })
+                }
+              >
+                הסר
+              </button>
             </div>
           ))}
+          <button
+            type="button"
+            className="text-xs text-[var(--lc-primary)]"
+            onClick={() =>
+              setDraft({ ...d, stats: [...((d.stats as { value: string; label?: string }[]) ?? []), { value: "0", label: "" }] })
+            }
+          >
+            + מספר
+          </button>
         </div>
       </div>
     );
@@ -353,6 +426,7 @@ export function SectionInspectorForm({
               <input
                 className="mt-1 w-full font-semibold"
                 value={b.title}
+                onFocus={selectOnFocus}
                 onChange={(e) => {
                   const arr = [...((d.blocks as typeof b[]) ?? [])];
                   arr[i] = { ...b, title: e.target.value };
@@ -366,6 +440,7 @@ export function SectionInspectorForm({
                 className="mt-1 w-full text-sm"
                 rows={3}
                 value={b.body}
+                onFocus={selectOnFocus}
                 onChange={(e) => {
                   const arr = [...((d.blocks as typeof b[]) ?? [])];
                   arr[i] = { ...b, body: e.target.value };
@@ -373,8 +448,26 @@ export function SectionInspectorForm({
                 }}
               />
             </label>
+            <button
+              type="button"
+              className="mt-1 text-xs text-red-600"
+              onClick={() =>
+                setDraft({ ...d, blocks: ((d.blocks as unknown[]) ?? []).filter((_, j) => j !== i) })
+              }
+            >
+              הסר
+            </button>
           </div>
         ))}
+        <button
+          type="button"
+          className="text-[var(--lc-primary)]"
+          onClick={() =>
+            setDraft({ ...d, blocks: [...((d.blocks as { title: string; body: string }[]) ?? []), { title: "", body: "" }] })
+          }
+        >
+          + בלוק
+        </button>
       </div>
     );
   } else if (isTestimonialsSectionKey(sk)) {
@@ -390,6 +483,7 @@ export function SectionInspectorForm({
                   className="mt-0.5 w-full text-sm"
                   rows={f === "body" ? 2 : 1}
                   value={String(it[f] ?? "")}
+                  onFocus={selectOnFocus}
                   onChange={(e) => {
                     const arr = [...((d.items as Record<string, unknown>[]) ?? [])];
                     arr[i] = { ...arr[i], [f]: e.target.value };
@@ -474,29 +568,44 @@ export function SectionInspectorForm({
     const d = draft as Record<string, unknown>;
     body = (
       <div className="space-y-3 text-sm">
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("title")}</span>
-          <input
-            className="mt-1 w-full text-sm"
-            value={String(d.title ?? "")}
-            onChange={(e) => setDraft({ ...d, title: e.target.value })}
-          />
-        </label>
-        <div className="text-sm text-[#a1a4a5]">{sectionContentFieldLabel("paragraphs")}</div>
-        {((d.paragraphs as string[]) ?? []).map((p, i) => (
-          <label key={i} className="block">
-            <span className="text-xs text-[#464a4d]">פסקה {i + 1}</span>
-            <textarea
-              className="mt-0.5 w-full text-sm"
-              rows={2}
-              value={p}
-              onChange={(e) => {
-                const arr = [...((d.paragraphs as string[]) ?? [])];
-                arr[i] = e.target.value;
-                setDraft({ ...d, paragraphs: arr });
-              }}
+        {!isHidden("title") && (
+          <label className="block">
+            {fieldLabel("title", sectionContentFieldLabel("title"))}
+            <input
+              className="mt-1 w-full text-sm"
+              value={String(d.title ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, title: e.target.value })}
             />
           </label>
+        )}
+        <div className="text-sm">{fieldLabel("paragraphs", sectionContentFieldLabel("paragraphs"))}</div>
+        {((d.paragraphs as string[]) ?? []).map((p, i) => (
+          <div key={i}>
+            <label className="block">
+              <span className="text-xs text-[#464a4d]">פסקה {i + 1}</span>
+              <textarea
+                className="mt-0.5 w-full text-sm"
+                rows={2}
+                value={p}
+                onFocus={selectOnFocus}
+                onChange={(e) => {
+                  const arr = [...((d.paragraphs as string[]) ?? [])];
+                  arr[i] = e.target.value;
+                  setDraft({ ...d, paragraphs: arr });
+                }}
+              />
+            </label>
+            <button
+              type="button"
+              className="mt-0.5 text-xs text-red-600"
+              onClick={() =>
+                setDraft({ ...d, paragraphs: ((d.paragraphs as string[]) ?? []).filter((_, j) => j !== i) })
+              }
+            >
+              הסר פסקה
+            </button>
+          </div>
         ))}
         <button
           type="button"
@@ -507,13 +616,15 @@ export function SectionInspectorForm({
         >
           + פסקה
         </button>
-        <div>
-          <div className="mb-1 text-[#a1a4a5]">{he.ctaLinkGroup}</div>
-          {linkRow(
-            (d.cta as { label: string; href: string }) ?? { label: "", href: "#" },
-            (v) => setDraft({ ...d, cta: v }),
-          )}
-        </div>
+        {!isHidden("cta") && (
+          <div>
+            {fieldLabel("cta", he.ctaLinkGroup)}
+            {linkRow(
+              (d.cta as { label: string; href: string }) ?? { label: "", href: "#" },
+              (v) => setDraft({ ...d, cta: v }),
+            )}
+          </div>
+        )}
       </div>
     );
   } else if (isChecklistSectionKey(sk)) {
@@ -521,14 +632,17 @@ export function SectionInspectorForm({
     const checklistTextOnly = sk === "checklist_text_only";
     body = (
       <div className="space-y-3 text-sm">
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("title")}</span>
-          <input
-            className="mt-1 w-full text-sm"
-            value={String(d.title ?? "")}
-            onChange={(e) => setDraft({ ...d, title: e.target.value })}
-          />
-        </label>
+        {!isHidden("title") && (
+          <label className="block">
+            {fieldLabel("title", sectionContentFieldLabel("title"))}
+            <input
+              className="mt-1 w-full text-sm"
+              value={String(d.title ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, title: e.target.value })}
+            />
+          </label>
+        )}
         {checklistTextOnly ? (
           <p className="rounded-lg border border-[rgba(214,235,253,0.19)] bg-white/5 px-3 py-2 text-xs text-[#a1a4a5]">
             {he.checklistVariantHidesImageHint}
@@ -548,6 +662,7 @@ export function SectionInspectorForm({
               <input
                 className="mt-1 w-full font-medium"
                 value={it.title}
+                onFocus={selectOnFocus}
                 onChange={(e) => {
                   const arr = [...((d.items as typeof it[]) ?? [])];
                   arr[i] = { ...it, title: e.target.value };
@@ -561,6 +676,7 @@ export function SectionInspectorForm({
                 className="mt-1 w-full text-sm"
                 rows={2}
                 value={it.description}
+                onFocus={selectOnFocus}
                 onChange={(e) => {
                   const arr = [...((d.items as typeof it[]) ?? [])];
                   arr[i] = { ...it, description: e.target.value };
@@ -568,61 +684,93 @@ export function SectionInspectorForm({
                 }}
               />
             </label>
+            <button
+              type="button"
+              className="mt-1 text-xs text-red-600"
+              onClick={() =>
+                setDraft({ ...d, items: ((d.items as unknown[]) ?? []).filter((_, j) => j !== i) })
+              }
+            >
+              הסר
+            </button>
           </div>
         ))}
+        <button
+          type="button"
+          className="text-[var(--lc-primary)]"
+          onClick={() =>
+            setDraft({ ...d, items: [...((d.items as { title: string; description: string }[]) ?? []), { title: "", description: "" }] })
+          }
+        >
+          + פריט
+        </button>
       </div>
     );
   } else if (sk === "pricing_banner") {
     const d = draft as Record<string, unknown>;
     body = (
       <div className="space-y-3 text-sm">
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("headline")}</span>
-          <textarea
-            className="mt-1 w-full text-sm"
-            rows={2}
-            value={String(d.headline ?? "")}
-            onChange={(e) => setDraft({ ...d, headline: e.target.value })}
-          />
-        </label>
-        <label className="block">
-          <span className="text-[#a1a4a5]">{he.bodyTextLabel}</span>
-          <textarea
-            className="mt-1 w-full text-sm"
-            rows={4}
-            value={String(d.body ?? "")}
-            onChange={(e) => setDraft({ ...d, body: e.target.value })}
-          />
-        </label>
-        <div>
-          <div className="mb-1 text-[#a1a4a5]">{he.ctaLinkGroup}</div>
-          {linkRow(
-            (d.cta as { label: string; href: string }) ?? { label: "", href: "#" },
-            (v) => setDraft({ ...d, cta: v }),
-          )}
-        </div>
+        {!isHidden("headline") && (
+          <label className="block">
+            {fieldLabel("headline", sectionContentFieldLabel("headline"))}
+            <textarea
+              className="mt-1 w-full text-sm"
+              rows={2}
+              value={String(d.headline ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, headline: e.target.value })}
+            />
+          </label>
+        )}
+        {!isHidden("body") && (
+          <label className="block">
+            {fieldLabel("body", he.bodyTextLabel)}
+            <textarea
+              className="mt-1 w-full text-sm"
+              rows={4}
+              value={String(d.body ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, body: e.target.value })}
+            />
+          </label>
+        )}
+        {!isHidden("cta") && (
+          <div>
+            {fieldLabel("cta", he.ctaLinkGroup)}
+            {linkRow(
+              (d.cta as { label: string; href: string }) ?? { label: "", href: "#" },
+              (v) => setDraft({ ...d, cta: v }),
+            )}
+          </div>
+        )}
       </div>
     );
   } else if (sk === "services_grid") {
     const d = draft as Record<string, unknown>;
     body = (
       <div className="space-y-3 text-sm">
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("badge")}</span>
-          <input
-            className="mt-1 w-full text-sm"
-            value={String(d.badge ?? "")}
-            onChange={(e) => setDraft({ ...d, badge: e.target.value })}
-          />
-        </label>
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("title")}</span>
-          <input
-            className="mt-1 w-full text-sm"
-            value={String(d.title ?? "")}
-            onChange={(e) => setDraft({ ...d, title: e.target.value })}
-          />
-        </label>
+        {!isHidden("badge") && (
+          <label className="block">
+            {fieldLabel("badge", sectionContentFieldLabel("badge"))}
+            <input
+              className="mt-1 w-full text-sm"
+              value={String(d.badge ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, badge: e.target.value })}
+            />
+          </label>
+        )}
+        {!isHidden("title") && (
+          <label className="block">
+            {fieldLabel("title", sectionContentFieldLabel("title"))}
+            <input
+              className="mt-1 w-full text-sm"
+              value={String(d.title ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, title: e.target.value })}
+            />
+          </label>
+        )}
         {((d.cards as Record<string, unknown>[]) ?? []).map((c, i) => (
           <div key={i} className="lc-field-stack-item space-y-2">
             <label className="flex items-center gap-2 text-xs">
@@ -642,6 +790,7 @@ export function SectionInspectorForm({
               <input
                 className="mt-1 w-full text-sm"
                 value={String(c.number ?? "")}
+                onFocus={selectOnFocus}
                 onChange={(e) => {
                   const arr = [...((d.cards as Record<string, unknown>[]) ?? [])];
                   arr[i] = { ...c, number: e.target.value };
@@ -654,6 +803,7 @@ export function SectionInspectorForm({
               <input
                 className="mt-1 w-full font-medium"
                 value={String(c.title ?? "")}
+                onFocus={selectOnFocus}
                 onChange={(e) => {
                   const arr = [...((d.cards as Record<string, unknown>[]) ?? [])];
                   arr[i] = { ...c, title: e.target.value };
@@ -667,6 +817,7 @@ export function SectionInspectorForm({
                 className="mt-1 w-full text-sm"
                 rows={2}
                 value={String(c.description ?? "")}
+                onFocus={selectOnFocus}
                 onChange={(e) => {
                   const arr = [...((d.cards as Record<string, unknown>[]) ?? [])];
                   arr[i] = { ...c, description: e.target.value };
@@ -674,8 +825,26 @@ export function SectionInspectorForm({
                 }}
               />
             </label>
+            <button
+              type="button"
+              className="mt-1 text-xs text-red-600"
+              onClick={() =>
+                setDraft({ ...d, cards: ((d.cards as unknown[]) ?? []).filter((_, j) => j !== i) })
+              }
+            >
+              הסר כרטיס
+            </button>
           </div>
         ))}
+        <button
+          type="button"
+          className="text-[var(--lc-primary)]"
+          onClick={() =>
+            setDraft({ ...d, cards: [...((d.cards as Record<string, unknown>[]) ?? []), { title: "", description: "" }] })
+          }
+        >
+          + כרטיס
+        </button>
       </div>
     );
   } else if (sk === "gallery_row") {
@@ -698,12 +867,22 @@ export function SectionInspectorForm({
               className="mt-2 w-full text-xs"
               placeholder={he.imageAltPlaceholder}
               value={im.alt ?? ""}
+              onFocus={selectOnFocus}
               onChange={(e) => {
                 const arr = [...((d.images as typeof im[]) ?? [])];
                 arr[i] = { ...im, alt: e.target.value };
                 setDraft({ ...d, images: arr });
               }}
             />
+            <button
+              type="button"
+              className="mt-1 text-xs text-red-600"
+              onClick={() =>
+                setDraft({ ...d, images: ((d.images as unknown[]) ?? []).filter((_, j) => j !== i) })
+              }
+            >
+              הסר תמונה
+            </button>
           </div>
         ))}
         <button
@@ -724,22 +903,28 @@ export function SectionInspectorForm({
     const d = draft as Record<string, unknown>;
     body = (
       <div className="space-y-3 text-sm">
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("title")}</span>
-          <input
-            className="mt-1 w-full text-sm"
-            value={String(d.title ?? "")}
-            onChange={(e) => setDraft({ ...d, title: e.target.value })}
-          />
-        </label>
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("subtitle")}</span>
-          <input
-            className="mt-1 w-full text-sm"
-            value={String(d.subtitle ?? "")}
-            onChange={(e) => setDraft({ ...d, subtitle: e.target.value })}
-          />
-        </label>
+        {!isHidden("title") && (
+          <label className="block">
+            {fieldLabel("title", sectionContentFieldLabel("title"))}
+            <input
+              className="mt-1 w-full text-sm"
+              value={String(d.title ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, title: e.target.value })}
+            />
+          </label>
+        )}
+        {!isHidden("subtitle") && (
+          <label className="block">
+            {fieldLabel("subtitle", sectionContentFieldLabel("subtitle"))}
+            <input
+              className="mt-1 w-full text-sm"
+              value={String(d.subtitle ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, subtitle: e.target.value })}
+            />
+          </label>
+        )}
         {((d.images as { src: string; alt?: string }[]) ?? []).map((im, i) => (
           <div key={i} className="lc-field-stack-item space-y-2">
             <ImageUploadField
@@ -756,12 +941,22 @@ export function SectionInspectorForm({
               className="mt-2 w-full text-xs"
               placeholder={he.imageAltPlaceholder}
               value={im.alt ?? ""}
+              onFocus={selectOnFocus}
               onChange={(e) => {
                 const arr = [...((d.images as typeof im[]) ?? [])];
                 arr[i] = { ...im, alt: e.target.value };
                 setDraft({ ...d, images: arr });
               }}
             />
+            <button
+              type="button"
+              className="mt-1 text-xs text-red-600"
+              onClick={() =>
+                setDraft({ ...d, images: ((d.images as unknown[]) ?? []).filter((_, j) => j !== i) })
+              }
+            >
+              הסר תמונה
+            </button>
           </div>
         ))}
         <button
@@ -782,31 +977,40 @@ export function SectionInspectorForm({
     const d = draft as Record<string, unknown>;
     body = (
       <div className="space-y-3 text-sm">
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("badge")}</span>
-          <input
-            className="mt-1 w-full text-sm"
-            value={String(d.badge ?? "")}
-            onChange={(e) => setDraft({ ...d, badge: e.target.value })}
-          />
-        </label>
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("title")}</span>
-          <input
-            className="mt-1 w-full text-sm"
-            value={String(d.title ?? "")}
-            onChange={(e) => setDraft({ ...d, title: e.target.value })}
-          />
-        </label>
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("intro")}</span>
-          <textarea
-            className="mt-1 w-full text-sm"
-            rows={2}
-            value={String(d.intro ?? "")}
-            onChange={(e) => setDraft({ ...d, intro: e.target.value })}
-          />
-        </label>
+        {!isHidden("badge") && (
+          <label className="block">
+            {fieldLabel("badge", sectionContentFieldLabel("badge"))}
+            <input
+              className="mt-1 w-full text-sm"
+              value={String(d.badge ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, badge: e.target.value })}
+            />
+          </label>
+        )}
+        {!isHidden("title") && (
+          <label className="block">
+            {fieldLabel("title", sectionContentFieldLabel("title"))}
+            <input
+              className="mt-1 w-full text-sm"
+              value={String(d.title ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, title: e.target.value })}
+            />
+          </label>
+        )}
+        {!isHidden("intro") && (
+          <label className="block">
+            {fieldLabel("intro", sectionContentFieldLabel("intro"))}
+            <textarea
+              className="mt-1 w-full text-sm"
+              rows={2}
+              value={String(d.intro ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, intro: e.target.value })}
+            />
+          </label>
+        )}
         {((d.steps as { title: string; body: string }[]) ?? []).map((st, i) => (
           <div key={i} className="lc-field-stack-item space-y-2">
             <div className="mb-2 text-xs font-medium text-[#a1a4a5]">שלב {i + 1}</div>
@@ -815,6 +1019,7 @@ export function SectionInspectorForm({
               <input
                 className="mt-0.5 w-full font-medium"
                 value={st.title}
+                onFocus={selectOnFocus}
                 onChange={(e) => {
                   const arr = [...((d.steps as typeof st[]) ?? [])];
                   arr[i] = { ...st, title: e.target.value };
@@ -828,6 +1033,7 @@ export function SectionInspectorForm({
                 className="mt-0.5 w-full text-sm"
                 rows={3}
                 value={st.body}
+                onFocus={selectOnFocus}
                 onChange={(e) => {
                   const arr = [...((d.steps as typeof st[]) ?? [])];
                   arr[i] = { ...st, body: e.target.value };
@@ -835,30 +1041,54 @@ export function SectionInspectorForm({
                 }}
               />
             </label>
+            <button
+              type="button"
+              className="mt-1 text-xs text-red-600"
+              onClick={() =>
+                setDraft({ ...d, steps: ((d.steps as unknown[]) ?? []).filter((_, j) => j !== i) })
+              }
+            >
+              הסר שלב
+            </button>
           </div>
         ))}
+        <button
+          type="button"
+          className="text-[var(--lc-primary)]"
+          onClick={() =>
+            setDraft({ ...d, steps: [...((d.steps as { title: string; body: string }[]) ?? []), { title: "", body: "" }] })
+          }
+        >
+          + שלב
+        </button>
       </div>
     );
   } else if ((FAQ_EDITOR_SECTION_KEYS as readonly string[]).includes(sk)) {
     const d = draft as Record<string, unknown>;
     body = (
       <div className="space-y-3 text-sm">
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("badge")}</span>
-          <input
-            className="mt-1 w-full text-sm"
-            value={String(d.badge ?? "")}
-            onChange={(e) => setDraft({ ...d, badge: e.target.value })}
-          />
-        </label>
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("title")}</span>
-          <input
-            className="mt-1 w-full text-sm"
-            value={String(d.title ?? "")}
-            onChange={(e) => setDraft({ ...d, title: e.target.value })}
-          />
-        </label>
+        {!isHidden("badge") && (
+          <label className="block">
+            {fieldLabel("badge", sectionContentFieldLabel("badge"))}
+            <input
+              className="mt-1 w-full text-sm"
+              value={String(d.badge ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, badge: e.target.value })}
+            />
+          </label>
+        )}
+        {!isHidden("title") && (
+          <label className="block">
+            {fieldLabel("title", sectionContentFieldLabel("title"))}
+            <input
+              className="mt-1 w-full text-sm"
+              value={String(d.title ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, title: e.target.value })}
+            />
+          </label>
+        )}
         {((d.items as { question: string; answer: string }[]) ?? []).map((it, i) => (
           <div key={i} className="lc-field-stack-item space-y-2">
             <label className="block">
@@ -867,6 +1097,7 @@ export function SectionInspectorForm({
                 className="mt-1 w-full font-medium"
                 rows={2}
                 value={it.question}
+                onFocus={selectOnFocus}
                 onChange={(e) => {
                   const arr = [...((d.items as typeof it[]) ?? [])];
                   arr[i] = { ...it, question: e.target.value };
@@ -880,6 +1111,7 @@ export function SectionInspectorForm({
                 className="mt-1 w-full text-sm"
                 rows={3}
                 value={it.answer}
+                onFocus={selectOnFocus}
                 onChange={(e) => {
                   const arr = [...((d.items as typeof it[]) ?? [])];
                   arr[i] = { ...it, answer: e.target.value };
@@ -919,58 +1151,76 @@ export function SectionInspectorForm({
     const d = draft as Record<string, unknown>;
     body = (
       <div className="space-y-3 text-sm">
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("badge")}</span>
-          <input
-            className="mt-1 w-full text-sm"
-            value={String(d.badge ?? "")}
-            onChange={(e) => setDraft({ ...d, badge: e.target.value })}
-          />
-        </label>
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("headline")}</span>
-          <textarea
-            className="mt-1 w-full text-sm"
-            rows={2}
-            value={String(d.headline ?? "")}
-            onChange={(e) => setDraft({ ...d, headline: e.target.value })}
-          />
-        </label>
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("email")}</span>
-          <input
-            dir="ltr"
-            className="mt-1 w-full text-sm"
-            value={String(d.email ?? "")}
-            onChange={(e) => setDraft({ ...d, email: e.target.value })}
-          />
-        </label>
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("phone")}</span>
-          <input
-            dir="ltr"
-            className="mt-1 w-full text-sm"
-            value={String(d.phone ?? "")}
-            onChange={(e) => setDraft({ ...d, phone: e.target.value })}
-          />
-        </label>
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("submitLabel")}</span>
-          <input
-            className="mt-1 w-full text-sm"
-            value={String(d.submitLabel ?? "")}
-            onChange={(e) => setDraft({ ...d, submitLabel: e.target.value })}
-          />
-        </label>
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("footerCredit")}</span>
-          <input
-            className="mt-1 w-full text-sm"
-            value={String(d.footerCredit ?? "")}
-            onChange={(e) => setDraft({ ...d, footerCredit: e.target.value })}
-          />
-        </label>
-        <div className="text-[#a1a4a5]">{sectionContentFieldLabel("social")}</div>
+        {!isHidden("badge") && (
+          <label className="block">
+            {fieldLabel("badge", sectionContentFieldLabel("badge"))}
+            <input
+              className="mt-1 w-full text-sm"
+              value={String(d.badge ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, badge: e.target.value })}
+            />
+          </label>
+        )}
+        {!isHidden("headline") && (
+          <label className="block">
+            {fieldLabel("headline", sectionContentFieldLabel("headline"))}
+            <textarea
+              className="mt-1 w-full text-sm"
+              rows={2}
+              value={String(d.headline ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, headline: e.target.value })}
+            />
+          </label>
+        )}
+        {!isHidden("email") && (
+          <label className="block">
+            {fieldLabel("email", sectionContentFieldLabel("email"))}
+            <input
+              dir="ltr"
+              className="mt-1 w-full text-sm"
+              value={String(d.email ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, email: e.target.value })}
+            />
+          </label>
+        )}
+        {!isHidden("phone") && (
+          <label className="block">
+            {fieldLabel("phone", sectionContentFieldLabel("phone"))}
+            <input
+              dir="ltr"
+              className="mt-1 w-full text-sm"
+              value={String(d.phone ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, phone: e.target.value })}
+            />
+          </label>
+        )}
+        {!isHidden("submitLabel") && (
+          <label className="block">
+            {fieldLabel("submitLabel", sectionContentFieldLabel("submitLabel"))}
+            <input
+              className="mt-1 w-full text-sm"
+              value={String(d.submitLabel ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, submitLabel: e.target.value })}
+            />
+          </label>
+        )}
+        {!isHidden("footerCredit") && (
+          <label className="block">
+            {fieldLabel("footerCredit", sectionContentFieldLabel("footerCredit"))}
+            <input
+              className="mt-1 w-full text-sm"
+              value={String(d.footerCredit ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, footerCredit: e.target.value })}
+            />
+          </label>
+        )}
+        {fieldLabel("social", sectionContentFieldLabel("social"))}
         {((d.social as { network: string; href: string }[]) ?? []).map((s, i) => (
           <div key={i} className="flex flex-wrap items-end gap-2">
             <label className="block shrink-0">
@@ -978,6 +1228,7 @@ export function SectionInspectorForm({
               <input
                 className="mt-0.5 w-28 text-sm"
                 value={s.network}
+                onFocus={selectOnFocus}
                 onChange={(e) => {
                   const arr = [...((d.social as typeof s[]) ?? [])];
                   arr[i] = { ...s, network: e.target.value };
@@ -991,6 +1242,7 @@ export function SectionInspectorForm({
                 dir="ltr"
                 className="mt-0.5 w-full text-sm"
                 value={s.href}
+                onFocus={selectOnFocus}
                 onChange={(e) => {
                   const arr = [...((d.social as typeof s[]) ?? [])];
                   arr[i] = { ...s, href: e.target.value };
@@ -1000,7 +1252,7 @@ export function SectionInspectorForm({
             </label>
           </div>
         ))}
-        <div className="text-[#a1a4a5]">{sectionContentFieldLabel("formFields")}</div>
+        {fieldLabel("formFields", sectionContentFieldLabel("formFields"))}
         {((d.formFields as Record<string, unknown>[]) ?? []).map((f, i) => (
           <div key={i} className="lc-field-stack-item flex flex-wrap items-end gap-2 text-xs">
             <label className="flex min-w-[4.5rem] flex-col gap-0.5">
@@ -1009,6 +1261,7 @@ export function SectionInspectorForm({
                 className="w-full text-xs"
                 value={String(f.name ?? "")}
                 placeholder={he.formFieldMachineName}
+                onFocus={selectOnFocus}
                 onChange={(e) => {
                   const arr = [...((d.formFields as Record<string, unknown>[]) ?? [])];
                   arr[i] = { ...f, name: e.target.value };
@@ -1022,6 +1275,7 @@ export function SectionInspectorForm({
                 className="w-full text-xs"
                 value={String(f.label ?? "")}
                 placeholder="תווית"
+                onFocus={selectOnFocus}
                 onChange={(e) => {
                   const arr = [...((d.formFields as Record<string, unknown>[]) ?? [])];
                   arr[i] = { ...f, label: e.target.value };
@@ -1054,16 +1308,19 @@ export function SectionInspectorForm({
     const d = draft as Record<string, unknown>;
     body = (
       <div className="space-y-3 text-sm">
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("brandText")}</span>
-          <input
-            className="mt-1 w-full text-sm"
-            value={String(d.brandText ?? "")}
-            onChange={(e) => setDraft({ ...d, brandText: e.target.value })}
-          />
-        </label>
+        {!isHidden("brandText") && (
+          <label className="block">
+            {fieldLabel("brandText", sectionContentFieldLabel("brandText"))}
+            <input
+              className="mt-1 w-full text-sm"
+              value={String(d.brandText ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, brandText: e.target.value })}
+            />
+          </label>
+        )}
         <p className="text-xs text-[#464a4d]">{he.siteLogoHint}</p>
-        <div className="text-[#a1a4a5]">{sectionContentFieldLabel("navLinks")}</div>
+        {fieldLabel("navLinks", sectionContentFieldLabel("navLinks"))}
         {((d.links as { label: string; href: string }[]) ?? []).map((l, i) => (
           <div key={i} className="flex flex-wrap items-end gap-2">
             {linkRow(l, (v) => {
@@ -1097,54 +1354,69 @@ export function SectionInspectorForm({
         >
           + קישור
         </button>
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("copyright")}</span>
-          <input
-            className="mt-1 w-full text-sm"
-            value={String(d.copyright ?? "")}
-            onChange={(e) => setDraft({ ...d, copyright: e.target.value })}
-          />
-        </label>
+        {!isHidden("copyright") && (
+          <label className="block">
+            {fieldLabel("copyright", sectionContentFieldLabel("copyright"))}
+            <input
+              className="mt-1 w-full text-sm"
+              value={String(d.copyright ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, copyright: e.target.value })}
+            />
+          </label>
+        )}
       </div>
     );
   } else if (sk === "footer_columns") {
     const d = draft as Record<string, unknown>;
     body = (
       <div className="space-y-3 text-sm">
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("brandText")}</span>
-          <input
-            className="mt-1 w-full text-sm"
-            value={String(d.brandText ?? "")}
-            onChange={(e) => setDraft({ ...d, brandText: e.target.value })}
-          />
-        </label>
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("aboutTitle")}</span>
-          <input
-            className="mt-1 w-full text-sm"
-            value={String(d.aboutTitle ?? "")}
-            onChange={(e) => setDraft({ ...d, aboutTitle: e.target.value })}
-          />
-        </label>
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("aboutBody")}</span>
-          <textarea
-            className="mt-1 w-full text-sm"
-            rows={3}
-            value={String(d.aboutBody ?? "")}
-            onChange={(e) => setDraft({ ...d, aboutBody: e.target.value })}
-          />
-        </label>
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("linksTitle")}</span>
-          <input
-            className="mt-1 w-full text-sm"
-            value={String(d.linksTitle ?? "")}
-            onChange={(e) => setDraft({ ...d, linksTitle: e.target.value })}
-          />
-        </label>
-        <div className="text-[#a1a4a5]">{sectionContentFieldLabel("navLinks")}</div>
+        {!isHidden("brandText") && (
+          <label className="block">
+            {fieldLabel("brandText", sectionContentFieldLabel("brandText"))}
+            <input
+              className="mt-1 w-full text-sm"
+              value={String(d.brandText ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, brandText: e.target.value })}
+            />
+          </label>
+        )}
+        {!isHidden("aboutTitle") && (
+          <label className="block">
+            {fieldLabel("aboutTitle", sectionContentFieldLabel("aboutTitle"))}
+            <input
+              className="mt-1 w-full text-sm"
+              value={String(d.aboutTitle ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, aboutTitle: e.target.value })}
+            />
+          </label>
+        )}
+        {!isHidden("aboutBody") && (
+          <label className="block">
+            {fieldLabel("aboutBody", sectionContentFieldLabel("aboutBody"))}
+            <textarea
+              className="mt-1 w-full text-sm"
+              rows={3}
+              value={String(d.aboutBody ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, aboutBody: e.target.value })}
+            />
+          </label>
+        )}
+        {!isHidden("linksTitle") && (
+          <label className="block">
+            {fieldLabel("linksTitle", sectionContentFieldLabel("linksTitle"))}
+            <input
+              className="mt-1 w-full text-sm"
+              value={String(d.linksTitle ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, linksTitle: e.target.value })}
+            />
+          </label>
+        )}
+        {fieldLabel("navLinks", sectionContentFieldLabel("navLinks"))}
         {((d.links as { label: string; href: string }[]) ?? []).map((l, i) => (
           <div key={i} className="flex flex-wrap items-end gap-2">
             {linkRow(l, (v) => {
@@ -1178,33 +1450,42 @@ export function SectionInspectorForm({
         >
           + קישור
         </button>
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("contactTitle")}</span>
-          <input
-            className="mt-1 w-full text-sm"
-            value={String(d.contactTitle ?? "")}
-            onChange={(e) => setDraft({ ...d, contactTitle: e.target.value })}
-          />
-        </label>
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("email")}</span>
-          <input
-            dir="ltr"
-            className="mt-1 w-full text-sm"
-            value={String(d.email ?? "")}
-            onChange={(e) => setDraft({ ...d, email: e.target.value })}
-          />
-        </label>
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("phone")}</span>
-          <input
-            dir="ltr"
-            className="mt-1 w-full text-sm"
-            value={String(d.phone ?? "")}
-            onChange={(e) => setDraft({ ...d, phone: e.target.value })}
-          />
-        </label>
-        <div className="text-[#a1a4a5]">{sectionContentFieldLabel("social")}</div>
+        {!isHidden("contactTitle") && (
+          <label className="block">
+            {fieldLabel("contactTitle", sectionContentFieldLabel("contactTitle"))}
+            <input
+              className="mt-1 w-full text-sm"
+              value={String(d.contactTitle ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, contactTitle: e.target.value })}
+            />
+          </label>
+        )}
+        {!isHidden("email") && (
+          <label className="block">
+            {fieldLabel("email", sectionContentFieldLabel("email"))}
+            <input
+              dir="ltr"
+              className="mt-1 w-full text-sm"
+              value={String(d.email ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, email: e.target.value })}
+            />
+          </label>
+        )}
+        {!isHidden("phone") && (
+          <label className="block">
+            {fieldLabel("phone", sectionContentFieldLabel("phone"))}
+            <input
+              dir="ltr"
+              className="mt-1 w-full text-sm"
+              value={String(d.phone ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, phone: e.target.value })}
+            />
+          </label>
+        )}
+        {fieldLabel("social", sectionContentFieldLabel("social"))}
         {((d.social as { network: string; href: string }[]) ?? []).map((s, i) => (
           <div key={i} className="flex flex-wrap items-end gap-2">
             <label className="block shrink-0">
@@ -1212,6 +1493,7 @@ export function SectionInspectorForm({
               <input
                 className="mt-0.5 w-28 text-sm"
                 value={s.network}
+                onFocus={selectOnFocus}
                 onChange={(e) => {
                   const arr = [...((d.social as typeof s[]) ?? [])];
                   arr[i] = { ...s, network: e.target.value };
@@ -1225,6 +1507,7 @@ export function SectionInspectorForm({
                 dir="ltr"
                 className="mt-0.5 w-full text-sm"
                 value={s.href}
+                onFocus={selectOnFocus}
                 onChange={(e) => {
                   const arr = [...((d.social as typeof s[]) ?? [])];
                   arr[i] = { ...s, href: e.target.value };
@@ -1258,73 +1541,94 @@ export function SectionInspectorForm({
         >
           + רשת
         </button>
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("bottomBar")}</span>
-          <input
-            className="mt-1 w-full text-sm"
-            value={String(d.bottomBar ?? "")}
-            onChange={(e) => setDraft({ ...d, bottomBar: e.target.value })}
-          />
-        </label>
+        {!isHidden("bottomBar") && (
+          <label className="block">
+            {fieldLabel("bottomBar", sectionContentFieldLabel("bottomBar"))}
+            <input
+              className="mt-1 w-full text-sm"
+              value={String(d.bottomBar ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, bottomBar: e.target.value })}
+            />
+          </label>
+        )}
       </div>
     );
   } else if (sk === "footer_newsletter") {
     const d = draft as Record<string, unknown>;
     body = (
       <div className="space-y-3 text-sm">
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("headline")}</span>
-          <textarea
-            className="mt-1 w-full text-sm"
-            rows={2}
-            value={String(d.headline ?? "")}
-            onChange={(e) => setDraft({ ...d, headline: e.target.value })}
-          />
-        </label>
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("subheadline")}</span>
-          <textarea
-            className="mt-1 w-full text-sm"
-            rows={2}
-            value={String(d.subheadline ?? "")}
-            onChange={(e) => setDraft({ ...d, subheadline: e.target.value })}
-          />
-        </label>
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("brandTagline")}</span>
-          <textarea
-            className="mt-1 w-full text-sm"
-            rows={2}
-            value={String(d.brandTagline ?? "")}
-            onChange={(e) => setDraft({ ...d, brandTagline: e.target.value })}
-          />
-        </label>
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("emailLabel")}</span>
-          <input
-            className="mt-1 w-full text-sm"
-            value={String(d.emailLabel ?? "")}
-            onChange={(e) => setDraft({ ...d, emailLabel: e.target.value })}
-          />
-        </label>
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("submitLabel")}</span>
-          <input
-            className="mt-1 w-full text-sm"
-            value={String(d.submitLabel ?? "")}
-            onChange={(e) => setDraft({ ...d, submitLabel: e.target.value })}
-          />
-        </label>
-        <label className="block">
-          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("privacyNote")}</span>
-          <textarea
-            className="mt-1 w-full text-sm"
-            rows={2}
-            value={String(d.privacyNote ?? "")}
-            onChange={(e) => setDraft({ ...d, privacyNote: e.target.value })}
-          />
-        </label>
-        <div className="text-[#a1a4a5]">{sectionContentFieldLabel("social")}</div>
+        {!isHidden("headline") && (
+          <label className="block">
+            {fieldLabel("headline", sectionContentFieldLabel("headline"))}
+            <textarea
+              className="mt-1 w-full text-sm"
+              rows={2}
+              value={String(d.headline ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, headline: e.target.value })}
+            />
+          </label>
+        )}
+        {!isHidden("subheadline") && (
+          <label className="block">
+            {fieldLabel("subheadline", sectionContentFieldLabel("subheadline"))}
+            <textarea
+              className="mt-1 w-full text-sm"
+              rows={2}
+              value={String(d.subheadline ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, subheadline: e.target.value })}
+            />
+          </label>
+        )}
+        {!isHidden("brandTagline") && (
+          <label className="block">
+            {fieldLabel("brandTagline", sectionContentFieldLabel("brandTagline"))}
+            <textarea
+              className="mt-1 w-full text-sm"
+              rows={2}
+              value={String(d.brandTagline ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, brandTagline: e.target.value })}
+            />
+          </label>
+        )}
+        {!isHidden("emailLabel") && (
+          <label className="block">
+            {fieldLabel("emailLabel", sectionContentFieldLabel("emailLabel"))}
+            <input
+              className="mt-1 w-full text-sm"
+              value={String(d.emailLabel ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, emailLabel: e.target.value })}
+            />
+          </label>
+        )}
+        {!isHidden("submitLabel") && (
+          <label className="block">
+            {fieldLabel("submitLabel", sectionContentFieldLabel("submitLabel"))}
+            <input
+              className="mt-1 w-full text-sm"
+              value={String(d.submitLabel ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, submitLabel: e.target.value })}
+            />
+          </label>
+        )}
+        {!isHidden("privacyNote") && (
+          <label className="block">
+            {fieldLabel("privacyNote", sectionContentFieldLabel("privacyNote"))}
+            <textarea
+              className="mt-1 w-full text-sm"
+              rows={2}
+              value={String(d.privacyNote ?? "")}
+              onFocus={selectOnFocus}
+              onChange={(e) => setDraft({ ...d, privacyNote: e.target.value })}
+            />
+          </label>
+        )}
+        {fieldLabel("social", sectionContentFieldLabel("social"))}
         {((d.social as { network: string; href: string }[]) ?? []).map((s, i) => (
           <div key={i} className="flex flex-wrap items-end gap-2">
             <label className="block shrink-0">
@@ -1332,6 +1636,7 @@ export function SectionInspectorForm({
               <input
                 className="mt-0.5 w-28 text-sm"
                 value={s.network}
+                onFocus={selectOnFocus}
                 onChange={(e) => {
                   const arr = [...((d.social as typeof s[]) ?? [])];
                   arr[i] = { ...s, network: e.target.value };
@@ -1345,6 +1650,7 @@ export function SectionInspectorForm({
                 dir="ltr"
                 className="mt-0.5 w-full text-sm"
                 value={s.href}
+                onFocus={selectOnFocus}
                 onChange={(e) => {
                   const arr = [...((d.social as typeof s[]) ?? [])];
                   arr[i] = { ...s, href: e.target.value };
@@ -1382,6 +1688,25 @@ export function SectionInspectorForm({
     );
   }
 
+  const restorePanel =
+    hiddenSet.size > 0 ? (
+      <div className="mt-3 rounded-lg border border-[rgba(214,235,253,0.12)] bg-white/[0.03] px-3 py-2">
+        <p className="mb-1.5 text-xs text-[#464a4d]">שדות מוסתרים</p>
+        <div className="flex flex-wrap gap-1.5">
+          {[...hiddenSet].map((k) => (
+            <button
+              key={k}
+              type="button"
+              className="rounded-full border border-[rgba(214,235,253,0.19)] px-2 py-0.5 text-xs text-[#a1a4a5] hover:border-[var(--lc-primary)] hover:text-[var(--lc-primary)]"
+              onClick={() => restoreField(k)}
+            >
+              + {sectionContentFieldLabel(k) ?? k}
+            </button>
+          ))}
+        </div>
+      </div>
+    ) : null;
+
   return (
     <div className={embedded ? "" : "rounded-2xl bg-white/5 p-4 shadow-[0_0_0_1px_rgba(176,199,217,0.145)]"}>
       {!embedded ? (
@@ -1391,6 +1716,7 @@ export function SectionInspectorForm({
         </>
       ) : null}
       <div className={embedded ? "" : "mt-4"}>{body}</div>
+      {restorePanel}
       {deferPersistence && !onAdd ? null : (
         <button
           type="button"

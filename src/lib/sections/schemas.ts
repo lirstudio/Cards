@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+/** מוסיף __hidden?: string[] לכל סכימת סקשן — שדות ב-__hidden נשמרים בנתונים אך מוסתרים מהעורך ומהתצוגה */
+function withHidden<T extends z.ZodRawShape>(schema: z.ZodObject<T>) {
+  return schema.extend({ __hidden: z.array(z.string()).optional() });
+}
+
 const linkSchema = z.object({ label: z.string(), href: z.string() });
 const statSchema = z.object({ value: z.string(), label: z.string().optional() });
 const qaBlockSchema = z.object({ title: z.string(), body: z.string() });
@@ -51,7 +56,7 @@ export const heroImageSplitContentSchema = z.object({
 export const legacyNavHeroStatsSchema = heroImageSplitContentSchema;
 
 export const sectionSchemas = {
-  site_header_nav: z.object({
+  site_header_nav: withHidden(z.object({
     logoText: z.string(),
     topBarLeft: z.string().optional(),
     topBarRight: z.string().optional(),
@@ -62,118 +67,118 @@ export const sectionSchemas = {
     navExcludedSectionIds: z.array(z.string()).optional(),
     /** סדר הופעת פריטי תפריט (מזהים של סקשנים מקושרים לעמוד) */
     navSectionOrder: z.array(z.string()).optional(),
-  }),
-  hero_image_split: heroImageSplitContentSchema,
-  hero_editorial_split: heroImageSplitContentSchema.extend({
+  })),
+  hero_image_split: withHidden(heroImageSplitContentSchema),
+  hero_editorial_split: withHidden(heroImageSplitContentSchema.extend({
     eyebrow: z.string().optional(),
-  }),
-  hero_immersive_bg: z.object({
+  })),
+  hero_immersive_bg: withHidden(z.object({
     backgroundImage: z.string(),
     headline: z.string(),
     subheadline: z.string(),
     heroCta: linkSchema,
     secondaryCta: linkSchema,
-  }),
-  hero_showcase_float: heroImageSplitContentSchema.extend({
+  })),
+  hero_showcase_float: withHidden(heroImageSplitContentSchema.extend({
     badge: z.string().optional(),
-  }),
-  stats_highlight_row: z.object({
+  })),
+  stats_highlight_row: withHidden(z.object({
     stats: z.array(statSchema),
-  }),
-  about_bio_qa: z.object({
+  })),
+  about_bio_qa: withHidden(z.object({
     image: z.string(),
     blocks: z.array(qaBlockSchema).min(1),
-  }),
-  split_three_qa_image: z.object({
+  })),
+  split_three_qa_image: withHidden(z.object({
     image: z.string(),
-    blocks: z.array(qaBlockSchema).min(3).max(3),
-  }),
-  testimonials_marquee: z.object({
+    blocks: z.array(qaBlockSchema).min(1),
+  })),
+  testimonials_marquee: withHidden(z.object({
     items: z.array(testimonialSchema),
-  }),
-  testimonials_photo_cards: z.object({
+  })),
+  testimonials_photo_cards: withHidden(z.object({
     items: z.array(testimonialSchema),
-  }),
-  testimonials_star_cards: z.object({
+  })),
+  testimonials_star_cards: withHidden(z.object({
     items: z.array(testimonialSchema),
-  }),
-  testimonials_quote_side: z.object({
+  })),
+  testimonials_quote_side: withHidden(z.object({
     items: z.array(testimonialSchema),
-  }),
-  testimonials_cinematic: z.object({
+  })),
+  testimonials_cinematic: withHidden(z.object({
     items: z.array(testimonialSchema),
-  }),
-  center_richtext_cta: z.object({
+  })),
+  center_richtext_cta: withHidden(z.object({
     title: z.string(),
     paragraphs: z.array(z.string()),
     cta: linkSchema,
-  }),
-  checklist_with_image: z.object({
+  })),
+  checklist_with_image: withHidden(z.object({
     title: z.string(),
     image: z.string(),
     items: z.array(checklistItemSchema),
-  }),
-  checklist_text_only: z.object({
+  })),
+  checklist_text_only: withHidden(z.object({
     title: z.string(),
     image: z.string(),
     items: z.array(checklistItemSchema),
-  }),
-  pricing_banner: z.object({
+  })),
+  pricing_banner: withHidden(z.object({
     headline: z.string(),
     body: z.string(),
     cta: linkSchema,
-  }),
-  services_grid: z.object({
+  })),
+  services_grid: withHidden(z.object({
     badge: z.string(),
     title: z.string(),
     cards: z.array(serviceCardSchema),
-  }),
-  gallery_row: z.object({
+  })),
+  gallery_row: withHidden(z.object({
     images: z.array(galleryImageSchema),
-  }),
-  gallery_grid_even: z.object({
+  })),
+  gallery_grid_even: withHidden(z.object({
     title: z.string(),
     subtitle: z.string().optional(),
     images: z.array(galleryImageSchema),
-  }),
-  gallery_spotlight: z.object({
+  })),
+  gallery_spotlight: withHidden(z.object({
     title: z.string(),
     subtitle: z.string().optional(),
     images: z.array(galleryImageSchema),
-  }),
-  gallery_bento: z.object({
+  })),
+  gallery_bento: withHidden(z.object({
     title: z.string(),
     subtitle: z.string().optional(),
     images: z.array(galleryImageSchema),
-  }),
-  how_it_works_blue: z.object({
+  })),
+  how_it_works_blue: withHidden(z.object({
     badge: z.string(),
     title: z.string(),
     intro: z.string(),
-    steps: z.tuple([stepSchema, stepSchema, stepSchema]),
-  }),
+    steps: z.array(stepSchema).min(1),
+  })),
   /** תוכן משותף לכל וריאנטי שאלות נפוצות */
-  faq_accordion: z.object({
+  faq_accordion: withHidden(z.object({
     badge: z.string(),
     title: z.string(),
     items: z.array(faqItemSchema),
-  }),
-  faq_two_column: z.object({
+  })),
+  faq_two_column: withHidden(z.object({
     badge: z.string(),
     title: z.string(),
     items: z.array(faqItemSchema),
-  }),
-  faq_cards: z.object({
+  })),
+  faq_cards: withHidden(z.object({
     badge: z.string(),
     title: z.string(),
     items: z.array(faqItemSchema),
-  }),
-  faq_expanded: z.object({
+  })),
+  faq_expanded: withHidden(z.object({
     badge: z.string(),
     title: z.string(),
     items: z.array(faqItemSchema),
-  }),
-  contact_split_footer: z.object({
+  })),
+  contact_split_footer: withHidden(z.object({
     badge: z.string(),
     headline: z.string(),
     social: z.array(socialLinkSchema),
@@ -182,13 +187,13 @@ export const sectionSchemas = {
     submitLabel: z.string(),
     footerCredit: z.string(),
     formFields: z.array(formFieldSchema),
-  }),
-  footer_minimal: z.object({
+  })),
+  footer_minimal: withHidden(z.object({
     brandText: z.string(),
     links: z.array(linkSchema),
     copyright: z.string(),
-  }),
-  footer_columns: z.object({
+  })),
+  footer_columns: withHidden(z.object({
     brandText: z.string(),
     aboutTitle: z.string(),
     aboutBody: z.string(),
@@ -199,8 +204,8 @@ export const sectionSchemas = {
     phone: z.string(),
     social: z.array(socialLinkSchema),
     bottomBar: z.string(),
-  }),
-  footer_newsletter: z.object({
+  })),
+  footer_newsletter: withHidden(z.object({
     headline: z.string(),
     subheadline: z.string(),
     brandTagline: z.string(),
@@ -208,8 +213,8 @@ export const sectionSchemas = {
     emailLabel: z.string(),
     submitLabel: z.string(),
     privacyNote: z.string(),
-  }),
-} as const;
+  })),
+};
 
 export type SectionKey = keyof typeof sectionSchemas;
 
