@@ -14,7 +14,7 @@ export function LandingImagePlaceholder({
     <div
       role="img"
       aria-label={he.imageSlotAria}
-      className={`flex items-center justify-center bg-neutral-200/95 text-neutral-400 ${className}`}
+      className={`flex items-center justify-center bg-white/5 text-[#464a4d] ${className}`}
     >
       <span
         className="select-none text-3xl font-extralight leading-none tracking-tight md:text-4xl"

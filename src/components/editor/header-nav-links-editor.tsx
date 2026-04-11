@@ -76,7 +76,7 @@ export function HeaderNavLinksEditor({
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="text-sm font-medium text-neutral-800">{he.headerNavLinksTitle}</span>
+        <span className="text-sm font-medium text-[#a1a4a5]">{he.headerNavLinksTitle}</span>
         {hasCustom ? (
           <button
             type="button"
@@ -87,10 +87,10 @@ export function HeaderNavLinksEditor({
           </button>
         ) : null}
       </div>
-      <p className="text-xs leading-relaxed text-neutral-500">{he.headerNavLinksHint}</p>
-      <ul className="max-h-[min(320px,50vh)] divide-y divide-neutral-100 overflow-y-auto rounded-lg bg-neutral-50/50">
+      <p className="text-xs leading-relaxed text-[#464a4d]">{he.headerNavLinksHint}</p>
+      <ul className="max-h-[min(320px,50vh)] divide-y divide-[rgba(214,235,253,0.19)] overflow-y-auto rounded-lg bg-white/5">
         {links.length === 0 ? (
-          <li className="px-2 py-4 text-center text-xs text-neutral-500">{he.headerNavLinksEmpty}</li>
+          <li className="px-2 py-4 text-center text-xs text-[#464a4d]">{he.headerNavLinksEmpty}</li>
         ) : (
           links.map((l, index) => (
             <li
@@ -112,18 +112,18 @@ export function HeaderNavLinksEditor({
                 }
                 setDragId(null);
               }}
-              className={`flex items-center gap-2 bg-white/80 px-2 py-2 text-sm ${
+              className={`flex items-center gap-2 bg-white/5 px-2 py-2 text-sm ${
                 dragId === l.sectionId ? "opacity-55" : ""
               }`}
             >
               <span
-                className="cursor-grab select-none text-neutral-400 tabular-nums active:cursor-grabbing"
+                className="cursor-grab select-none text-[#464a4d] tabular-nums active:cursor-grabbing"
                 title={he.headerNavDragHint}
                 aria-hidden
               >
                 {"⋮⋮"}
               </span>
-              <span className="min-w-0 flex-1 truncate font-medium text-neutral-800">{l.label}</span>
+              <span className="min-w-0 flex-1 truncate font-medium text-[#a1a4a5]">{l.label}</span>
               <button
                 type="button"
                 className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-red-600 transition hover:bg-red-50"

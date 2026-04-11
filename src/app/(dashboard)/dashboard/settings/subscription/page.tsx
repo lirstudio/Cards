@@ -34,28 +34,28 @@ export default async function SettingsSubscriptionPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold">{he.settingsSubscription}</h1>
-      <div className="mt-6 space-y-3 rounded-2xl border border-neutral-200 bg-white p-6">
+      <h1 className="text-2xl font-bold text-[#f0f0f0]">{he.settingsSubscription}</h1>
+      <div className="mt-6 space-y-3 rounded-2xl border border-[rgba(214,235,253,0.19)] p-6">
         <div>
-          <span className="text-sm text-neutral-500">תוכנית</span>
-          <div className="font-semibold">{planName}</div>
+          <span className="text-sm text-[#a1a4a5]">תוכנית</span>
+          <div className="font-semibold text-[#f0f0f0]">{planName}</div>
         </div>
         {maxPages != null ? (
           <div>
-            <span className="text-sm text-neutral-500">מכסת עמודים</span>
-            <div className="font-semibold">{maxPages}</div>
+            <span className="text-sm text-[#a1a4a5]">מכסת עמודים</span>
+            <div className="font-semibold text-[#f0f0f0]">{maxPages}</div>
           </div>
         ) : null}
         {sub?.status ? (
           <div>
-            <span className="text-sm text-neutral-500">סטטוס</span>
-            <div className="font-semibold">{sub.status}</div>
+            <span className="text-sm text-[#a1a4a5]">סטטוס</span>
+            <div className="font-semibold text-[#f0f0f0]">{sub.status}</div>
           </div>
         ) : null}
       </div>
       <Link
         href="/dashboard/billing"
-        className="mt-6 inline-flex rounded-full bg-[var(--lc-primary)] px-6 py-2.5 text-sm font-medium text-white"
+        className="mt-6 inline-flex rounded-full bg-white px-6 py-2.5 text-sm font-medium text-black hover:bg-white/90"
       >
         {he.billing}
       </Link>

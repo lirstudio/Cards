@@ -50,10 +50,10 @@ function SettingRow({
   const isComplex = !isBoolean && !isSimpleString;
 
   return (
-    <div className="flex items-start gap-4 rounded-lg border border-neutral-200 bg-white p-4">
+    <div className="flex items-start gap-4 rounded-lg border border-[rgba(214,235,253,0.19)] bg-white/5 p-4">
       <div className="w-40 shrink-0">
         <div className="text-sm font-medium">{label}</div>
-        <code className="text-[10px] text-neutral-400">{setting.key}</code>
+        <code className="text-[10px] text-[#464a4d]">{setting.key}</code>
       </div>
       <div className="flex-1">
         {isBoolean ? (
@@ -89,7 +89,7 @@ function SettingRow({
         type="button"
         disabled={saving || !dirty}
         onClick={handleSave}
-        className="shrink-0 rounded-lg bg-blue-600 px-3 py-2 text-xs font-medium text-white transition hover:bg-blue-700 disabled:opacity-40"
+        className="shrink-0 rounded-lg bg-[var(--lc-primary)] px-3 py-2 text-xs font-medium text-white transition hover:opacity-90 disabled:opacity-40"
       >
         {he.adminSave}
       </button>
@@ -126,7 +126,7 @@ export function SystemSettingsEditor({
   return (
     <div className="space-y-3">
       {msg && (
-        <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm text-blue-700">
+        <div className="rounded-lg border border-[rgba(214,235,253,0.19)] bg-[var(--lc-primary)]/10 px-4 py-2 text-sm text-[var(--lc-primary)]">
           {msg}
         </div>
       )}

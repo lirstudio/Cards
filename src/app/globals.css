@@ -1,15 +1,20 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8f9fa;
-  --foreground: #171717;
-  --lc-primary: #0b43b4;
+  --background: #000000;
+  --foreground: #f0f0f0;
+  --lc-primary: #3b9eff;
+  --frost-border: rgba(214, 235, 253, 0.19);
+  --ring-shadow: rgba(176, 199, 217, 0.145);
+  --text-secondary: #a1a4a5;
+  --text-tertiary: #464a4d;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-heebo), system-ui, sans-serif;
+  --color-frost-border: var(--frost-border);
+  --font-sans: var(--font-inter), var(--font-heebo), system-ui, sans-serif;
 }
 
 html {
@@ -25,7 +30,7 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-heebo), system-ui, sans-serif;
+  font-family: var(--font-inter), var(--font-heebo), system-ui, sans-serif;
 }
 
 /* סקשני נחיתה — סימון גלובלי; ראה src/lib/landing/section-shell.ts */
@@ -64,7 +69,7 @@ select:not(.lc-input-framed) {
   border-width: 0 !important;
   border-bottom-width: 1px !important;
   border-bottom-style: solid !important;
-  border-bottom-color: rgb(212 212 212) !important;
+  border-bottom-color: var(--frost-border) !important;
   background-color: transparent !important;
   box-shadow: none !important;
   --tw-shadow: 0 0 #0000 !important;
@@ -74,6 +79,7 @@ select:not(.lc-input-framed) {
   outline: none !important;
   padding-inline: 0 !important;
   padding-block: 0.5rem !important;
+  color: var(--foreground) !important;
 }
 
 input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]):not(
@@ -101,7 +107,7 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="
   ):not(.lc-input-framed):disabled,
 textarea:not(.lc-input-framed):disabled,
 select:not(.lc-input-framed):disabled {
-  border-bottom-color: rgb(229 229 229) !important;
+  border-bottom-color: var(--text-tertiary) !important;
   opacity: 0.72;
 }
 
@@ -115,7 +121,7 @@ textarea:not(.lc-input-framed) {
  */
 .lc-field-stack-item {
   padding-block: 0.875rem;
-  border-bottom: 1px solid rgb(237 237 237);
+  border-bottom: 1px solid var(--frost-border);
 }
 .lc-field-stack-item:last-child {
   border-bottom: none;
@@ -129,7 +135,7 @@ textarea.lc-textarea-compact:not(.lc-input-framed) {
 
 select:not(.lc-input-framed) {
   appearance: none !important;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b7280' d='M6 8L0 0h12z'/%3E%3C/svg%3E") !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23a1a4a5' d='M6 8L0 0h12z'/%3E%3C/svg%3E") !important;
   background-repeat: no-repeat !important;
   background-size: 10px 6px !important;
   background-position: right 0.2rem center !important;
@@ -148,7 +154,7 @@ input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="
     [type="reset"]
   ):not(.lc-input-framed)::placeholder,
 textarea:not(.lc-input-framed)::placeholder {
-  color: rgb(163 163 163);
+  color: var(--text-tertiary);
 }
 
 /*
@@ -184,7 +190,7 @@ textarea:not(.lc-input-framed)::placeholder {
   transition: box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .lc-testimonial-card:hover {
-  box-shadow: 0 22px 48px -26px rgba(0, 0, 0, 0.22);
+  box-shadow: 0 0 0 1px var(--ring-shadow), 0 22px 48px -26px rgba(0, 0, 0, 0.4);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -192,6 +198,6 @@ textarea:not(.lc-input-framed)::placeholder {
     transition: none;
   }
   .lc-testimonial-card:hover {
-    box-shadow: 0 4px 24px -8px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 0 0 1px var(--ring-shadow);
   }
 }

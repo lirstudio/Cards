@@ -27,44 +27,44 @@ export default async function DashboardPage() {
     <div>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">{he.myPages}</h1>
+          <h1 className="text-2xl font-bold text-[#f0f0f0]">{he.myPages}</h1>
           {quota ? (
-            <p className="mt-1 text-sm text-neutral-600">
+            <p className="mt-1 text-sm text-[#a1a4a5]">
               עמודים: {quota.currentCount} / {quota.maxPages}
             </p>
           ) : null}
         </div>
         {quota?.canCreate === false ? (
-          <span className="rounded-full bg-neutral-400 px-6 py-2.5 text-sm font-medium text-white">
+          <span className="rounded-full bg-[#464a4d] px-6 py-2.5 text-sm font-medium text-[#a1a4a5]">
             {he.newPage}
           </span>
         ) : (
-          <CreateDraftPageForm className="rounded-full bg-[var(--lc-primary)] px-6 py-2.5 text-sm font-medium text-white hover:opacity-95 disabled:opacity-60" />
+          <CreateDraftPageForm className="rounded-full bg-white px-6 py-2.5 text-sm font-medium text-black hover:bg-white/90 disabled:opacity-60" />
         )}
       </div>
 
       {!pages?.length ? (
-        <p className="mt-12 text-center text-neutral-600">{he.noPages}</p>
+        <p className="mt-12 text-center text-[#a1a4a5]">{he.noPages}</p>
       ) : (
         <ul className="mt-8 space-y-3">
           {pages.map((p) => (
             <li
               key={p.id}
-              className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-neutral-200 bg-white p-4"
+              className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[rgba(214,235,253,0.19)] bg-transparent p-4"
             >
               <div>
-                <div className="font-semibold">{p.title || p.slug}</div>
-                <div className="text-sm text-neutral-500" dir="ltr">
+                <div className="font-semibold text-[#f0f0f0]">{p.title || p.slug}</div>
+                <div className="text-sm text-[#a1a4a5]" dir="ltr">
                   /{p.slug}
                 </div>
-                <div className="mt-1 text-xs text-neutral-500">
+                <div className="mt-1 text-xs text-[#a1a4a5]">
                   {String(p.status).trim() === "published" ? he.published : he.draft}
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
                 <Link
                   href={`/dashboard/pages/${p.id}/edit`}
-                  className="rounded-full border border-neutral-300 px-4 py-2 text-sm"
+                  className="rounded-full border border-[rgba(214,235,253,0.19)] px-4 py-2 text-sm text-[#f0f0f0] hover:bg-white/10"
                 >
                   {he.editPage}
                 </Link>
@@ -73,7 +73,7 @@ export default async function DashboardPage() {
                     href={`/${p.slug}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm font-medium hover:bg-neutral-50"
+                    className="rounded-full border border-[rgba(214,235,253,0.19)] px-4 py-2 text-sm font-medium text-[#f0f0f0] hover:bg-white/10"
                   >
                     {he.openPage}
                   </Link>

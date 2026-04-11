@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import Link from "next/link";
 import { signInWithEmail } from "@/app/actions/auth";
 import { he } from "@/lib/i18n/he";
 
@@ -10,10 +11,10 @@ export function LoginForm() {
   return (
     <form action={action} className="mt-8 space-y-4">
       {state?.error ? (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{state.error}</p>
+        <p className="rounded-lg bg-[#ff2047]/10 px-3 py-2 text-sm text-[#ff2047]">{state.error}</p>
       ) : null}
       <div>
-        <label htmlFor="email" className="mb-1 block text-sm font-medium">
+        <label htmlFor="email" className="mb-1 block text-sm font-medium text-[#f0f0f0]">
           {he.email}
         </label>
         <input
@@ -27,9 +28,17 @@ export function LoginForm() {
         />
       </div>
       <div>
-        <label htmlFor="password" className="mb-1 block text-sm font-medium">
-          {he.password}
-        </label>
+        <div className="mb-1 flex items-center justify-between">
+          <label htmlFor="password" className="text-sm font-medium text-[#f0f0f0]">
+            {he.password}
+          </label>
+          <Link
+            href="/forgot-password"
+            className="text-xs font-medium text-[var(--lc-primary)]"
+          >
+            {he.forgotPassword}
+          </Link>
+        </div>
         <input
           id="password"
           name="password"
@@ -41,7 +50,7 @@ export function LoginForm() {
       </div>
       <button
         type="submit"
-        className="w-full rounded-full bg-[var(--lc-primary)] py-3 text-sm font-medium text-white"
+        className="w-full rounded-full bg-white py-3 text-sm font-medium text-black hover:bg-white/90"
       >
         {he.login}
       </button>

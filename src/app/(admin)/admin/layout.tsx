@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { he } from "@/lib/i18n/he";
 import { SystemLogo } from "@/components/brand/system-logo";
+import { AdminSidebarNav } from "./admin-sidebar-nav";
 
 /** מונע prerender בזמן build בלי Supabase / session (Vercel). */
 export const dynamic = "force-dynamic";
@@ -38,38 +39,27 @@ export default async function AdminLayout({
   if (!profile || profile.role !== "admin") redirect("/dashboard");
 
   return (
-    <div className="flex min-h-screen" dir="rtl">
-      <aside className="sticky top-0 flex h-screen w-60 shrink-0 flex-col border-e border-neutral-200 bg-neutral-50">
-        <div className="border-b border-neutral-200 px-4 py-4">
+    <div className="flex min-h-screen bg-[var(--background)]" dir="rtl">
+      <aside className="sticky top-0 flex h-screen w-60 shrink-0 flex-col border-e border-[var(--frost-border)] bg-[#0a0a0a]">
+        <div className="border-b border-[var(--frost-border)] px-4 py-4">
           <Link href="/admin" aria-label={he.siteName}>
-            <SystemLogo variant="onLight" heightClass="h-8" />
+            <SystemLogo heightClass="h-8" />
           </Link>
-          <p className="mt-1 text-xs font-medium text-neutral-500">{he.admin}</p>
+          <p className="mt-1 text-xs font-medium text-[var(--text-secondary)]">{he.admin}</p>
         </div>
         <nav className="flex-1 overflow-y-auto p-3">
-          <ul className="space-y-1">
-            {NAV_ITEMS.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className="block rounded-lg px-3 py-2 text-sm font-medium text-neutral-700 transition hover:bg-neutral-200/60 hover:text-black"
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <AdminSidebarNav items={NAV_ITEMS} />
         </nav>
-        <div className="border-t border-neutral-200 p-3">
+        <div className="border-t border-[var(--frost-border)] p-3">
           <Link
             href="/dashboard"
-            className="block rounded-lg px-3 py-2 text-center text-sm font-medium text-neutral-600 transition hover:bg-neutral-200/60"
+            className="block rounded-lg px-3 py-2 text-center text-sm font-medium text-[var(--text-secondary)] transition hover:bg-white/10 hover:text-white"
           >
             ← {he.adminBackToDashboard}
           </Link>
         </div>
       </aside>
-      <main className="flex-1 overflow-y-auto bg-white p-6 lg:p-8">
+      <main className="flex-1 overflow-y-auto p-6 lg:p-8">
         {children}
       </main>
     </div>

@@ -33,7 +33,7 @@ export function FaqAccordion({
       dir="rtl"
     >
       <div className="mx-auto min-w-0 max-w-3xl text-center">
-        <div className="mb-4 flex items-center justify-center gap-2 text-sm font-medium text-neutral-700">
+        <div className="mb-4 flex items-center justify-center gap-2 text-sm font-medium text-[#a1a4a5]">
           <span
             className="flex h-8 w-8 items-center justify-center rounded-full text-white text-sm"
             style={{ backgroundColor: primary }}
@@ -42,7 +42,7 @@ export function FaqAccordion({
           </span>
           {data.badge}
         </div>
-        <h2 className="mb-8 break-words text-2xl font-bold text-black sm:mb-10 sm:text-3xl md:text-4xl">
+        <h2 className="mb-8 break-words text-2xl font-bold text-[#f0f0f0] sm:mb-10 sm:text-3xl md:text-4xl">
           {data.title}
         </h2>
         <ul className="space-y-3 text-start">
@@ -52,18 +52,18 @@ export function FaqAccordion({
               <li key={i}>
                 <button
                   type="button"
-                  className="flex w-full min-w-0 items-center justify-between gap-3 rounded-xl bg-white px-4 py-4 text-start shadow-sm transition hover:shadow-md sm:gap-4 sm:px-5"
+                  className="flex w-full min-w-0 items-center justify-between gap-3 rounded-xl bg-white/5 px-4 py-4 text-start shadow-[0_0_0_1px_rgba(176,199,217,0.145)] transition hover:shadow-[0_0_0_1px_rgba(214,235,253,0.19)] sm:gap-4 sm:px-5"
                   onClick={() => setOpen(isOpen ? null : i)}
                 >
-                  <span className="min-w-0 flex-1 break-words text-base font-semibold text-black sm:text-lg">
+                  <span className="min-w-0 flex-1 break-words text-base font-semibold text-[#f0f0f0] sm:text-lg">
                     {item.question}
                   </span>
-                  <span className="shrink-0 text-2xl font-light text-neutral-500">
+                  <span className="shrink-0 text-2xl font-light text-[#464a4d]">
                     {isOpen ? "−" : "+"}
                   </span>
                 </button>
                 {isOpen ? (
-                  <div className="mx-2 mt-2 break-words rounded-lg bg-white/80 px-4 py-3 text-sm text-neutral-600 shadow-inner sm:px-5 sm:text-base">
+                  <div className="mx-2 mt-2 break-words rounded-lg bg-white/5 px-4 py-3 text-sm text-[#a1a4a5] sm:px-5 sm:text-base">
                     {item.answer}
                   </div>
                 ) : null}

@@ -92,7 +92,7 @@ export function PageSettingsDrawer({
         <ModalBody className="px-4 py-5">
           <div className="space-y-6 text-sm">
             <div className={settingsSectionClass}>
-              <p className="mb-3 text-xs font-medium uppercase tracking-wide text-neutral-500">
+              <p className="mb-3 text-xs font-medium uppercase tracking-wide text-[#464a4d]">
                 {he.pageSettingsSectionDetails}
               </p>
               <div className="space-y-4">
@@ -121,20 +121,20 @@ export function PageSettingsDrawer({
                     type="checkbox"
                     checked={published}
                     onChange={(e) => setPublished(e.target.checked)}
-                    className="mt-0.5 h-4 w-4 rounded border-neutral-300 text-[var(--lc-primary)] focus:ring-[var(--lc-primary)]"
+                    className="mt-0.5 h-4 w-4 rounded border-[rgba(214,235,253,0.19)] text-[var(--lc-primary)] focus:ring-[var(--lc-primary)]"
                   />
-                  <span className="text-neutral-800">{he.pagePublishedLabel}</span>
+                  <span className="text-[#a1a4a5]">{he.pagePublishedLabel}</span>
                 </label>
                 <label className="flex cursor-pointer items-start gap-3 py-2">
                   <input
                     type="checkbox"
                     checked={theme.noSectionAnimations}
                     onChange={(e) => patchTheme({ noSectionAnimations: e.target.checked })}
-                    className="mt-0.5 h-4 w-4 rounded border-neutral-300 text-[var(--lc-primary)] focus:ring-[var(--lc-primary)]"
+                    className="mt-0.5 h-4 w-4 rounded border-[rgba(214,235,253,0.19)] text-[var(--lc-primary)] focus:ring-[var(--lc-primary)]"
                   />
-                  <span className="min-w-0 flex-1 text-neutral-800">
+                  <span className="min-w-0 flex-1 text-[#a1a4a5]">
                     {he.pageSettingsNoAnimations}
-                    <span className="mt-1 block text-xs font-normal text-neutral-500">
+                    <span className="mt-1 block text-xs font-normal text-[#464a4d]">
                       {he.pageSettingsNoAnimationsHint}
                     </span>
                   </span>
@@ -143,7 +143,7 @@ export function PageSettingsDrawer({
             </div>
 
             <div className={settingsSectionClass}>
-              <p className="mb-3 text-xs font-medium uppercase tracking-wide text-neutral-500">
+              <p className="mb-3 text-xs font-medium uppercase tracking-wide text-[#464a4d]">
                 {he.pageSettingsSectionColors}
               </p>
               <div className="grid gap-5 sm:grid-cols-2">
@@ -177,7 +177,7 @@ export function PageSettingsDrawer({
                 value={theme.siteLogoUrl}
                 onChange={(url) => patchTheme({ siteLogoUrl: url })}
               />
-              <p className="mt-2 text-xs leading-relaxed text-neutral-500">{he.siteLogoHint}</p>
+              <p className="mt-2 text-xs leading-relaxed text-[#464a4d]">{he.siteLogoHint}</p>
             </div>
           </div>
           {msg ? <p className="mt-3 text-sm text-red-600">{msg}</p> : null}
@@ -186,7 +186,7 @@ export function PageSettingsDrawer({
           <button
             type="button"
             disabled={pending}
-            className="w-full rounded-xl bg-neutral-900 py-3 text-sm font-medium text-white shadow-md transition hover:bg-neutral-800 disabled:opacity-50"
+            className="w-full rounded-xl bg-white py-3 text-sm font-medium text-black transition hover:bg-white/90 disabled:opacity-50"
             onClick={save}
           >
             {pending ? "…" : he.savePageSettings}

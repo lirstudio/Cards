@@ -42,10 +42,10 @@ async function defaultVariantIdForSection(
 }
 
 const DEFAULT_NEW_PAGE_THEME = {
-  primary: "#0b43b4",
-  background: "#f8f9fa",
-  heading: "#000000",
-  body: "#4b5563",
+  primary: "#3b9eff",
+  background: "#000000",
+  heading: "#f0f0f0",
+  body: "#a1a4a5",
 } satisfies PageTheme;
 
 function randomDraftSlugBase(): string {

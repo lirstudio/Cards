@@ -31,7 +31,7 @@ function SubmitButton({ label }: { label: string }) {
     <button
       type="submit"
       disabled={pending}
-      className="w-full rounded-full py-4 text-base font-medium text-white shadow-md transition hover:opacity-95 disabled:opacity-60"
+      className="w-full rounded-full py-4 text-base font-medium text-white transition hover:opacity-95 disabled:opacity-60"
       style={{ backgroundColor: "var(--lc-primary)" }}
     >
       {pending ? "שולח..." : label}
@@ -41,7 +41,7 @@ function SubmitButton({ label }: { label: string }) {
 
 /** עיצוב שדות מותאם ל־globals.css — קו תחתון בלבד */
 const fieldClass =
-  "w-full text-neutral-900 placeholder:text-neutral-400 disabled:opacity-70";
+  "w-full text-[#f0f0f0] placeholder:text-[#464a4d] disabled:opacity-70";
 
 const ICON_STROKE = 1.5;
 
@@ -245,7 +245,7 @@ export function ContactSplit({
         const ac = autoCompleteForField(field.name, field.type);
         return (
           <div key={field.name}>
-            <label className="mb-2 block text-sm font-medium text-neutral-800" htmlFor={`lc-${sectionId}-${field.name}`}>
+            <label className="mb-2 block text-sm font-medium text-[#a1a4a5]" htmlFor={`lc-${sectionId}-${field.name}`}>
               {field.label}
             </label>
             {field.type === "textarea" ? (
@@ -300,10 +300,10 @@ export function ContactSplit({
     >
       {/* dir=ltr כדי שטופס יופיע משמאל וטקסט מימין כמו רפרנס; תוכן עברית נשאר rtl בתוך העמודות */}
       <div className="mx-auto grid w-full min-w-0 max-w-6xl grid-cols-1 gap-12 @min-[1024px]:grid-cols-2 @min-[1024px]:gap-10" dir="ltr">
-        <div className="order-2 min-w-0 rounded-[1.75rem] bg-white p-8 shadow-[0_20px_50px_-24px_rgba(0,0,0,0.18)] ring-1 ring-neutral-900/[0.04] @min-[1024px]:order-1" dir="rtl">
+        <div className="order-2 min-w-0 rounded-[1.75rem] bg-white/5 p-8 shadow-[0_0_0_1px_rgba(176,199,217,0.145)] ring-1 ring-[rgba(176,199,217,0.145)] @min-[1024px]:order-1" dir="rtl">
           {state?.message && !editorPreview ? (
             <p
-              className={`mb-4 text-sm font-medium ${state.ok ? "text-green-700" : "text-red-600"}`}
+              className={`mb-4 text-sm font-medium ${state.ok ? "text-[#11ff99]" : "text-[#ff2047]"}`}
               role="status"
             >
               {state.message}
@@ -322,7 +322,7 @@ export function ContactSplit({
               <button
                 type="button"
                 disabled
-                className="w-full cursor-not-allowed rounded-full bg-neutral-300 py-4 text-base font-medium text-white opacity-90"
+                className="w-full cursor-not-allowed rounded-full bg-[#464a4d] py-4 text-base font-medium text-white opacity-90"
               >
                 {data.submitLabel}
               </button>
@@ -338,7 +338,7 @@ export function ContactSplit({
         </div>
         <div className="order-1 min-w-0 space-y-8 @min-[1024px]:order-2" dir="rtl">
           <div
-            className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-medium shadow-sm ring-1 ring-neutral-200/80"
+            className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-2.5 text-sm font-medium ring-1 ring-[rgba(214,235,253,0.19)]"
             style={{ color: primary }}
           >
             <span
@@ -349,7 +349,7 @@ export function ContactSplit({
             </span>
             {data.badge}
           </div>
-          <h2 className="break-words text-2xl font-bold leading-tight tracking-tight text-black sm:text-3xl md:text-4xl">
+          <h2 className="break-words text-2xl font-bold leading-tight tracking-tight text-[#f0f0f0] sm:text-3xl md:text-4xl">
             {data.headline}
           </h2>
           <div
@@ -362,7 +362,7 @@ export function ContactSplit({
                 href={s.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-[color-mix(in_srgb,var(--lc-primary)_38%,transparent)] bg-white/95 text-[var(--lc-primary)] shadow-[0_1px_2px_rgba(0,0,0,0.05)] transition hover:bg-white hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--lc-primary)]"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-[color-mix(in_srgb,var(--lc-primary)_38%,transparent)] bg-white/10 text-[var(--lc-primary)] transition hover:bg-white/5 hover:shadow-[0_0_0_1px_rgba(214,235,253,0.19)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--lc-primary)]"
                 aria-label={s.network}
               >
                 <SocialGlyph network={s.network} />
@@ -377,11 +377,11 @@ export function ContactSplit({
               >
                 <a
                   href={`mailto:${data.email}`}
-                  className="min-w-0 break-words font-medium text-neutral-900 decoration-[color-mix(in_srgb,var(--lc-primary)_55%,transparent)] underline-offset-2 hover:underline"
+                  className="min-w-0 break-words font-medium text-[#f0f0f0] decoration-[color-mix(in_srgb,var(--lc-primary)_55%,transparent)] underline-offset-2 hover:underline"
                 >
                   {data.email}
                 </a>
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[color-mix(in_srgb,var(--lc-primary)_38%,transparent)] bg-white/95 text-[var(--lc-primary)] shadow-[0_1px_2px_rgba(0,0,58,0.05)]">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[color-mix(in_srgb,var(--lc-primary)_38%,transparent)] bg-white/10 text-[var(--lc-primary)]">
                   <MailIcon />
                 </span>
               </p>
@@ -393,11 +393,11 @@ export function ContactSplit({
               >
                 <a
                   href={`tel:${data.phone.replace(/\D/g, "")}`}
-                  className="shrink-0 font-medium text-neutral-900 decoration-[color-mix(in_srgb,var(--lc-primary)_55%,transparent)] underline-offset-2 hover:underline"
+                  className="shrink-0 font-medium text-[#f0f0f0] decoration-[color-mix(in_srgb,var(--lc-primary)_55%,transparent)] underline-offset-2 hover:underline"
                 >
                   {data.phone}
                 </a>
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[color-mix(in_srgb,var(--lc-primary)_38%,transparent)] bg-white/95 text-[var(--lc-primary)] shadow-[0_1px_2px_rgba(0,0,58,0.05)]">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[color-mix(in_srgb,var(--lc-primary)_38%,transparent)] bg-white/10 text-[var(--lc-primary)]">
                   <PhoneHandsetIcon />
                 </span>
               </p>

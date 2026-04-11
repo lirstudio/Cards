@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
-import { Heebo } from "next/font/google";
+import { Inter, Heebo } from "next/font/google";
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
 
 const heebo = Heebo({
   subsets: ["hebrew", "latin"],
@@ -27,8 +33,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="he" dir="rtl" className={`${heebo.variable} h-full`}>
-      <body className="min-h-full bg-[#f8f9fa] font-sans text-neutral-900 antialiased">
+    <html lang="he" dir="rtl" className={`${inter.variable} ${heebo.variable} h-full`}>
+      <body className="min-h-full bg-black font-sans text-[#f0f0f0] antialiased">
         {children}
       </body>
     </html>

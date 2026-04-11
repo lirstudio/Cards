@@ -7,11 +7,11 @@ function cx(...parts: (string | undefined | null | false)[]) {
 /** מעטפת מודאל: מרכז המסך. שלבי z-index: z-50 (ברירת מחדל), z-[60] למודאל מעל מודאל. */
 export const modalShellClass = "fixed inset-0 flex items-center justify-center p-4";
 
-export const modalBackdropClass = "absolute inset-0 bg-black/40";
+export const modalBackdropClass = "absolute inset-0 bg-black/60";
 
 /** פאנל תוכן: פינות עגולות אחידות, גבול וצל */
 export const modalPanelClass =
-  "relative flex max-h-[min(90vh,920px)] w-full flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xl";
+  "relative flex max-h-[min(90vh,920px)] w-full flex-col overflow-hidden rounded-2xl border border-[rgba(214,235,253,0.19)] bg-[#0a0a0a] shadow-[0_0_0_1px_rgba(176,199,217,0.145)]";
 
 type ModalRootProps = {
   labelledBy: string;
@@ -86,16 +86,16 @@ export function ModalHeader({
   return (
     <div
       className={cx(
-        "flex shrink-0 items-center justify-between gap-2 border-b border-neutral-100 px-4",
+        "flex shrink-0 items-center justify-between gap-2 border-b border-[rgba(214,235,253,0.19)] px-4",
         dense ? "py-2" : "py-3",
       )}
     >
-      <h2 id={titleId} className="text-lg font-semibold">
+      <h2 id={titleId} className="text-lg font-semibold text-[#f0f0f0]">
         {title}
       </h2>
       <button
         type="button"
-        className="rounded-full p-2 text-neutral-500 hover:bg-neutral-100"
+        className="rounded-full p-2 text-[#a1a4a5] hover:bg-white/10"
         onClick={onClose}
         aria-label={closeAriaLabel}
       >
@@ -122,5 +122,5 @@ type ModalFooterProps = {
 };
 
 export function ModalFooter({ children, className }: ModalFooterProps) {
-  return <div className={cx("shrink-0 border-t border-neutral-100 px-4 py-3", className)}>{children}</div>;
+  return <div className={cx("shrink-0 border-t border-[rgba(214,235,253,0.19)] px-4 py-3", className)}>{children}</div>;
 }

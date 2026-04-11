@@ -34,7 +34,7 @@ export function DeleteLandingPageButton({
       onClick={onClick}
       disabled={pending}
       aria-label={he.deletePage}
-      className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100 disabled:opacity-60"
+      className="rounded-full border border-[#ff2047]/30 bg-[#ff2047]/10 px-4 py-2 text-sm font-medium text-[#ff2047] transition hover:bg-[#ff2047]/20 disabled:opacity-60"
     >
       {pending ? he.deletePageDeleting : he.deletePage}
     </button>

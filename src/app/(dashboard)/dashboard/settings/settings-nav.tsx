@@ -13,7 +13,7 @@ const links = [
 export function SettingsNav() {
   const pathname = usePathname();
   return (
-    <nav className="flex shrink-0 flex-wrap gap-2 border-b border-neutral-200 pb-4 lg:w-52 lg:flex-col lg:border-b-0 lg:border-e lg:pb-0 lg:pe-6">
+    <nav className="flex shrink-0 flex-wrap gap-2 border-b border-[rgba(214,235,253,0.19)] pb-4 lg:w-52 lg:flex-col lg:border-b-0 lg:border-e lg:pb-0 lg:pe-6">
       {links.map(({ href, label }) => {
         const active = pathname === href || pathname.startsWith(href + "/");
         return (
@@ -22,8 +22,8 @@ export function SettingsNav() {
             href={href}
             className={`rounded-full px-4 py-2 text-sm transition ${
               active
-                ? "bg-[var(--lc-primary)] text-white"
-                : "text-neutral-700 hover:bg-neutral-100"
+                ? "bg-white text-black"
+                : "text-[#a1a4a5] hover:bg-white/10 hover:text-[#f0f0f0]"
             }`}
           >
             {label}

@@ -31,7 +31,7 @@ export function ImageUploadField({
         placeholder={he.imageUrlFieldPlaceholder}
       />
       <div className="flex flex-wrap items-center gap-2">
-        <label className="cursor-pointer rounded-xl border border-neutral-200 bg-white px-4 py-2 text-xs font-medium text-neutral-700 shadow-sm transition hover:border-[var(--lc-primary)]/40 hover:bg-neutral-50">
+        <label className="cursor-pointer rounded-xl border border-[rgba(214,235,253,0.19)] bg-white/5 px-4 py-2 text-xs font-medium text-[#a1a4a5] transition hover:border-[var(--lc-primary)]/40 hover:bg-white/10">
           {he.uploadImage}
           <input
             type="file"
@@ -55,7 +55,7 @@ export function ImageUploadField({
             }}
           />
         </label>
-        {msg ? <span className="text-xs text-neutral-600">{msg}</span> : null}
+        {msg ? <span className="text-xs text-[#a1a4a5]">{msg}</span> : null}
       </div>
     </div>
   );

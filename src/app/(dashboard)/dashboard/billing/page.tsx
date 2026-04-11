@@ -36,8 +36,8 @@ export default async function BillingPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold">{he.billing}</h1>
-      <p className="mt-2 text-neutral-600">
+      <h1 className="text-2xl font-bold text-[#f0f0f0]">{he.billing}</h1>
+      <p className="mt-2 text-[#a1a4a5]">
         שדרגו את המנוי כדי לפתוח מכסות גבוהות יותר ולחבר מחירי Stripe אמיתיים (הגדירו מזהי מחיר ב־Supabase
         וב־Stripe).
       </p>

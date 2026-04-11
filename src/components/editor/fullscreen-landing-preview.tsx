@@ -71,7 +71,7 @@ export function FullscreenLandingPreview({
         <button
           type="button"
           onClick={onClose}
-          className="rounded-full bg-white/95 px-4 py-2 text-sm font-medium text-neutral-900 shadow ring-1 ring-black/10 transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          className="rounded-full bg-white/95 px-4 py-2 text-sm font-medium text-neutral-900 shadow ring-1 ring-[rgba(214,235,253,0.19)] transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           {he.backToEditor}
         </button>

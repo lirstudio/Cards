@@ -315,6 +315,9 @@ export async function getAdminStats() {
     { count: pagesThisWeek },
     { count: pagesThisMonth },
     { count: totalSubmissions },
+    { count: submissionsToday },
+    { count: submissionsThisWeek },
+    { count: submissionsThisMonth },
   ] = await Promise.all([
     admin.from("profiles").select("id", { count: "exact", head: true }),
     admin.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", todayStart),
@@ -327,6 +330,9 @@ export async function getAdminStats() {
     admin.from("landing_pages").select("id", { count: "exact", head: true }).gte("created_at", weekStart),
     admin.from("landing_pages").select("id", { count: "exact", head: true }).gte("created_at", monthStart),
     admin.from("form_submissions").select("id", { count: "exact", head: true }),
+    admin.from("form_submissions").select("id", { count: "exact", head: true }).gte("created_at", todayStart),
+    admin.from("form_submissions").select("id", { count: "exact", head: true }).gte("created_at", weekStart),
+    admin.from("form_submissions").select("id", { count: "exact", head: true }).gte("created_at", monthStart),
   ]);
 
   const { data: subRows } = await admin
@@ -355,6 +361,9 @@ export async function getAdminStats() {
     pagesThisWeek: pagesThisWeek ?? 0,
     pagesThisMonth: pagesThisMonth ?? 0,
     totalSubmissions: totalSubmissions ?? 0,
+    submissionsToday: submissionsToday ?? 0,
+    submissionsThisWeek: submissionsThisWeek ?? 0,
+    submissionsThisMonth: submissionsThisMonth ?? 0,
     planDistribution: Array.from(planMap.values()),
   };
 }

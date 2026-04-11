@@ -23,7 +23,7 @@ export function ThemeColorField({ label, value, onChange }: ThemeColorFieldProps
       <span className={settingsLabelClass}>{label}</span>
       <div className="flex items-center gap-3">
         <div
-          className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-neutral-200 shadow-md ring-1 ring-black/[0.08]"
+          className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-[rgba(214,235,253,0.19)] ring-1 ring-[rgba(214,235,253,0.19)]"
           style={{ backgroundColor: pickerSafe }}
         >
           <input

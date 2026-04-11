@@ -46,11 +46,11 @@ function SortableCategoryRow({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-white px-4 py-3"
+      className="flex items-center gap-3 rounded-lg border border-[rgba(214,235,253,0.19)] bg-white/5 px-4 py-3"
     >
       <button
         type="button"
-        className="cursor-grab rounded border border-neutral-300 px-2 py-0.5 text-xs"
+        className="cursor-grab rounded border border-[rgba(214,235,253,0.19)] px-2 py-0.5 text-xs"
         {...attributes}
         {...listeners}
       >
@@ -58,7 +58,7 @@ function SortableCategoryRow({
       </button>
       <div className="flex-1">
         <span className="font-medium">{cat.name_he}</span>
-        <span className="ms-2 text-xs text-neutral-400" dir="ltr">
+        <span className="ms-2 text-xs text-[#464a4d]" dir="ltr">
           ({cat.slug})
         </span>
       </div>
@@ -66,7 +66,7 @@ function SortableCategoryRow({
         type="button"
         disabled={deleting}
         onClick={() => onDelete(cat.slug)}
-        className="rounded-lg border border-red-200 px-3 py-1 text-xs font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-50"
+        className="rounded-lg border border-[#ff2047]/30 bg-[#ff2047]/10 px-3 py-1 text-xs font-medium text-[#ff2047] transition hover:bg-[#ff2047]/15 disabled:opacity-50"
       >
         {he.adminDeleteCategory}
       </button>
@@ -149,7 +149,7 @@ export function CategoriesManager({
   return (
     <div className="space-y-4">
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+        <div className="rounded-lg border border-[#ff2047]/30 bg-[#ff2047]/10 px-4 py-2 text-sm text-[#ff2047]">
           {error}
         </div>
       )}
@@ -176,9 +176,9 @@ export function CategoriesManager({
         </SortableContext>
       </DndContext>
 
-      <div className="flex items-end gap-3 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-4">
+      <div className="flex items-end gap-3 rounded-xl border border-dashed border-[rgba(214,235,253,0.19)] bg-white/5 p-4">
         <div className="flex-1 space-y-1">
-          <label className="text-xs font-medium text-neutral-600">
+          <label className="text-xs font-medium text-[#a1a4a5]">
             {he.adminCategorySlug}
           </label>
           <input
@@ -191,7 +191,7 @@ export function CategoriesManager({
           />
         </div>
         <div className="flex-1 space-y-1">
-          <label className="text-xs font-medium text-neutral-600">
+          <label className="text-xs font-medium text-[#a1a4a5]">
             {he.adminCategoryName}
           </label>
           <input
@@ -206,7 +206,7 @@ export function CategoriesManager({
           type="button"
           disabled={pending || !newSlug.trim() || !newName.trim()}
           onClick={handleAdd}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-50"
+          className="rounded-lg bg-[var(--lc-primary)] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
         >
           {he.adminAddCategory}
         </button>

@@ -18,11 +18,11 @@ export default async function DashboardShellLayout({
   if (!isSupabaseConfigured()) {
     return (
       <div className="min-h-full px-4 py-16">
-        <p className="mx-auto max-w-lg text-center text-neutral-700">
+        <p className="mx-auto max-w-lg text-center text-[#a1a4a5]">
           כדי להשתמש בלוח הבקרה חובה לחבר את Supabase: צרו קובץ{" "}
-          <code className="rounded bg-neutral-200 px-1">.env.local</code> והעתיקו אליו את{" "}
-          <code className="rounded bg-neutral-200 px-1">NEXT_PUBLIC_SUPABASE_URL</code> ו־
-          <code className="rounded bg-neutral-200 px-1">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> מפרויקט
+          <code className="rounded bg-white/10 px-1">.env.local</code> והעתיקו אליו את{" "}
+          <code className="rounded bg-white/10 px-1">NEXT_PUBLIC_SUPABASE_URL</code> ו־
+          <code className="rounded bg-white/10 px-1">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> מפרויקט
           ה־API בדשבורד.
         </p>
         <p className="mt-4 text-center">
@@ -41,18 +41,17 @@ export default async function DashboardShellLayout({
   } = await supabase.auth.getUser();
 
   if (!user) {
-    // אין סשן — לא מציגים "שגיאת התחברות"; מפנים להתחברות
     if (authError && !isAuthSessionMissingError(authError)) {
       const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
       const isLocalDev =
         url.includes("127.0.0.1") || url.includes("localhost") || url.includes("::1");
       return (
         <div className="min-h-full px-4 py-16">
-          <p className="mx-auto max-w-lg text-center text-neutral-700">
+          <p className="mx-auto max-w-lg text-center text-[#a1a4a5]">
             {isLocalDev ? (
               <>
                 {he.supabaseLocalUnavailable}{" "}
-                <code className="rounded bg-neutral-200 px-1">npm run supabase:start</code>
+                <code className="rounded bg-white/10 px-1">npm run supabase:start</code>
               </>
             ) : (
               <>
@@ -87,13 +86,13 @@ export default async function DashboardShellLayout({
 
   return (
     <div className="min-h-full">
-      <header className="border-b border-neutral-200 bg-white">
+      <header className="border-b border-[rgba(214,235,253,0.19)] bg-black">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4">
           <Link href="/dashboard" className="inline-flex items-center" aria-label={he.siteName}>
-            <SystemLogo variant="onLight" heightClass="h-9" />
+            <SystemLogo heightClass="h-9" />
           </Link>
           <nav className="flex flex-wrap items-center gap-4 text-sm">
-            <Link href="/dashboard" className="text-neutral-700 hover:text-black">
+            <Link href="/dashboard" className="text-[#a1a4a5] transition hover:text-white">
               {he.myPages}
             </Link>
             <DashboardUserMenu

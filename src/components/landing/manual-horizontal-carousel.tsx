@@ -139,7 +139,7 @@ export function ManualHorizontalCarousel({
           <button
             type="button"
             aria-label={he.carouselNextAria}
-            className="absolute left-1 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-neutral-200/80 bg-white/95 text-neutral-800 shadow-md transition hover:bg-white @md:left-2"
+            className="absolute left-1 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-[rgba(214,235,253,0.19)] bg-[#0a0a0a] text-[#f0f0f0] transition @md:left-2"
             onClick={scrollPrev}
           >
             <Chevron direction="prev" />
@@ -147,7 +147,7 @@ export function ManualHorizontalCarousel({
           <button
             type="button"
             aria-label={he.carouselPrevAria}
-            className="absolute right-1 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-neutral-200/80 bg-white/95 text-neutral-800 shadow-md transition hover:bg-white @md:right-2"
+            className="absolute right-1 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-[rgba(214,235,253,0.19)] bg-[#0a0a0a] text-[#f0f0f0] transition @md:right-2"
             onClick={scrollNext}
           >
             <Chevron direction="next" />

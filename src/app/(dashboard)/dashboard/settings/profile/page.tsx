@@ -20,8 +20,8 @@ export default async function SettingsProfilePage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold">{he.settingsProfile}</h1>
-      <p className="mt-2 text-sm text-neutral-600">השם מוצג באזור האישי ובמסכי המערכת.</p>
+      <h1 className="text-2xl font-bold text-[#f0f0f0]">{he.settingsProfile}</h1>
+      <p className="mt-2 text-sm text-[#a1a4a5]">השם מוצג באזור האישי ובמסכי המערכת.</p>
       <ProfileForm initialName={(profile?.display_name as string) ?? ""} />
     </div>
   );

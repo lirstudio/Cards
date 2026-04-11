@@ -22,41 +22,41 @@ export function UsersTable({ initialRows }: { initialRows: AdminUserRow[] }) {
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-neutral-200">
+    <div className="overflow-x-auto rounded-xl border border-[rgba(214,235,253,0.19)]">
       <table className="w-full text-sm">
-        <thead className="border-b border-neutral-200 bg-neutral-50">
+        <thead className="border-b border-[rgba(214,235,253,0.19)] bg-white/5">
           <tr>
-            <th className="px-4 py-3 text-start font-medium text-neutral-600">{he.displayName}</th>
-            <th className="px-4 py-3 text-start font-medium text-neutral-600">{he.adminUserEmail}</th>
-            <th className="px-4 py-3 text-start font-medium text-neutral-600">{he.adminRole}</th>
-            <th className="px-4 py-3 text-start font-medium text-neutral-600">{he.adminUserPlan}</th>
-            <th className="px-4 py-3 text-start font-medium text-neutral-600">{he.adminUserPages}</th>
-            <th className="px-4 py-3 text-start font-medium text-neutral-600">{he.adminUserCreated}</th>
-            <th className="px-4 py-3 text-start font-medium text-neutral-600">{he.adminChangeRole}</th>
+            <th className="px-4 py-3 text-start font-medium text-[#a1a4a5]">{he.displayName}</th>
+            <th className="px-4 py-3 text-start font-medium text-[#a1a4a5]">{he.adminUserEmail}</th>
+            <th className="px-4 py-3 text-start font-medium text-[#a1a4a5]">{he.adminRole}</th>
+            <th className="px-4 py-3 text-start font-medium text-[#a1a4a5]">{he.adminUserPlan}</th>
+            <th className="px-4 py-3 text-start font-medium text-[#a1a4a5]">{he.adminUserPages}</th>
+            <th className="px-4 py-3 text-start font-medium text-[#a1a4a5]">{he.adminUserCreated}</th>
+            <th className="px-4 py-3 text-start font-medium text-[#a1a4a5]">{he.adminChangeRole}</th>
           </tr>
         </thead>
         <tbody>
           {rows.map((user) => (
             <tr
               key={user.id}
-              className="border-b border-neutral-100 last:border-none"
+              className="border-b border-[rgba(214,235,253,0.19)] last:border-none"
             >
               <td className="px-4 py-3 font-medium">{user.display_name ?? "—"}</td>
-              <td className="px-4 py-3 text-neutral-600" dir="ltr">{user.email}</td>
+              <td className="px-4 py-3 text-[#a1a4a5]" dir="ltr">{user.email}</td>
               <td className="px-4 py-3">
                 <span
                   className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
                     user.role === "admin"
-                      ? "bg-blue-100 text-blue-700"
-                      : "bg-neutral-100 text-neutral-600"
+                      ? "bg-[var(--lc-primary)]/20 text-[var(--lc-primary)]"
+                      : "bg-white/5 text-[#a1a4a5]"
                   }`}
                 >
                   {user.role === "admin" ? he.adminRoleAdmin : he.adminRoleUser}
                 </span>
               </td>
-              <td className="px-4 py-3 text-neutral-600">{user.plan_name ?? "—"}</td>
-              <td className="px-4 py-3 text-neutral-600">{user.page_count}</td>
-              <td className="px-4 py-3 text-neutral-500 text-xs" dir="ltr">
+              <td className="px-4 py-3 text-[#a1a4a5]">{user.plan_name ?? "—"}</td>
+              <td className="px-4 py-3 text-[#a1a4a5]">{user.page_count}</td>
+              <td className="px-4 py-3 text-[#464a4d] text-xs" dir="ltr">
                 {new Date(user.created_at).toLocaleDateString("he-IL")}
               </td>
               <td className="px-4 py-3">
@@ -64,7 +64,7 @@ export function UsersTable({ initialRows }: { initialRows: AdminUserRow[] }) {
                   type="button"
                   disabled={pending}
                   onClick={() => handleRoleChange(user.id, user.role)}
-                  className="rounded-lg border border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-700 transition hover:bg-neutral-100 disabled:opacity-50"
+                  className="rounded-lg border border-[rgba(214,235,253,0.19)] px-3 py-1 text-xs font-medium text-[#a1a4a5] transition hover:bg-white/10 disabled:opacity-50"
                 >
                   {user.role === "admin" ? he.adminRoleUser : he.adminRoleAdmin}
                 </button>

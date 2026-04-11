@@ -96,10 +96,10 @@ function TrashIcon() {
 
 function themeFromOverrides(vo: SectionStyleOverrides) {
   return {
-    primary: vo.accentColor ?? "#0b43b4",
-    background: "#e5e5e5",
-    heading: vo.textColor ?? "#000000",
-    body: "#4b5563",
+    primary: vo.accentColor ?? "#3b9eff",
+    background: "#000000",
+    heading: vo.textColor ?? "#f0f0f0",
+    body: "#a1a4a5",
   };
 }
 
@@ -132,11 +132,11 @@ function AdminVariantPreview({
   const frame =
     size === "thumb"
       ? fillContainer
-        ? "relative h-full min-h-[240px] w-full overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100"
-        : "relative h-[248px] w-full overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100"
+        ? "relative h-full min-h-[240px] w-full overflow-hidden rounded-lg border border-[rgba(214,235,253,0.19)] bg-white/5"
+        : "relative h-[248px] w-full overflow-hidden rounded-lg border border-[rgba(214,235,253,0.19)] bg-white/5"
       : fillContainer
-        ? "relative h-full min-h-[min(52vh,600px)] w-full overflow-hidden rounded-xl border border-neutral-200 bg-neutral-100"
-        : "relative min-h-[520px] w-full overflow-hidden rounded-xl border border-neutral-200 bg-neutral-100";
+        ? "relative h-full min-h-[min(52vh,600px)] w-full overflow-hidden rounded-xl border border-[rgba(214,235,253,0.19)] bg-white/5"
+        : "relative min-h-[520px] w-full overflow-hidden rounded-xl border border-[rgba(214,235,253,0.19)] bg-white/5";
   const denseInThumb =
     sectionKey === "hero_image_split" ||
     isLegacyNavHeroStatsKey(sectionKey) ||
@@ -173,45 +173,45 @@ function VariantStyleForm({
   return (
     <div className="grid grid-cols-2 gap-3">
       <div className="space-y-1">
-        <label className="text-xs font-medium text-neutral-600">{he.adminStyleText}</label>
+        <label className="text-xs font-medium text-[#a1a4a5]">{he.adminStyleText}</label>
         <div className="flex items-center gap-2">
           <input
             type="color"
-            value={value.textColor ?? "#000000"}
+            value={value.textColor ?? "#f0f0f0"}
             onChange={(e) => onChange({ ...value, textColor: e.target.value })}
-            className="h-8 w-8 cursor-pointer rounded border border-neutral-300"
+            className="h-8 w-8 cursor-pointer rounded border border-[rgba(214,235,253,0.19)]"
           />
           <input
             type="text"
             value={value.textColor ?? ""}
             onChange={(e) => onChange({ ...value, textColor: e.target.value || undefined })}
-            placeholder="#000000"
+            placeholder="#f0f0f0"
             dir="ltr"
             className="flex-1 text-xs"
           />
         </div>
       </div>
       <div className="space-y-1">
-        <label className="text-xs font-medium text-neutral-600">{he.adminStyleAccent}</label>
+        <label className="text-xs font-medium text-[#a1a4a5]">{he.adminStyleAccent}</label>
         <div className="flex items-center gap-2">
           <input
             type="color"
-            value={value.accentColor ?? "#0b43b4"}
+            value={value.accentColor ?? "#3b9eff"}
             onChange={(e) => onChange({ ...value, accentColor: e.target.value })}
-            className="h-8 w-8 cursor-pointer rounded border border-neutral-300"
+            className="h-8 w-8 cursor-pointer rounded border border-[rgba(214,235,253,0.19)]"
           />
           <input
             type="text"
             value={value.accentColor ?? ""}
             onChange={(e) => onChange({ ...value, accentColor: e.target.value || undefined })}
-            placeholder="#0b43b4"
+            placeholder="#3b9eff"
             dir="ltr"
             className="flex-1 text-xs"
           />
         </div>
       </div>
       <div className="space-y-1">
-        <label className="text-xs font-medium text-neutral-600">{he.adminStylePadding}</label>
+        <label className="text-xs font-medium text-[#a1a4a5]">{he.adminStylePadding}</label>
         <select
           value={value.paddingY ?? ""}
           onChange={(e) =>
@@ -230,7 +230,7 @@ function VariantStyleForm({
         </select>
       </div>
       <div className="space-y-1">
-        <label className="text-xs font-medium text-neutral-600">{he.adminStyleRadius}</label>
+        <label className="text-xs font-medium text-[#a1a4a5]">{he.adminStyleRadius}</label>
         <select
           value={value.borderRadius ?? ""}
           onChange={(e) =>
@@ -249,7 +249,7 @@ function VariantStyleForm({
         </select>
       </div>
       <div className="space-y-1">
-        <label className="text-xs font-medium text-neutral-600">{he.adminStyleDirection}</label>
+        <label className="text-xs font-medium text-[#a1a4a5]">{he.adminStyleDirection}</label>
         <select
           value={value.layoutDirection ?? ""}
           onChange={(e) =>
@@ -267,7 +267,7 @@ function VariantStyleForm({
       </div>
       {sectionKey === "checklist_with_image" ? (
         <div className="col-span-2 space-y-1">
-          <label className="text-xs font-medium text-neutral-600">{he.adminChecklistLayout}</label>
+          <label className="text-xs font-medium text-[#a1a4a5]">{he.adminChecklistLayout}</label>
           <select
             value={value.checklistLayout ?? "with_image"}
             onChange={(e) =>
@@ -287,7 +287,7 @@ function VariantStyleForm({
       ) : null}
       {sectionKey === "testimonials_row" ? (
         <div className="col-span-2 space-y-1">
-          <label className="text-xs font-medium text-neutral-600">{he.adminTestimonialsLayout}</label>
+          <label className="text-xs font-medium text-[#a1a4a5]">{he.adminTestimonialsLayout}</label>
           <select
             value={value.testimonialsLayout ?? "marquee"}
             onChange={(e) =>
@@ -309,7 +309,7 @@ function VariantStyleForm({
         </div>
       ) : null}
       <div className="col-span-2 space-y-1">
-        <label className="text-xs font-medium text-neutral-600">{he.adminImageTextLayout}</label>
+        <label className="text-xs font-medium text-[#a1a4a5]">{he.adminImageTextLayout}</label>
         <select
           value={value.imageTextLayout ?? ""}
           onChange={(e) =>
@@ -359,7 +359,7 @@ function VariantDraftEditor({
     >
       <div className="min-w-0 flex-1 space-y-4">
         <div className="space-y-1">
-          <label className="text-xs font-medium text-neutral-600">{he.adminVariantName}</label>
+          <label className="text-xs font-medium text-[#a1a4a5]">{he.adminVariantName}</label>
           <input
             type="text"
             value={draft.name_he ?? ""}
@@ -388,7 +388,7 @@ function VariantDraftEditor({
           </label>
         </div>
 
-        <h4 className="text-xs font-semibold text-neutral-600">{he.adminVariantStyle}</h4>
+        <h4 className="text-xs font-semibold text-[#a1a4a5]">{he.adminVariantStyle}</h4>
         <VariantStyleForm
           sectionKey={sectionKey}
           value={draft.style_overrides ?? EMPTY_OVERRIDES}
@@ -400,14 +400,14 @@ function VariantDraftEditor({
             type="button"
             disabled={pending || !draft.name_he?.trim()}
             onClick={onSave}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-50"
+            className="rounded-lg bg-[var(--lc-primary)] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
           >
             {he.adminSave}
           </button>
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50"
+            className="rounded-lg border border-[rgba(214,235,253,0.19)] px-4 py-2 text-sm font-medium text-[#a1a4a5] transition hover:bg-white/10"
           >
             {cancelLabel}
           </button>
@@ -415,7 +415,7 @@ function VariantDraftEditor({
       </div>
       {canPreview ? (
         <div className="flex w-full min-w-0 shrink-0 flex-col lg:max-w-[min(100%,520px)] lg:flex-1">
-          <p className="mb-2 shrink-0 text-xs font-medium text-neutral-600">{he.adminLivePreview}</p>
+          <p className="mb-2 shrink-0 text-xs font-medium text-[#a1a4a5]">{he.adminLivePreview}</p>
           <div className="relative min-h-[min(48vh,560px)] w-full flex-1">
             <AdminVariantPreview
               sectionKey={sectionKey}
@@ -604,15 +604,15 @@ export function SectionEditor({
   }
 
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-5 space-y-4">
-      <header className="space-y-4 border-b border-neutral-100 pb-5" dir="rtl">
+    <div className="rounded-xl border border-[rgba(214,235,253,0.19)] bg-white/5 p-5 space-y-4">
+      <header className="space-y-4 border-b border-[rgba(214,235,253,0.19)] pb-5" dir="rtl">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <h2 className="text-base font-semibold text-neutral-900">{he.adminSectionDetails}</h2>
+          <h2 className="text-base font-semibold text-[#f0f0f0]">{he.adminSectionDetails}</h2>
           <button
             type="button"
             disabled={pending || !def.title_he.trim()}
             onClick={handleSaveDefinition}
-            className="shrink-0 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-50"
+            className="shrink-0 rounded-lg bg-[var(--lc-primary)] px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
           >
             {he.adminSave}
           </button>
@@ -620,7 +620,7 @@ export function SectionEditor({
         <div className="space-y-4">
           <div className="space-y-1.5">
             <label
-              className="block text-xs font-medium text-neutral-600"
+              className="block text-xs font-medium text-[#a1a4a5]"
               htmlFor="section-display-name"
             >
               {he.adminSectionDisplayName}
@@ -630,15 +630,15 @@ export function SectionEditor({
               type="text"
               value={def.title_he}
               onChange={(e) => setDef({ ...def, title_he: e.target.value })}
-              className="block w-full max-w-2xl text-lg font-semibold text-neutral-900"
+              className="block w-full max-w-2xl text-lg font-semibold text-[#f0f0f0]"
             />
-            <p className="text-[11px] leading-relaxed text-neutral-500">
+            <p className="text-[11px] leading-relaxed text-[#464a4d]">
               {he.adminSectionDisplayNameHint}
             </p>
           </div>
           <div className="grid max-w-2xl gap-3 sm:grid-cols-2">
             <div className="space-y-1">
-              <label className="block text-xs font-medium text-neutral-600" htmlFor="section-category">
+              <label className="block text-xs font-medium text-[#a1a4a5]" htmlFor="section-category">
                 {he.adminSectionCategory}
               </label>
               <select
@@ -655,7 +655,7 @@ export function SectionEditor({
               </select>
             </div>
             <div className="space-y-1">
-              <label className="block text-xs font-medium text-neutral-600" htmlFor="section-sort">
+              <label className="block text-xs font-medium text-[#a1a4a5]" htmlFor="section-sort">
                 {he.adminSectionSortOrder}
               </label>
               <input
@@ -668,7 +668,7 @@ export function SectionEditor({
             </div>
           </div>
           <div className="max-w-2xl space-y-1">
-            <label className="block text-xs font-medium text-neutral-600" htmlFor="section-description">
+            <label className="block text-xs font-medium text-[#a1a4a5]" htmlFor="section-description">
               {he.adminSectionDescription}
             </label>
             <textarea
@@ -688,10 +688,10 @@ export function SectionEditor({
             />
             {he.adminSectionEnabled}
           </label>
-          <div className="flex flex-wrap items-center gap-2 text-xs text-neutral-500">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-[#464a4d]">
             <span>{he.adminSectionKey}</span>
             <code
-              className="rounded-md bg-neutral-100 px-2 py-0.5 font-mono text-[11px] text-neutral-700"
+              className="rounded-md bg-white/5 px-2 py-0.5 font-mono text-[11px] text-[#a1a4a5]"
               dir="ltr"
             >
               {def.key}
@@ -715,7 +715,7 @@ export function SectionEditor({
                   ...(variants.length === 0 ? { is_default: true } : {}),
                 })
               }
-              className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-blue-700"
+              className="rounded-lg bg-[var(--lc-primary)] px-3 py-1.5 text-xs font-medium text-white transition hover:opacity-90"
             >
               + {he.adminAddVariant}
             </button>
@@ -725,16 +725,16 @@ export function SectionEditor({
 
       {variants.length > 0 && !variantEditorModalOpen ? (
         <div
-          className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2"
+          className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[rgba(214,235,253,0.19)] bg-white/5 px-3 py-2"
           dir="rtl"
         >
-          <label className="flex cursor-pointer items-center gap-2 text-sm text-neutral-800">
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-[#a1a4a5]">
             <input
               ref={selectAllRef}
               type="checkbox"
               checked={allVariantsSelected}
               onChange={toggleSelectAllVariants}
-              className="rounded border-neutral-400"
+              className="rounded border-[rgba(214,235,253,0.19)]"
             />
             {he.adminBulkSelectAll}
           </label>
@@ -744,7 +744,7 @@ export function SectionEditor({
                 <button
                   type="button"
                   onClick={() => setSelectedVariantIds(new Set())}
-                  className="text-xs text-neutral-600 underline hover:text-neutral-900"
+                  className="text-xs text-[#a1a4a5] underline hover:text-[#f0f0f0]"
                 >
                   {he.adminBulkClearSelection}
                 </button>
@@ -752,7 +752,7 @@ export function SectionEditor({
                   type="button"
                   disabled={pending}
                   onClick={handleBulkDeleteVariants}
-                  className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100 disabled:opacity-50"
+                  className="rounded-lg border border-[#ff2047]/30 bg-[#ff2047]/10 px-3 py-1.5 text-xs font-medium text-[#ff2047] transition hover:bg-[#ff2047]/15 disabled:opacity-50"
                 >
                   {he.adminBulkDeleteSelected} ({selectedVariantIds.size})
                 </button>
@@ -763,7 +763,7 @@ export function SectionEditor({
       ) : null}
 
       {msg ? (
-        <p className="text-xs text-green-700" dir="rtl">
+        <p className="text-xs text-[#11ff99]" dir="rtl">
           {msg}
         </p>
       ) : null}
@@ -782,7 +782,7 @@ export function SectionEditor({
           return (
             <div
               key={isImplicit ? "implicit-default" : v!.id}
-              className="flex min-h-[min(420px,70vh)] flex-col gap-3 rounded-lg border border-neutral-200 bg-neutral-50/50 p-3 sm:min-h-[440px] sm:p-4"
+              className="flex min-h-[min(420px,70vh)] flex-col gap-3 rounded-lg border border-[rgba(214,235,253,0.19)] bg-white/5 p-3 sm:min-h-[440px] sm:p-4"
               dir="rtl"
             >
               <div className="flex shrink-0 items-start justify-between gap-2">
@@ -790,12 +790,12 @@ export function SectionEditor({
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-medium">{title}</span>
                     {showDefaultBadge ? (
-                      <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-700">
+                      <span className="rounded-full bg-[var(--lc-primary)]/10 px-2 py-0.5 text-[10px] font-medium text-[var(--lc-primary)]">
                         {he.adminVariantDefault}
                       </span>
                     ) : null}
                     {v && !v.enabled ? (
-                      <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-[10px] text-neutral-600">
+                      <span className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-[#a1a4a5]">
                         {he.adminSectionDisabled}
                       </span>
                     ) : null}
@@ -808,7 +808,7 @@ export function SectionEditor({
                         type="checkbox"
                         checked={selectedVariantIds.has(v.id)}
                         onChange={() => toggleSelectVariant(v.id)}
-                        className="size-4 rounded border-neutral-400"
+                        className="size-4 rounded border-[rgba(214,235,253,0.19)]"
                         aria-label={he.adminVariantCheckboxAria}
                       />
                     </label>
@@ -823,7 +823,7 @@ export function SectionEditor({
                           })
                         : openVariantEditor({ ...v })
                     }
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-300 bg-white text-neutral-600 transition hover:bg-neutral-100"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[rgba(214,235,253,0.19)] bg-white/5 text-[#a1a4a5] transition hover:bg-white/10"
                     title={he.adminEditVariant}
                     aria-label={he.adminEditVariant}
                   >
@@ -834,7 +834,7 @@ export function SectionEditor({
                       type="button"
                       disabled={pending}
                       onClick={() => handleDeleteVariant(v.id)}
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 text-red-600 transition hover:bg-red-50 disabled:opacity-50"
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#ff2047]/30 text-[#ff2047] transition hover:bg-[#ff2047]/10 disabled:opacity-50"
                       title={he.adminDeleteVariant}
                       aria-label={he.adminDeleteVariant}
                     >

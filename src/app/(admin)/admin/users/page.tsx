@@ -8,8 +8,8 @@ export default async function AdminUsersPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{he.adminUsers}</h1>
-        <span className="text-sm text-neutral-500">
+        <h1 className="text-2xl font-bold text-[#f0f0f0]">{he.adminUsers}</h1>
+        <span className="text-sm text-[#a1a4a5]">
           {total.toLocaleString("he-IL")} {he.adminTotalUsers}
         </span>
       </div>

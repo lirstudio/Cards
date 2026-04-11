@@ -40,7 +40,7 @@ function AvatarFallback({ name, tone = "dark" }: { name: string; tone?: "dark" |
     .toUpperCase();
   if (tone === "light") {
     return (
-      <div className="flex h-full w-full items-center justify-center rounded-full bg-neutral-200 text-sm font-bold text-neutral-700">
+      <div className="flex h-full w-full items-center justify-center rounded-full bg-white/15 text-sm font-bold text-[#a1a4a5]">
         {initials || "?"}
       </div>
     );
@@ -78,18 +78,18 @@ function Stars({ count }: { count: number }) {
 
 function MarqueeCard({ t }: { t: TestimonialItem }) {
   return (
-    <article className="lc-testimonial-card flex h-full min-h-0 w-[min(320px,calc(100vw-2.5rem))] max-w-[90vw] shrink-0 flex-col rounded-3xl bg-white p-5 text-start shadow-[0_4px_24px_-8px_rgba(0,0,0,0.12)] @sm:w-[min(320px,85vw)] @sm:p-8 @md:min-w-[300px]">
-      <h3 className="mb-3 break-words text-base font-bold text-neutral-900 @sm:text-lg">
+    <article className="lc-testimonial-card flex h-full min-h-0 w-[min(320px,calc(100vw-2.5rem))] max-w-[90vw] shrink-0 flex-col rounded-3xl bg-white/5 p-5 text-start shadow-[0_0_0_1px_rgba(176,199,217,0.145)] @sm:w-[min(320px,85vw)] @sm:p-8 @md:min-w-[300px]">
+      <h3 className="mb-3 break-words text-base font-bold text-[#f0f0f0] @sm:text-lg">
         {t.headline}
       </h3>
       {t.body ? (
-        <p className="mb-6 text-sm leading-relaxed text-neutral-600">{t.body}</p>
+        <p className="mb-6 text-sm leading-relaxed text-[#a1a4a5]">{t.body}</p>
       ) : null}
-      <div className="mt-auto flex items-end justify-between gap-4 border-t border-neutral-100 pt-4">
+      <div className="mt-auto flex items-end justify-between gap-4 border-t border-[rgba(214,235,253,0.19)] pt-4">
         <div>
-          <div className="font-semibold text-neutral-900">{t.authorName}</div>
+          <div className="font-semibold text-[#f0f0f0]">{t.authorName}</div>
           {t.authorTitle ? (
-            <div className="text-sm text-neutral-500">{t.authorTitle}</div>
+            <div className="text-sm text-[#464a4d]">{t.authorTitle}</div>
           ) : null}
         </div>
         {imageSrcIsProvided(t.authorImage) ? (
@@ -97,7 +97,7 @@ function MarqueeCard({ t }: { t: TestimonialItem }) {
             <Image src={t.authorImage!} alt={t.authorName} fill className="object-cover" unoptimized />
           </div>
         ) : (
-          <span className="text-2xl text-neutral-300" aria-hidden>💬</span>
+          <span className="text-2xl text-[#464a4d]" aria-hidden>💬</span>
         )}
       </div>
     </article>
@@ -153,20 +153,20 @@ function PhotoCard({ t }: { t: TestimonialItem }) {
 
 function StarCard({ t }: { t: TestimonialItem }) {
   return (
-    <article className="flex min-w-0 flex-col rounded-2xl border border-neutral-200/90 bg-white p-6 text-start shadow-[0_4px_28px_-14px_rgba(0,0,0,0.1)] @sm:p-7">
+    <article className="flex min-w-0 flex-col rounded-2xl border border-[rgba(214,235,253,0.19)] bg-white/5 p-6 text-start shadow-[0_0_0_1px_rgba(176,199,217,0.145)] @sm:p-7">
       <Stars count={normalizedStarCount(t)} />
-      <p className="mt-4 flex-1 text-sm leading-relaxed text-neutral-700 @sm:text-base">
+      <p className="mt-4 flex-1 text-sm leading-relaxed text-[#a1a4a5] @sm:text-base">
         {t.headline}
         {t.body ? ` ${t.body}` : ""}
       </p>
-      <div className="mt-5 flex items-center gap-3 border-t border-neutral-100 pt-4">
+      <div className="mt-5 flex items-center gap-3 border-t border-[rgba(214,235,253,0.19)] pt-4">
         <div className="min-w-0 flex-1 text-start">
-          <div className="text-sm font-semibold text-neutral-900">{t.authorName}</div>
+          <div className="text-sm font-semibold text-[#f0f0f0]">{t.authorName}</div>
           {t.authorTitle ? (
-            <div className="text-xs text-neutral-500">{t.authorTitle}</div>
+            <div className="text-xs text-[#464a4d]">{t.authorTitle}</div>
           ) : null}
         </div>
-        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full ring-2 ring-neutral-200">
+        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full ring-1 ring-[rgba(214,235,253,0.19)]">
           {imageSrcIsProvided(t.authorImage) ? (
             <Image
               src={t.authorImage!}
@@ -189,26 +189,26 @@ function StarCard({ t }: { t: TestimonialItem }) {
 
 function QuoteSideCard({ t }: { t: TestimonialItem }) {
   return (
-    <article className="flex min-w-0 flex-col overflow-hidden rounded-3xl border border-neutral-200/90 bg-white shadow-[0_8px_40px_-18px_rgba(0,0,0,0.12)] @lg:flex-row">
+    <article className="flex min-w-0 flex-col overflow-hidden rounded-3xl border border-[rgba(214,235,253,0.19)] bg-white/5 shadow-[0_0_0_1px_rgba(176,199,217,0.145)] @lg:flex-row">
       {/* text side (right in RTL) */}
       <div className="flex flex-1 flex-col justify-center p-8 text-start @md:p-10">
-        <span className="mb-4 block text-6xl leading-none text-neutral-200 font-serif" aria-hidden>
+        <span className="mb-4 block text-6xl leading-none text-[rgba(214,235,253,0.19)] font-serif" aria-hidden>
           &ldquo;
         </span>
-        <h3 className="text-xl font-bold leading-snug text-neutral-900 @md:text-2xl">
+        <h3 className="text-xl font-bold leading-snug text-[#f0f0f0] @md:text-2xl">
           {t.headline}
         </h3>
         {t.body ? (
-          <p className="mt-4 text-base leading-relaxed text-neutral-600">{t.body}</p>
+          <p className="mt-4 text-base leading-relaxed text-[#a1a4a5]">{t.body}</p>
         ) : null}
         <div className="mt-6 flex items-center gap-3">
           <div className="min-w-0 flex-1 text-start">
-            <div className="font-semibold text-neutral-900">{t.authorName}</div>
+            <div className="font-semibold text-[#f0f0f0]">{t.authorName}</div>
             {t.authorTitle ? (
-              <div className="text-sm text-neutral-500">{t.authorTitle}</div>
+              <div className="text-sm text-[#464a4d]">{t.authorTitle}</div>
             ) : null}
           </div>
-          <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full ring-2 ring-neutral-200">
+          <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full ring-1 ring-[rgba(214,235,253,0.19)]">
             {imageSrcIsProvided(t.authorImage) ? (
               <Image
                 src={t.authorImage!}
@@ -236,7 +236,7 @@ function QuoteSideCard({ t }: { t: TestimonialItem }) {
         </div>
       ) : (
         <div
-          className="relative h-48 w-full shrink-0 bg-gradient-to-br from-neutral-200 to-neutral-300 @lg:h-auto @lg:min-h-[280px] @lg:w-[280px]"
+          className="relative h-48 w-full shrink-0 bg-white/5 @lg:h-auto @lg:min-h-[280px] @lg:w-[280px]"
           aria-hidden
         />
       )}

@@ -10,13 +10,13 @@ export function ProfileForm({ initialName }: { initialName: string }) {
   return (
     <form action={action} className="mt-8 max-w-md space-y-4">
       {state?.error ? (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{state.error}</p>
+        <p className="rounded-lg bg-[#ff2047]/10 px-3 py-2 text-sm text-[#ff2047]">{state.error}</p>
       ) : null}
       {state?.ok ? (
-        <p className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-800">{he.profileUpdated}</p>
+        <p className="rounded-lg bg-[#11ff99]/10 px-3 py-2 text-sm text-[#11ff99]">{he.profileUpdated}</p>
       ) : null}
       <div>
-        <label htmlFor="displayName" className="mb-1 block text-sm font-medium">
+        <label htmlFor="displayName" className="mb-1 block text-sm font-medium text-[#f0f0f0]">
           {he.displayName}
         </label>
         <input
@@ -30,7 +30,7 @@ export function ProfileForm({ initialName }: { initialName: string }) {
       </div>
       <button
         type="submit"
-        className="rounded-full bg-[var(--lc-primary)] px-6 py-2.5 text-sm font-medium text-white"
+        className="rounded-full bg-white px-6 py-2.5 text-sm font-medium text-black hover:bg-white/90"
       >
         {he.save}
       </button>

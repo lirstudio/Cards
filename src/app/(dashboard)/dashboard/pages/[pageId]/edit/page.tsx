@@ -142,10 +142,10 @@ export default async function EditPagePage({
         showNewDraftHint={showNewDraftHint}
         initialTitle={typedPage.title}
         initialTheme={{
-          primary: theme.primary ?? "#0b43b4",
-          background: theme.background ?? "#f8f9fa",
-          heading: theme.heading ?? "#000000",
-          body: theme.body ?? "#4b5563",
+          primary: theme.primary ?? "#3b9eff",
+          background: theme.background ?? "#000000",
+          heading: theme.heading ?? "#f0f0f0",
+          body: theme.body ?? "#a1a4a5",
           siteLogoUrl: theme.siteLogoUrl ?? "",
           noSectionAnimations: theme.noSectionAnimations === true,
         }}

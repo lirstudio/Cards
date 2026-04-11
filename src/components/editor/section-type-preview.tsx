@@ -8,10 +8,10 @@ import type { PageTheme } from "@/types/landing";
 import type { SectionStyleOverrides } from "@/types/admin";
 
 const THUMB_THEME = {
-  primary: "#0b43b4",
-  background: "#f8f9fa",
-  heading: "#000000",
-  body: "#4b5563",
+  primary: "#3b9eff",
+  background: "#000000",
+  heading: "#f0f0f0",
+  body: "#a1a4a5",
 } satisfies PageTheme;
 
 /** Scaled-down default render for library thumbnails (pointer-events disabled). */
@@ -19,7 +19,7 @@ export function SectionTypePreview({ sectionKey }: { sectionKey: SectionKey }) {
   const content = getDefaultContent(sectionKey);
   return (
     <div
-      className="pointer-events-none relative h-[148px] w-full overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100"
+      className="pointer-events-none relative h-[148px] w-full overflow-hidden rounded-lg border border-[rgba(214,235,253,0.19)] bg-white/5"
       aria-hidden
     >
       <ScaledSectionPreviewLayer scale={0.36} canvasWidthClass="w-[min(820px,200vw)]">
@@ -51,7 +51,7 @@ export function SectionVariantPreviewThumb({
   const content = getDefaultContent(sectionKey);
   return (
     <div
-      className="pointer-events-none relative h-[132px] w-full overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100"
+      className="pointer-events-none relative h-[132px] w-full overflow-hidden rounded-lg border border-[rgba(214,235,253,0.19)] bg-white/5"
       aria-hidden
     >
       <ScaledSectionPreviewLayer scale={0.32} canvasWidthClass="w-[min(820px,200vw)]">

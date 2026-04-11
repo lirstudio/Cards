@@ -60,7 +60,7 @@ function BioSectionCoverImage({
   layoutMode: ReturnType<typeof imageTextLayoutMode>;
 }) {
   const frame =
-    "relative overflow-hidden rounded-[2rem] shadow-[0_22px_55px_-20px_rgba(0,0,0,0.2)] ring-1 ring-neutral-900/[0.06] @md:rounded-[2.25rem]";
+    "relative overflow-hidden rounded-[2rem] shadow-[0_0_0_1px_rgba(176,199,217,0.145)] ring-1 ring-[rgba(176,199,217,0.145)] @md:rounded-[2.25rem]";
   if (layoutMode !== "default") {
     return (
       <div className={`${frame} aspect-[4/3] w-full max-h-[min(72vh,560px)] @md:aspect-[16/11]`}>
@@ -129,9 +129,9 @@ export function SectionRenderer({
   if (!visible) return null;
 
   const vo = variantStyleOverrides ?? {};
-  const primary = vo.accentColor ?? theme.primary ?? "#0b43b4";
-  const heading = vo.textColor ?? theme.heading ?? "#000000";
-  const body = theme.body ?? "#4b5563";
+  const primary = vo.accentColor ?? theme.primary ?? "#3b9eff";
+  const heading = vo.textColor ?? theme.heading ?? "#f0f0f0";
+  const body = theme.body ?? "#a1a4a5";
   const siteLogoUrl = theme.siteLogoUrl?.trim();
   const noSectionAnimations = theme.noSectionAnimations === true;
   const paddingClass = vo.paddingY ? PADDING_MAP[vo.paddingY] : undefined;
@@ -186,12 +186,12 @@ export function SectionRenderer({
     return (
       <header className={`mx-auto w-full max-w-6xl ${LC_SECTION_PX} ${outerY}`}>
         <nav
-          className={`flex w-full flex-col gap-3 rounded-[1.25rem] bg-white shadow-[0_10px_40px_-12px_rgba(0,0,0,0.14)] ring-1 ring-neutral-900/[0.06] @md:flex-row @md:items-center @md:gap-3 ${barPad}`}
+          className={`flex w-full flex-col gap-3 rounded-[1.25rem] bg-[#0a0a0a] shadow-[0_0_0_1px_rgba(176,199,217,0.145)] ring-1 ring-[rgba(176,199,217,0.145)] @md:flex-row @md:items-center @md:gap-3 ${barPad}`}
         >
           <div className="flex w-full min-w-0 items-center justify-between gap-3 @md:contents">
             <a
               href="#lc-page-top"
-              className="relative z-10 flex shrink-0 items-center text-lg font-bold tracking-tight text-neutral-950 @md:text-xl"
+              className="relative z-10 flex shrink-0 items-center text-lg font-bold tracking-tight text-[#f0f0f0] @md:text-xl"
               style={siteLogoUrl ? undefined : { color: heading }}
             >
               {siteLogoUrl ? (
@@ -576,7 +576,7 @@ export function SectionRenderer({
     /** פריסה דו־עמודתית: גובה התמונה = גובה עמודת הרשימה (items-stretch + fill + object-cover). */
     const imageColStretch = (
       <div
-        className={`relative w-full overflow-hidden rounded-[2rem] shadow-[0_22px_55px_-20px_rgba(0,0,0,0.2)] ring-1 ring-neutral-900/[0.06] @md:rounded-[2.25rem] @max-[1023px]:aspect-[5/6] @max-[1023px]:max-h-[min(92cqw,460px)] @min-[1024px]:h-full @min-[1024px]:min-h-[280px]`}
+        className={`relative w-full overflow-hidden rounded-[2rem] shadow-[0_0_0_1px_rgba(176,199,217,0.145)] ring-1 ring-[rgba(176,199,217,0.145)] @md:rounded-[2.25rem] @max-[1023px]:aspect-[5/6] @max-[1023px]:max-h-[min(92cqw,460px)] @min-[1024px]:h-full @min-[1024px]:min-h-[280px]`}
       >
         {imageSrcIsProvided(c.image) ? (
           <Image
@@ -594,7 +594,7 @@ export function SectionRenderer({
     );
     /** ערימה אנכית: יחס גובה־רוחב קבוע */
     const imageColStack = (
-      <div className="relative aspect-[4/3] w-full max-h-[min(72vh,560px)] overflow-hidden rounded-3xl shadow-xl @md:aspect-[16/11]">
+      <div className="relative aspect-[4/3] w-full max-h-[min(72vh,560px)] overflow-hidden rounded-3xl @md:aspect-[16/11]">
         {imageSrcIsProvided(c.image) ? (
           <Image
             src={c.image}
@@ -707,7 +707,7 @@ export function SectionRenderer({
               return (
                 <div
                   key={i}
-                  className={`min-w-0 rounded-3xl p-6 text-start shadow-sm sm:p-8 ${featured ? "text-white" : "bg-white"}`}
+                  className={`min-w-0 rounded-3xl p-6 text-start shadow-[0_0_0_1px_rgba(176,199,217,0.145)] sm:p-8 ${featured ? "text-white" : "bg-white/5"}`}
                   style={
                     featured ? { backgroundColor: primary } : { color: heading }
                   }
@@ -722,7 +722,7 @@ export function SectionRenderer({
                   ) : null}
                   <h3 className="mb-3 break-words text-lg font-bold sm:text-xl">{card.title}</h3>
                   <p
-                    className={`text-sm leading-relaxed ${featured ? "text-white/90" : "text-neutral-600"}`}
+                    className={`text-sm leading-relaxed ${featured ? "text-white/90" : "text-[#a1a4a5]"}`}
                   >
                     {card.description}
                   </p>
@@ -773,15 +773,15 @@ export function SectionRenderer({
           </div>
           <div className="grid grid-cols-1 gap-4 @sm:gap-6 @min-[768px]:grid-cols-3">
             {c.steps.map((s, i) => (
-              <article key={i} className="min-w-0 rounded-2xl bg-white p-5 text-start shadow-lg sm:p-6">
+              <article key={i} className="min-w-0 rounded-2xl bg-white/5 p-5 text-start shadow-[0_0_0_1px_rgba(176,199,217,0.145)] sm:p-6">
                 <div
                   className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg border-2 text-lg font-bold"
                   style={{ borderColor: primary, color: primary }}
                 >
                   {i + 1}
                 </div>
-                <h3 className="mb-2 break-words font-bold text-black">{s.title}</h3>
-                <p className="text-sm leading-relaxed text-neutral-600">{s.body}</p>
+                <h3 className="mb-2 break-words font-bold text-[#f0f0f0]">{s.title}</h3>
+                <p className="text-sm leading-relaxed text-[#a1a4a5]">{s.body}</p>
               </article>
             ))}
           </div>

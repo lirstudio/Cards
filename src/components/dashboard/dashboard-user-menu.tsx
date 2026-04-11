@@ -56,7 +56,7 @@ export function DashboardUserMenu({
     <div className="relative" ref={rootRef}>
       <button
         type="button"
-        className="flex items-center gap-2 rounded-full border border-neutral-200 bg-white py-1 ps-1 pe-2 shadow-sm transition hover:border-neutral-300 hover:bg-neutral-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--lc-primary)]"
+        className="flex items-center gap-2 rounded-full border border-[rgba(214,235,253,0.19)] bg-transparent py-1 ps-1 pe-2 transition hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--lc-primary)]"
         aria-label={he.userAccountMenu}
         aria-expanded={open}
         aria-haspopup="true"
@@ -77,10 +77,10 @@ export function DashboardUserMenu({
             <span aria-hidden>{initials}</span>
           )}
         </span>
-        <span className="max-w-[10rem] truncate text-start text-sm font-medium text-neutral-800">
+        <span className="max-w-[10rem] truncate text-start text-sm font-medium text-[#f0f0f0]">
           {displayName?.trim() || email.split("@")[0]}
         </span>
-        <span className="text-neutral-400" aria-hidden>
+        <span className="text-[#a1a4a5]" aria-hidden>
           ▾
         </span>
       </button>
@@ -89,15 +89,15 @@ export function DashboardUserMenu({
         <div
           id={menuId}
           role="menu"
-          className="absolute end-0 top-full z-50 mt-2 min-w-[14rem] rounded-xl border border-neutral-200 bg-white py-1 shadow-lg"
+          className="absolute end-0 top-full z-50 mt-2 min-w-[14rem] rounded-xl border border-[rgba(214,235,253,0.19)] bg-[#0a0a0a] py-1 shadow-[0_0_0_1px_rgba(176,199,217,0.145)]"
         >
-          <div className="border-b border-neutral-100 px-3 py-2" dir="ltr">
-            <p className="truncate text-xs text-neutral-500">{email}</p>
+          <div className="border-b border-[rgba(214,235,253,0.19)] px-3 py-2" dir="ltr">
+            <p className="truncate text-xs text-[#a1a4a5]">{email}</p>
           </div>
           <Link
             href="/dashboard/settings/profile"
             role="menuitem"
-            className="block px-3 py-2 text-sm text-neutral-800 hover:bg-neutral-50"
+            className="block px-3 py-2 text-sm text-[#f0f0f0] hover:bg-white/10"
             onClick={() => setOpen(false)}
           >
             {he.settings}
@@ -105,7 +105,7 @@ export function DashboardUserMenu({
           <Link
             href="/dashboard/billing"
             role="menuitem"
-            className="block px-3 py-2 text-sm text-neutral-800 hover:bg-neutral-50"
+            className="block px-3 py-2 text-sm text-[#f0f0f0] hover:bg-white/10"
             onClick={() => setOpen(false)}
           >
             {he.billing}
@@ -114,17 +114,17 @@ export function DashboardUserMenu({
             <Link
               href="/admin"
               role="menuitem"
-              className="block px-3 py-2 text-sm font-medium text-[var(--lc-primary)] hover:bg-blue-50/60"
+              className="block px-3 py-2 text-sm font-medium text-[var(--lc-primary)] hover:bg-white/10"
               onClick={() => setOpen(false)}
             >
               {he.adminDashboard}
             </Link>
           ) : null}
-          <form action={signOut} className="border-t border-neutral-100 pt-1">
+          <form action={signOut} className="border-t border-[rgba(214,235,253,0.19)] pt-1">
             <button
               type="submit"
               role="menuitem"
-              className="w-full px-3 py-2 text-start text-sm text-neutral-700 hover:bg-neutral-50"
+              className="w-full px-3 py-2 text-start text-sm text-[#a1a4a5] hover:bg-white/10 hover:text-[#f0f0f0]"
             >
               {he.logout}
             </button>

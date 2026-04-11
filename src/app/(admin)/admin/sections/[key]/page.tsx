@@ -18,7 +18,7 @@ export default async function AdminSectionDetailPage({
     <div className="space-y-6">
       <Link
         href="/admin/sections"
-        className="inline-block text-sm text-blue-600 hover:underline"
+        className="inline-block text-sm text-[var(--lc-primary)] hover:underline"
       >
         ← {he.adminSections}
       </Link>

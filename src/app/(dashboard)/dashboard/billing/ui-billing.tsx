@@ -35,26 +35,26 @@ export function BillingClient({
   return (
     <div className="mt-8 space-y-6">
       {state?.error ? (
-        <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">{state.error}</p>
+        <p className="rounded-lg bg-[#ffc53d]/10 px-3 py-2 text-sm text-[#ffc53d]">{state.error}</p>
       ) : null}
 
       <ul className="space-y-4">
         {plans.map((p) => (
           <li
             key={p.slug}
-            className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-neutral-200 bg-white p-4"
+            className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[rgba(214,235,253,0.19)] p-4"
           >
             <div>
-              <div className="font-semibold">{p.name}</div>
-              <div className="text-sm text-neutral-600">
+              <div className="font-semibold text-[#f0f0f0]">{p.name}</div>
+              <div className="text-sm text-[#a1a4a5]">
                 עד {p.maxPages} עמודים
                 {p.interval !== "none" ? ` · ${p.interval}` : null}
               </div>
               {p.slug === currentPlanSlug ? (
-                <div className="mt-1 text-xs font-medium text-green-700">התוכנית הנוכחית</div>
+                <div className="mt-1 text-xs font-medium text-[#11ff99]">התוכנית הנוכחית</div>
               ) : null}
               {!p.stripeReady && p.slug !== "free" ? (
-                <div className="mt-1 text-xs text-amber-700">נדרש מזהה מחיר ב־Stripe</div>
+                <div className="mt-1 text-xs text-[#ffc53d]">נדרש מזהה מחיר ב־Stripe</div>
               ) : null}
             </div>
             {p.slug !== "free" && p.stripeReady && stripeConfigured ? (
@@ -62,7 +62,7 @@ export function BillingClient({
                 <input type="hidden" name="planSlug" value={p.slug} />
                 <button
                   type="submit"
-                  className="rounded-full bg-[var(--lc-primary)] px-5 py-2 text-sm font-medium text-white"
+                  className="rounded-full bg-white px-5 py-2 text-sm font-medium text-black hover:bg-white/90"
                 >
                   הירשמו לתוכנית
                 </button>
@@ -73,13 +73,13 @@ export function BillingClient({
       </ul>
 
       {!stripeConfigured ? (
-        <p className="text-sm text-neutral-500">{he.stripeNotConfigured}</p>
+        <p className="text-sm text-[#a1a4a5]">{he.stripeNotConfigured}</p>
       ) : null}
 
       {paid.every((p) => !p.stripeReady) && stripeConfigured ? (
-        <p className="text-sm text-neutral-500">
-          עדכנו בטבלת <code className="rounded bg-neutral-100 px-1">subscription_plans</code> את עמודת{" "}
-          <code className="rounded bg-neutral-100 px-1">stripe_price_id</code> למזהי המחיר האמיתיים מ־Stripe.
+        <p className="text-sm text-[#a1a4a5]">
+          עדכנו בטבלת <code className="rounded bg-white/10 px-1">subscription_plans</code> את עמודת{" "}
+          <code className="rounded bg-white/10 px-1">stripe_price_id</code> למזהי המחיר האמיתיים מ־Stripe.
         </p>
       ) : null}
     </div>

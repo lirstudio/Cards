@@ -202,7 +202,7 @@ function PreviewViewportToolbar({
 
   return (
     <div
-      className="flex shrink-0 flex-wrap items-center gap-0.5 rounded-lg border border-neutral-200 bg-neutral-50 p-0.5"
+      className="flex shrink-0 flex-wrap items-center gap-0.5 rounded-lg border border-[rgba(214,235,253,0.19)] bg-white/5 p-0.5"
       role="group"
       aria-label={he.previewViewportAria}
     >
@@ -216,8 +216,8 @@ function PreviewViewportToolbar({
           aria-pressed={value === o.id}
           className={`inline-flex h-8 min-w-8 items-center justify-center rounded-md px-2 transition ${
             value === o.id
-              ? "bg-[var(--lc-primary)] text-white shadow-sm"
-              : "text-neutral-600 hover:bg-white hover:text-neutral-900"
+              ? "bg-[var(--lc-primary)] text-white"
+              : "text-[#a1a4a5] hover:bg-white/10 hover:text-[#f0f0f0]"
           }`}
         >
           {o.icon}
@@ -229,7 +229,7 @@ function PreviewViewportToolbar({
           onClick={onFullscreen}
           title={he.previewFullscreen}
           aria-label={he.previewFullscreen}
-          className="ms-0.5 inline-flex h-8 min-w-8 items-center justify-center rounded-md border border-transparent px-2 text-neutral-600 transition hover:border-neutral-200 hover:bg-white hover:text-neutral-900"
+          className="ms-0.5 inline-flex h-8 min-w-8 items-center justify-center rounded-md border border-transparent px-2 text-[#a1a4a5] transition hover:border-[rgba(214,235,253,0.19)] hover:bg-white/10 hover:text-[#f0f0f0]"
         >
           <svg
             width="17"
@@ -263,7 +263,7 @@ function InsertZone({ index }: { index: number }) {
     >
       <div
         className={`pointer-events-none h-px w-full max-w-[calc(100%-8px)] rounded-full transition-colors duration-200 ${
-          isOver ? "bg-[var(--lc-primary)]" : "bg-neutral-200/90"
+          isOver ? "bg-[var(--lc-primary)]" : "bg-white/10"
         }`}
       />
     </div>
@@ -285,10 +285,10 @@ function PaletteCard({
   const title = titleHe ?? meta?.titleHe ?? sectionKey;
   const desc = descriptionHe ?? meta?.descriptionHe ?? "";
   return (
-    <div className="relative rounded-xl border border-neutral-200 bg-white p-2 pt-10 text-start shadow-sm transition hover:border-[var(--lc-primary)]">
+    <div className="relative rounded-xl border border-[rgba(214,235,253,0.19)] bg-white/5 p-2 pt-10 text-start transition hover:border-[var(--lc-primary)]">
       <button
         type="button"
-        className="absolute end-2 top-2 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-[var(--lc-primary)] bg-[var(--lc-primary)] text-lg font-semibold leading-none text-white shadow-sm hover:opacity-90"
+        className="absolute end-2 top-2 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-[var(--lc-primary)] bg-[var(--lc-primary)] text-lg font-semibold leading-none text-white hover:opacity-90"
         aria-label={he.addSectionAria}
         onClick={() => onAdd(sectionKey)}
       >
@@ -297,7 +297,7 @@ function PaletteCard({
       <SectionTypePreview sectionKey={sectionKey} />
       <div className="mt-2 px-1">
         <div className="text-sm font-medium">{title}</div>
-        <div className="mt-0.5 text-xs text-neutral-500 line-clamp-2">{desc}</div>
+        <div className="mt-0.5 text-xs text-[#464a4d] line-clamp-2">{desc}</div>
       </div>
     </div>
   );
@@ -584,7 +584,7 @@ export function PageEditor({
       const sec = sections.find((s) => s.id === activeId);
       const sk = sec?.section_key ?? "";
       return (
-        <div className="rounded-xl border bg-white p-3 shadow-lg">
+        <div className="rounded-xl border border-[rgba(214,235,253,0.19)] bg-white/5 p-3 shadow-lg">
           {defsMap.get(sk)?.title_he ?? sectionCatalog[sk as SectionKey]?.titleHe ?? sk}
         </div>
       );
@@ -618,12 +618,12 @@ export function PageEditor({
               closeAriaLabel={he.cancel}
             />
             <ModalBody className="px-4 py-4">
-              <p className="text-sm leading-relaxed text-neutral-700">{he.unsavedChangesBody}</p>
+              <p className="text-sm leading-relaxed text-[#a1a4a5]">{he.unsavedChangesBody}</p>
             </ModalBody>
             <ModalFooter className="flex flex-wrap justify-end gap-2">
               <button
                 type="button"
-                className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm hover:bg-neutral-50"
+                className="rounded-lg border border-[rgba(214,235,253,0.19)] bg-white/5 px-3 py-2 text-sm hover:bg-white/10"
                 onClick={() => setLeaveTarget(null)}
               >
                 {he.unsavedStayEditing}
@@ -652,13 +652,13 @@ export function PageEditor({
       <div className="mt-6 space-y-6">
         {showNewDraftHint && !newDraftHintDismissed ? (
           <div
-            className="flex flex-wrap items-start justify-between gap-3 rounded-xl border border-blue-200 bg-blue-50/90 px-4 py-3 text-sm text-neutral-800"
+            className="flex flex-wrap items-start justify-between gap-3 rounded-xl border border-blue-200 bg-blue-50/90 px-4 py-3 text-sm text-[#a1a4a5]"
             role="status"
           >
             <p className="min-w-0 flex-1 leading-relaxed">{he.newDraftEditorHint}</p>
             <button
               type="button"
-              className="shrink-0 rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-neutral-800 ring-1 ring-neutral-200 hover:bg-neutral-50"
+              className="shrink-0 rounded-lg bg-white/5 px-3 py-1.5 text-sm font-medium text-[#a1a4a5] ring-1 ring-[rgba(214,235,253,0.19)] hover:bg-white/10"
               onClick={() => setNewDraftHintDismissed(true)}
             >
               {he.newDraftEditorHintDismiss}
@@ -675,13 +675,13 @@ export function PageEditor({
               ← {he.back}
             </button>
             <h1 className="mt-3 text-2xl font-bold">{pageHeadline}</h1>
-            <p className="mt-1 text-sm text-neutral-600">{he.reorderHint}</p>
+            <p className="mt-1 text-sm text-[#a1a4a5]">{he.reorderHint}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2" dir="rtl">
             <button
               type="button"
               disabled={!isDirty || isSaving}
-              className="rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm font-medium hover:bg-neutral-50 disabled:opacity-50"
+              className="rounded-full border border-[rgba(214,235,253,0.19)] bg-white/5 px-4 py-2 text-sm font-medium hover:bg-white/10 disabled:opacity-50"
               onClick={() => void handleSavePage()}
             >
               {isSaving ? he.savingPageChanges : he.savePageChanges}
@@ -710,14 +710,14 @@ export function PageEditor({
                 href={`/${slug}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm font-medium hover:bg-neutral-50"
+                className="rounded-full border border-[rgba(214,235,253,0.19)] bg-white/5 px-4 py-2 text-sm font-medium hover:bg-white/10"
               >
                 {he.openPage}
               </Link>
             ) : null}
             <button
               type="button"
-              className="rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm font-medium hover:bg-neutral-50"
+              className="rounded-full border border-[rgba(214,235,253,0.19)] bg-white/5 px-4 py-2 text-sm font-medium hover:bg-white/10"
               onClick={() => setSettingsOpen(true)}
             >
               {he.pageSettings}
@@ -777,14 +777,14 @@ export function PageEditor({
               <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:gap-4">
                 <div className="order-2 min-w-0 w-full flex-1 lg:order-1">
                   {addModalVariantList.length > 0 ? (
-                    <div className="mb-2 min-w-0 max-w-full border-b border-neutral-100 pb-2">
-                      <h3 className="mb-1.5 text-sm font-semibold text-neutral-800">
+                    <div className="mb-2 min-w-0 max-w-full border-b border-[rgba(214,235,253,0.19)] pb-2">
+                      <h3 className="mb-1.5 text-sm font-semibold text-[#a1a4a5]">
                         {addModalVariantList.length > 1
                           ? he.chooseSectionVariant
                           : he.sectionVariantSingle}
                       </h3>
                       {addModalVariantList.length === 1 ? (
-                        <p className="mb-2 text-xs leading-snug text-neutral-500">
+                        <p className="mb-2 text-xs leading-snug text-[#464a4d]">
                           {he.variantPickerOnlyActive}
                         </p>
                       ) : null}
@@ -794,10 +794,10 @@ export function PageEditor({
                             key={v.id}
                             type="button"
                             onClick={() => setSelectedVariantId(v.id)}
-                            className={`w-44 shrink-0 rounded-xl border-2 bg-white p-2 text-start transition ${
+                            className={`w-44 shrink-0 rounded-xl border-2 bg-white/5 p-2 text-start transition ${
                               selectedVariantId === v.id
-                                ? "border-[var(--lc-primary)] shadow-sm"
-                                : "border-neutral-200 hover:border-neutral-300"
+                                ? "border-[var(--lc-primary)]"
+                                : "border-[rgba(214,235,253,0.19)] hover:border-white/20"
                             }`}
                           >
                             <SectionVariantPreviewThumb
@@ -809,7 +809,7 @@ export function PageEditor({
                               {v.name_he}
                             </div>
                             {v.is_default ? (
-                              <div className="mt-0.5 text-center text-[10px] text-neutral-500">
+                              <div className="mt-0.5 text-center text-[10px] text-[#464a4d]">
                                 {he.adminVariantDefault}
                               </div>
                             ) : null}
@@ -852,7 +852,7 @@ export function PageEditor({
                 </div>
                 <div className="order-1 min-w-0 flex-1 self-start lg:order-2">
                   <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    <h3 className="text-sm font-semibold text-neutral-800">{he.addSectionLivePreview}</h3>
+                    <h3 className="text-sm font-semibold text-[#a1a4a5]">{he.addSectionLivePreview}</h3>
                     <PreviewViewportToolbar
                       value={addModalPreviewViewport}
                       onChange={setAddModalPreviewViewport}
@@ -860,7 +860,7 @@ export function PageEditor({
                     />
                   </div>
                   <div
-                    className="max-h-[min(72vh,780px)] min-h-0 overflow-y-auto overflow-x-auto rounded-xl border border-neutral-200 shadow-inner"
+                    className="max-h-[min(72vh,780px)] min-h-0 overflow-y-auto overflow-x-auto rounded-xl border border-[rgba(214,235,253,0.19)] shadow-inner"
                     style={{ backgroundColor: initialTheme.background }}
                   >
                     <div
@@ -911,11 +911,11 @@ export function PageEditor({
                     sections.length > 0 ? () => setImmersivePreviewOpen(true) : undefined
                   }
                 />
-                <p className="text-xs text-neutral-500">{he.reorderHint}</p>
+                <p className="text-xs text-[#464a4d]">{he.reorderHint}</p>
               </div>
             </div>
             <div
-              className="max-h-[min(85vh,1200px)] min-h-0 overflow-y-auto overflow-x-auto rounded-2xl border border-neutral-200 shadow-inner"
+              className="max-h-[min(85vh,1200px)] min-h-0 overflow-y-auto overflow-x-auto rounded-2xl border border-[rgba(214,235,253,0.19)] shadow-inner"
               style={{ backgroundColor: initialTheme.background }}
             >
               <div
@@ -927,10 +927,10 @@ export function PageEditor({
                     <div
                       role="status"
                       aria-live="polite"
-                      className="border-b border-dashed border-neutral-200/80 px-6 py-10 text-center"
+                      className="border-b border-dashed border-[rgba(214,235,253,0.19)] px-6 py-10 text-center"
                     >
-                      <p className="text-lg font-semibold text-neutral-800">{he.previewEmptyTitle}</p>
-                      <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-neutral-600">
+                      <p className="text-lg font-semibold text-[#a1a4a5]">{he.previewEmptyTitle}</p>
+                      <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-[#a1a4a5]">
                         {he.previewEmptySubtitle}
                       </p>
                     </div>
@@ -948,7 +948,7 @@ export function PageEditor({
                                 <div className="pointer-events-none absolute end-2 top-2 z-10 flex gap-0.5 opacity-0 transition-opacity duration-150 group-hover/section:pointer-events-auto group-hover/section:opacity-100 has-[:focus-visible]:pointer-events-auto has-[:focus-visible]:opacity-100">
                                   <button
                                     type="button"
-                                    className="pointer-events-auto inline-flex h-8 w-8 shrink-0 cursor-grab touch-manipulation items-center justify-center rounded-md bg-white/85 text-neutral-600 shadow-sm ring-1 ring-neutral-200/80 backdrop-blur-sm hover:bg-white hover:text-neutral-900 active:cursor-grabbing focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--lc-primary)]"
+                                    className="pointer-events-auto inline-flex h-8 w-8 shrink-0 cursor-grab touch-manipulation items-center justify-center rounded-md bg-white/85 text-[#a1a4a5] ring-1 ring-[rgba(214,235,253,0.19)] backdrop-blur-sm hover:bg-white/10 hover:text-[#f0f0f0] active:cursor-grabbing focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--lc-primary)]"
                                     {...attributes}
                                     {...listeners}
                                     onClick={(ev) => ev.stopPropagation()}
@@ -958,7 +958,7 @@ export function PageEditor({
                                   </button>
                                   <button
                                     type="button"
-                                    className="pointer-events-auto inline-flex h-8 w-8 shrink-0 touch-manipulation items-center justify-center rounded-md bg-white/85 text-red-600 shadow-sm ring-1 ring-neutral-200/80 backdrop-blur-sm hover:bg-red-50 hover:text-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500"
+                                    className="pointer-events-auto inline-flex h-8 w-8 shrink-0 touch-manipulation items-center justify-center rounded-md bg-white/85 text-red-600 ring-1 ring-[rgba(214,235,253,0.19)] backdrop-blur-sm hover:bg-red-50 hover:text-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500"
                                     onClick={(ev) => {
                                       ev.stopPropagation();
                                       setSections((s) => s.filter((x) => x.id !== section.id));
@@ -1016,9 +1016,9 @@ export function PageEditor({
 
           <aside className="min-h-[min(85vh,1200px)] lg:sticky lg:top-4 lg:self-start" dir="rtl">
             {rightPanel === "library" ? (
-              <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-white p-3">
+              <div className="flex h-full flex-col rounded-2xl border border-[rgba(214,235,253,0.19)] bg-white/5 p-3">
                 <h3 className="mb-2 text-sm font-semibold">{he.sectionLibrary}</h3>
-                <p className="mb-3 text-xs text-neutral-500">{he.libraryHint}</p>
+                <p className="mb-3 text-xs text-[#464a4d]">{he.libraryHint}</p>
                 <div className="flex max-h-[min(78vh,1100px)] flex-col gap-3 overflow-y-auto pe-1">
                   {paletteKeys.map((k) => {
                     const dbDef = defsMap.get(k);
@@ -1035,7 +1035,7 @@ export function PageEditor({
                 </div>
               </div>
             ) : selected && isEditableSectionKey(selected.section_key) ? (
-              <div className="rounded-2xl border border-neutral-200 bg-white p-3">
+              <div className="rounded-2xl border border-[rgba(214,235,253,0.19)] bg-white/5 p-3">
                 <button
                   type="button"
                   className="mb-3 text-sm text-[var(--lc-primary)] underline"
@@ -1052,8 +1052,8 @@ export function PageEditor({
                     vlist.find((v) => v.is_default)?.id ??
                     vlist[0]?.id;
                   return (
-                    <div className="mb-4 border-b border-neutral-100 pb-3">
-                      <h3 className="mb-2 text-sm font-semibold text-neutral-800">
+                    <div className="mb-4 border-b border-[rgba(214,235,253,0.19)] pb-3">
+                      <h3 className="mb-2 text-sm font-semibold text-[#a1a4a5]">
                         {he.chooseSectionVariant}
                       </h3>
                       <div className="flex gap-3 overflow-x-auto pb-1" dir="rtl">
@@ -1068,10 +1068,10 @@ export function PageEditor({
                                 ),
                               )
                             }
-                            className={`w-40 shrink-0 rounded-xl border-2 bg-white p-2 text-start transition ${
+                            className={`w-40 shrink-0 rounded-xl border-2 bg-white/5 p-2 text-start transition ${
                               effectiveVariantId === v.id
-                                ? "border-[var(--lc-primary)] shadow-sm"
-                                : "border-neutral-200 hover:border-neutral-300"
+                                ? "border-[var(--lc-primary)]"
+                                : "border-[rgba(214,235,253,0.19)] hover:border-white/20"
                             }`}
                           >
                             <SectionVariantPreviewThumb
@@ -1083,7 +1083,7 @@ export function PageEditor({
                               {v.name_he}
                             </div>
                             {v.is_default ? (
-                              <div className="mt-0.5 text-center text-[10px] text-neutral-500">
+                              <div className="mt-0.5 text-center text-[10px] text-[#464a4d]">
                                 {he.adminVariantDefault}
                               </div>
                             ) : null}
@@ -1109,7 +1109,7 @@ export function PageEditor({
                 />
               </div>
             ) : (
-              <p className="text-sm text-neutral-500">{he.selectSectionPrompt}</p>
+              <p className="text-sm text-[#464a4d]">{he.selectSectionPrompt}</p>
             )}
           </aside>
         </div>

@@ -113,7 +113,7 @@ export function SectionInspectorForm({
     body = (
       <div className="space-y-3 text-sm">
         <label className="block">
-          <span className="text-neutral-600">{sectionContentFieldLabel("logoText")}</span>
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("logoText")}</span>
           <textarea
             className="lc-textarea-compact mt-1 w-full text-sm"
             rows={1}
@@ -122,7 +122,7 @@ export function SectionInspectorForm({
           />
         </label>
         <div>
-          <div className="text-neutral-600">{sectionContentFieldLabel("headerCta")}</div>
+          <div className="text-[#a1a4a5]">{sectionContentFieldLabel("headerCta")}</div>
           {linkRow(
             (d.headerCta as { label: string; href: string }) ?? { label: "", href: "" },
             (v) => setDraft({ ...d, headerCta: v }),
@@ -131,7 +131,7 @@ export function SectionInspectorForm({
         {pageNavSections?.length ? (
           <HeaderNavLinksEditor pageNavSections={pageNavSections} draft={d} setDraft={setDraft} />
         ) : (
-          <p className="rounded-lg bg-neutral-50 px-2.5 py-2 text-xs leading-relaxed text-neutral-600 ring-1 ring-neutral-200/80">
+          <p className="rounded-lg bg-white/5 px-2.5 py-2 text-xs leading-relaxed text-[#a1a4a5] ring-1 ring-[rgba(214,235,253,0.19)]">
             {he.navLinksAutoHint}
           </p>
         )}
@@ -143,7 +143,7 @@ export function SectionInspectorForm({
       <div className="space-y-3 text-sm">
         {["headline", "subheadline"].map((k) => (
           <label key={k} className="block">
-            <span className="text-neutral-600">
+            <span className="text-[#a1a4a5]">
               {k === "headline" ? "כותרת ראשית" : sectionContentFieldLabel(k)}
             </span>
             <textarea
@@ -163,14 +163,14 @@ export function SectionInspectorForm({
         <label className="flex cursor-pointer items-start gap-2.5 text-sm">
           <input
             type="checkbox"
-            className="mt-0.5 size-4 shrink-0 rounded border-neutral-300"
+            className="mt-0.5 size-4 shrink-0 rounded border-[rgba(214,235,253,0.19)]"
             checked={Boolean(d.heroBackdropCircle)}
             onChange={(e) => setDraft({ ...d, heroBackdropCircle: e.target.checked })}
           />
-          <span className="text-neutral-700">{sectionContentFieldLabel("heroBackdropCircle")}</span>
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("heroBackdropCircle")}</span>
         </label>
         <div>
-          <div className="text-neutral-600">{sectionContentFieldLabel("heroCta")}</div>
+          <div className="text-[#a1a4a5]">{sectionContentFieldLabel("heroCta")}</div>
           {linkRow(
             (d.heroCta as { label: string; href: string }) ?? { label: "", href: "" },
             (v) => setDraft({ ...d, heroCta: v }),
@@ -183,11 +183,11 @@ export function SectionInspectorForm({
     body = (
       <div className="space-y-3 text-sm">
         <div>
-          <div className="mb-1 text-neutral-600">{sectionContentFieldLabel("stats")}</div>
+          <div className="mb-1 text-[#a1a4a5]">{sectionContentFieldLabel("stats")}</div>
           {((d.stats as { value: string; label?: string }[]) ?? []).map((s, i) => (
             <div key={i} className="mb-2 flex flex-wrap items-end gap-2">
               <label className="block shrink-0">
-                <span className="text-xs text-neutral-500">{sectionContentFieldLabel("value")}</span>
+                <span className="text-xs text-[#464a4d]">{sectionContentFieldLabel("value")}</span>
                 <input
                   className="mt-0.5 w-24 text-sm"
                   value={s.value}
@@ -199,7 +199,7 @@ export function SectionInspectorForm({
                 />
               </label>
               <label className="block min-w-0 flex-1">
-                <span className="text-xs text-neutral-500">{sectionContentFieldLabel("label")}</span>
+                <span className="text-xs text-[#464a4d]">{sectionContentFieldLabel("label")}</span>
                 <input
                   className="mt-0.5 w-full text-sm"
                   value={s.label ?? ""}
@@ -229,7 +229,7 @@ export function SectionInspectorForm({
         {((d.blocks as { title: string; body: string }[]) ?? []).map((b, i) => (
           <div key={i} className="lc-field-stack-item space-y-2">
             <label className="block">
-              <span className="text-neutral-600">{sectionContentFieldLabel("title")}</span>
+              <span className="text-[#a1a4a5]">{sectionContentFieldLabel("title")}</span>
               <input
                 className="mt-1 w-full font-semibold"
                 value={b.title}
@@ -241,7 +241,7 @@ export function SectionInspectorForm({
               />
             </label>
             <label className="mt-2 block">
-              <span className="text-neutral-600">{sectionContentFieldLabel("body")}</span>
+              <span className="text-[#a1a4a5]">{sectionContentFieldLabel("body")}</span>
               <textarea
                 className="mt-1 w-full text-sm"
                 rows={3}
@@ -265,7 +265,7 @@ export function SectionInspectorForm({
           <div key={i} className="lc-field-stack-item space-y-1">
             {(["headline", "body", "authorName", "authorTitle"] as const).map((f) => (
               <label key={f} className="mb-1 block">
-                <span className="text-neutral-600">{testimonialFieldLabel(f)}</span>
+                <span className="text-[#a1a4a5]">{testimonialFieldLabel(f)}</span>
                 <textarea
                   className="mt-0.5 w-full text-sm"
                   rows={f === "body" ? 2 : 1}
@@ -279,7 +279,7 @@ export function SectionInspectorForm({
               </label>
             ))}
             <label className="mb-1 block">
-              <span className="text-neutral-600">{testimonialFieldLabel("starRating")}</span>
+              <span className="text-[#a1a4a5]">{testimonialFieldLabel("starRating")}</span>
               <select
                 className="mt-0.5 w-full text-sm"
                 value={String(
@@ -300,7 +300,7 @@ export function SectionInspectorForm({
               </select>
             </label>
             <div className="mt-1">
-              <span className="text-neutral-600">{testimonialFieldLabel("authorImage")}</span>
+              <span className="text-[#a1a4a5]">{testimonialFieldLabel("authorImage")}</span>
               <ImageUploadField
                 pageId={pageId}
                 label=""
@@ -355,17 +355,17 @@ export function SectionInspectorForm({
     body = (
       <div className="space-y-3 text-sm">
         <label className="block">
-          <span className="text-neutral-600">{sectionContentFieldLabel("title")}</span>
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("title")}</span>
           <input
             className="mt-1 w-full text-sm"
             value={String(d.title ?? "")}
             onChange={(e) => setDraft({ ...d, title: e.target.value })}
           />
         </label>
-        <div className="text-sm text-neutral-600">{sectionContentFieldLabel("paragraphs")}</div>
+        <div className="text-sm text-[#a1a4a5]">{sectionContentFieldLabel("paragraphs")}</div>
         {((d.paragraphs as string[]) ?? []).map((p, i) => (
           <label key={i} className="block">
-            <span className="text-xs text-neutral-500">פסקה {i + 1}</span>
+            <span className="text-xs text-[#464a4d]">פסקה {i + 1}</span>
             <textarea
               className="mt-0.5 w-full text-sm"
               rows={2}
@@ -388,7 +388,7 @@ export function SectionInspectorForm({
           + פסקה
         </button>
         <div>
-          <div className="mb-1 text-neutral-600">{he.ctaLinkGroup}</div>
+          <div className="mb-1 text-[#a1a4a5]">{he.ctaLinkGroup}</div>
           {linkRow(
             (d.cta as { label: string; href: string }) ?? { label: "", href: "#" },
             (v) => setDraft({ ...d, cta: v }),
@@ -403,7 +403,7 @@ export function SectionInspectorForm({
     body = (
       <div className="space-y-3 text-sm">
         <label className="block">
-          <span className="text-neutral-600">{sectionContentFieldLabel("title")}</span>
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("title")}</span>
           <input
             className="mt-1 w-full text-sm"
             value={String(d.title ?? "")}
@@ -411,7 +411,7 @@ export function SectionInspectorForm({
           />
         </label>
         {checklistTextOnly ? (
-          <p className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
+          <p className="rounded-lg border border-[rgba(214,235,253,0.19)] bg-white/5 px-3 py-2 text-xs text-[#a1a4a5]">
             {he.checklistVariantHidesImageHint}
           </p>
         ) : (
@@ -425,7 +425,7 @@ export function SectionInspectorForm({
         {((d.items as { title: string; description: string }[]) ?? []).map((it, i) => (
           <div key={i} className="lc-field-stack-item space-y-2">
             <label className="block">
-              <span className="text-neutral-600">{sectionContentFieldLabel("title")}</span>
+              <span className="text-[#a1a4a5]">{sectionContentFieldLabel("title")}</span>
               <input
                 className="mt-1 w-full font-medium"
                 value={it.title}
@@ -437,7 +437,7 @@ export function SectionInspectorForm({
               />
             </label>
             <label className="mt-2 block">
-              <span className="text-neutral-600">{sectionContentFieldLabel("description")}</span>
+              <span className="text-[#a1a4a5]">{sectionContentFieldLabel("description")}</span>
               <textarea
                 className="mt-1 w-full text-sm"
                 rows={2}
@@ -458,7 +458,7 @@ export function SectionInspectorForm({
     body = (
       <div className="space-y-3 text-sm">
         <label className="block">
-          <span className="text-neutral-600">{sectionContentFieldLabel("headline")}</span>
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("headline")}</span>
           <textarea
             className="mt-1 w-full text-sm"
             rows={2}
@@ -467,7 +467,7 @@ export function SectionInspectorForm({
           />
         </label>
         <label className="block">
-          <span className="text-neutral-600">{he.bodyTextLabel}</span>
+          <span className="text-[#a1a4a5]">{he.bodyTextLabel}</span>
           <textarea
             className="mt-1 w-full text-sm"
             rows={4}
@@ -476,7 +476,7 @@ export function SectionInspectorForm({
           />
         </label>
         <div>
-          <div className="mb-1 text-neutral-600">{he.ctaLinkGroup}</div>
+          <div className="mb-1 text-[#a1a4a5]">{he.ctaLinkGroup}</div>
           {linkRow(
             (d.cta as { label: string; href: string }) ?? { label: "", href: "#" },
             (v) => setDraft({ ...d, cta: v }),
@@ -489,7 +489,7 @@ export function SectionInspectorForm({
     body = (
       <div className="space-y-3 text-sm">
         <label className="block">
-          <span className="text-neutral-600">{sectionContentFieldLabel("badge")}</span>
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("badge")}</span>
           <input
             className="mt-1 w-full text-sm"
             value={String(d.badge ?? "")}
@@ -497,7 +497,7 @@ export function SectionInspectorForm({
           />
         </label>
         <label className="block">
-          <span className="text-neutral-600">{sectionContentFieldLabel("title")}</span>
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("title")}</span>
           <input
             className="mt-1 w-full text-sm"
             value={String(d.title ?? "")}
@@ -519,7 +519,7 @@ export function SectionInspectorForm({
               {sectionContentFieldLabel("featured")}
             </label>
             <label className="mt-2 block">
-              <span className="text-neutral-600">{sectionContentFieldLabel("number")}</span>
+              <span className="text-[#a1a4a5]">{sectionContentFieldLabel("number")}</span>
               <input
                 className="mt-1 w-full text-sm"
                 value={String(c.number ?? "")}
@@ -531,7 +531,7 @@ export function SectionInspectorForm({
               />
             </label>
             <label className="mt-2 block">
-              <span className="text-neutral-600">{sectionContentFieldLabel("title")}</span>
+              <span className="text-[#a1a4a5]">{sectionContentFieldLabel("title")}</span>
               <input
                 className="mt-1 w-full font-medium"
                 value={String(c.title ?? "")}
@@ -543,7 +543,7 @@ export function SectionInspectorForm({
               />
             </label>
             <label className="mt-2 block">
-              <span className="text-neutral-600">{sectionContentFieldLabel("description")}</span>
+              <span className="text-[#a1a4a5]">{sectionContentFieldLabel("description")}</span>
               <textarea
                 className="mt-1 w-full text-sm"
                 rows={2}
@@ -606,7 +606,7 @@ export function SectionInspectorForm({
     body = (
       <div className="space-y-3 text-sm">
         <label className="block">
-          <span className="text-neutral-600">{sectionContentFieldLabel("badge")}</span>
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("badge")}</span>
           <input
             className="mt-1 w-full text-sm"
             value={String(d.badge ?? "")}
@@ -614,7 +614,7 @@ export function SectionInspectorForm({
           />
         </label>
         <label className="block">
-          <span className="text-neutral-600">{sectionContentFieldLabel("title")}</span>
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("title")}</span>
           <input
             className="mt-1 w-full text-sm"
             value={String(d.title ?? "")}
@@ -622,7 +622,7 @@ export function SectionInspectorForm({
           />
         </label>
         <label className="block">
-          <span className="text-neutral-600">{sectionContentFieldLabel("intro")}</span>
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("intro")}</span>
           <textarea
             className="mt-1 w-full text-sm"
             rows={2}
@@ -632,9 +632,9 @@ export function SectionInspectorForm({
         </label>
         {((d.steps as { title: string; body: string }[]) ?? []).map((st, i) => (
           <div key={i} className="lc-field-stack-item space-y-2">
-            <div className="mb-2 text-xs font-medium text-neutral-600">שלב {i + 1}</div>
+            <div className="mb-2 text-xs font-medium text-[#a1a4a5]">שלב {i + 1}</div>
             <label className="block">
-              <span className="text-xs text-neutral-500">{sectionContentFieldLabel("title")}</span>
+              <span className="text-xs text-[#464a4d]">{sectionContentFieldLabel("title")}</span>
               <input
                 className="mt-0.5 w-full font-medium"
                 value={st.title}
@@ -646,7 +646,7 @@ export function SectionInspectorForm({
               />
             </label>
             <label className="mt-2 block">
-              <span className="text-xs text-neutral-500">{sectionContentFieldLabel("body")}</span>
+              <span className="text-xs text-[#464a4d]">{sectionContentFieldLabel("body")}</span>
               <textarea
                 className="mt-0.5 w-full text-sm"
                 rows={3}
@@ -667,7 +667,7 @@ export function SectionInspectorForm({
     body = (
       <div className="space-y-3 text-sm">
         <label className="block">
-          <span className="text-neutral-600">{sectionContentFieldLabel("badge")}</span>
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("badge")}</span>
           <input
             className="mt-1 w-full text-sm"
             value={String(d.badge ?? "")}
@@ -675,7 +675,7 @@ export function SectionInspectorForm({
           />
         </label>
         <label className="block">
-          <span className="text-neutral-600">{sectionContentFieldLabel("title")}</span>
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("title")}</span>
           <input
             className="mt-1 w-full text-sm"
             value={String(d.title ?? "")}
@@ -685,7 +685,7 @@ export function SectionInspectorForm({
         {((d.items as { question: string; answer: string }[]) ?? []).map((it, i) => (
           <div key={i} className="lc-field-stack-item space-y-2">
             <label className="block">
-              <span className="text-neutral-600">{sectionContentFieldLabel("question")}</span>
+              <span className="text-[#a1a4a5]">{sectionContentFieldLabel("question")}</span>
               <textarea
                 className="mt-1 w-full font-medium"
                 rows={2}
@@ -698,7 +698,7 @@ export function SectionInspectorForm({
               />
             </label>
             <label className="mt-2 block">
-              <span className="text-neutral-600">{sectionContentFieldLabel("answer")}</span>
+              <span className="text-[#a1a4a5]">{sectionContentFieldLabel("answer")}</span>
               <textarea
                 className="mt-1 w-full text-sm"
                 rows={3}
@@ -743,7 +743,7 @@ export function SectionInspectorForm({
     body = (
       <div className="space-y-3 text-sm">
         <label className="block">
-          <span className="text-neutral-600">{sectionContentFieldLabel("badge")}</span>
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("badge")}</span>
           <input
             className="mt-1 w-full text-sm"
             value={String(d.badge ?? "")}
@@ -751,7 +751,7 @@ export function SectionInspectorForm({
           />
         </label>
         <label className="block">
-          <span className="text-neutral-600">{sectionContentFieldLabel("headline")}</span>
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("headline")}</span>
           <textarea
             className="mt-1 w-full text-sm"
             rows={2}
@@ -760,7 +760,7 @@ export function SectionInspectorForm({
           />
         </label>
         <label className="block">
-          <span className="text-neutral-600">{sectionContentFieldLabel("email")}</span>
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("email")}</span>
           <input
             dir="ltr"
             className="mt-1 w-full text-sm"
@@ -769,7 +769,7 @@ export function SectionInspectorForm({
           />
         </label>
         <label className="block">
-          <span className="text-neutral-600">{sectionContentFieldLabel("phone")}</span>
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("phone")}</span>
           <input
             dir="ltr"
             className="mt-1 w-full text-sm"
@@ -778,7 +778,7 @@ export function SectionInspectorForm({
           />
         </label>
         <label className="block">
-          <span className="text-neutral-600">{sectionContentFieldLabel("submitLabel")}</span>
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("submitLabel")}</span>
           <input
             className="mt-1 w-full text-sm"
             value={String(d.submitLabel ?? "")}
@@ -786,18 +786,18 @@ export function SectionInspectorForm({
           />
         </label>
         <label className="block">
-          <span className="text-neutral-600">{sectionContentFieldLabel("footerCredit")}</span>
+          <span className="text-[#a1a4a5]">{sectionContentFieldLabel("footerCredit")}</span>
           <input
             className="mt-1 w-full text-sm"
             value={String(d.footerCredit ?? "")}
             onChange={(e) => setDraft({ ...d, footerCredit: e.target.value })}
           />
         </label>
-        <div className="text-neutral-600">{sectionContentFieldLabel("social")}</div>
+        <div className="text-[#a1a4a5]">{sectionContentFieldLabel("social")}</div>
         {((d.social as { network: string; href: string }[]) ?? []).map((s, i) => (
           <div key={i} className="flex flex-wrap items-end gap-2">
             <label className="block shrink-0">
-              <span className="text-xs text-neutral-500">{sectionContentFieldLabel("network")}</span>
+              <span className="text-xs text-[#464a4d]">{sectionContentFieldLabel("network")}</span>
               <input
                 className="mt-0.5 w-28 text-sm"
                 value={s.network}
@@ -809,7 +809,7 @@ export function SectionInspectorForm({
               />
             </label>
             <label className="block min-w-0 flex-1">
-              <span className="text-xs text-neutral-500">{sectionContentFieldLabel("href")}</span>
+              <span className="text-xs text-[#464a4d]">{sectionContentFieldLabel("href")}</span>
               <input
                 dir="ltr"
                 className="mt-0.5 w-full text-sm"
@@ -823,11 +823,11 @@ export function SectionInspectorForm({
             </label>
           </div>
         ))}
-        <div className="text-neutral-600">{sectionContentFieldLabel("formFields")}</div>
+        <div className="text-[#a1a4a5]">{sectionContentFieldLabel("formFields")}</div>
         {((d.formFields as Record<string, unknown>[]) ?? []).map((f, i) => (
           <div key={i} className="lc-field-stack-item flex flex-wrap items-end gap-2 text-xs">
             <label className="flex min-w-[4.5rem] flex-col gap-0.5">
-              <span className="text-neutral-600">{sectionContentFieldLabel("name")}</span>
+              <span className="text-[#a1a4a5]">{sectionContentFieldLabel("name")}</span>
               <input
                 className="w-full text-xs"
                 value={String(f.name ?? "")}
@@ -840,7 +840,7 @@ export function SectionInspectorForm({
               />
             </label>
             <label className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <span className="text-neutral-600">{sectionContentFieldLabel("label")}</span>
+              <span className="text-[#a1a4a5]">{sectionContentFieldLabel("label")}</span>
               <input
                 className="w-full text-xs"
                 value={String(f.label ?? "")}
@@ -853,7 +853,7 @@ export function SectionInspectorForm({
               />
             </label>
             <label className="flex shrink-0 flex-col gap-0.5">
-              <span className="text-neutral-600">{sectionContentFieldLabel("type")}</span>
+              <span className="text-[#a1a4a5]">{sectionContentFieldLabel("type")}</span>
               <select
                 className="min-w-[7rem] text-xs"
                 value={String(f.type ?? "text")}
@@ -876,11 +876,11 @@ export function SectionInspectorForm({
   }
 
   return (
-    <div className={embedded ? "" : "rounded-2xl bg-white p-4 shadow-sm"}>
+    <div className={embedded ? "" : "rounded-2xl bg-white/5 p-4 shadow-[0_0_0_1px_rgba(176,199,217,0.145)]"}>
       {!embedded ? (
         <>
           <h3 className="font-semibold">{he.sectionInspector}</h3>
-          <p className="text-xs text-neutral-500">{sectionKey}</p>
+          <p className="text-xs text-[#464a4d]">{sectionKey}</p>
         </>
       ) : null}
       <div className={embedded ? "" : "mt-4"}>{body}</div>
@@ -894,7 +894,7 @@ export function SectionInspectorForm({
           {onAdd ? he.addSectionConfirm : he.save}
         </button>
       )}
-      {msg ? <p className="mt-2 text-xs text-neutral-600">{msg}</p> : null}
+      {msg ? <p className="mt-2 text-xs text-[#a1a4a5]">{msg}</p> : null}
     </div>
   );
 }

@@ -24,9 +24,9 @@ function isRenderableSectionKey(k: string): k is SectionKey {
 }
 
 function categoryBadgeClass(slug: string): string {
-  if (slug === "hero") return "bg-sky-100 text-sky-900 ring-sky-200/80";
-  if (slug === "conversion") return "bg-amber-100 text-amber-950 ring-amber-200/80";
-  return "bg-emerald-100 text-emerald-950 ring-emerald-200/80";
+  if (slug === "hero") return "bg-[var(--lc-primary)]/15 text-[var(--lc-primary)]";
+  if (slug === "conversion") return "bg-[#ffc53d]/15 text-[#ffc53d]";
+  return "bg-[#11ff99]/15 text-[#11ff99]";
 }
 
 function SectionCardThumbnail({ sec }: { sec: SectionDefWithCount }) {
@@ -42,10 +42,10 @@ function SectionCardThumbnail({ sec }: { sec: SectionDefWithCount }) {
   }
   return (
     <div
-      className="flex h-[148px] w-full flex-col items-center justify-center gap-1 bg-gradient-to-br from-neutral-100 to-neutral-200 px-4 text-center"
+      className="flex h-[148px] w-full flex-col items-center justify-center gap-1 bg-white/5 px-4 text-center"
       aria-hidden
     >
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" className="text-neutral-400">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" className="text-[#464a4d]">
         <path
           d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6Z"
           stroke="currentColor"
@@ -53,7 +53,7 @@ function SectionCardThumbnail({ sec }: { sec: SectionDefWithCount }) {
         />
         <path d="M8 10h8M8 14h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
       </svg>
-      <span className="text-[11px] font-medium text-neutral-500">{he.adminSectionNoThumbFallback}</span>
+      <span className="text-[11px] font-medium text-[#464a4d]">{he.adminSectionNoThumbFallback}</span>
     </div>
   );
 }
@@ -100,48 +100,48 @@ export function SectionsManager({
       {sections.map((sec) => (
         <article
           key={sec.key}
-          className="flex flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition-shadow hover:shadow-md"
+          className="flex flex-col overflow-hidden rounded-2xl border border-[rgba(214,235,253,0.19)] bg-white/5 shadow-[0_0_0_1px_rgba(176,199,217,0.145)] transition-shadow hover:shadow-[0_0_0_1px_rgba(176,199,217,0.145)]"
         >
-          <div className="relative overflow-hidden border-b border-neutral-100 bg-neutral-100">
+          <div className="relative overflow-hidden border-b border-[rgba(214,235,253,0.19)] bg-white/5">
             <SectionCardThumbnail sec={sec} />
           </div>
 
           <div className="flex min-h-0 flex-1 flex-col gap-2 p-4">
             <div className="flex flex-wrap items-start justify-between gap-2">
-              <h2 className="text-base font-semibold leading-snug text-neutral-900">{sec.title_he}</h2>
+              <h2 className="text-base font-semibold leading-snug text-[#f0f0f0]">{sec.title_he}</h2>
               <span
-                className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-medium ring-1 ${categoryBadgeClass(sec.category_slug)}`}
+                className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-medium ${categoryBadgeClass(sec.category_slug)}`}
               >
                 {sec.category_slug}
               </span>
             </div>
 
-            <p className="line-clamp-2 text-xs leading-relaxed text-neutral-600">{sec.description_he}</p>
+            <p className="line-clamp-2 text-xs leading-relaxed text-[#a1a4a5]">{sec.description_he}</p>
 
-            <div className="flex flex-wrap items-center gap-2 text-xs text-neutral-500" dir="ltr">
-              <code className="rounded-md bg-neutral-100 px-2 py-0.5 font-mono text-[11px] text-neutral-700">
+            <div className="flex flex-wrap items-center gap-2 text-xs text-[#464a4d]" dir="ltr">
+              <code className="rounded-md bg-white/5 px-2 py-0.5 font-mono text-[11px] text-[#a1a4a5]">
                 {sec.key}
               </code>
-              <span className="text-neutral-400">·</span>
+              <span className="text-[#464a4d]">·</span>
               <span>
                 {he.adminSectionVariants}: {sec.variant_count}
               </span>
             </div>
 
-            <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-neutral-100 pt-3">
+            <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-[rgba(214,235,253,0.19)] pt-3">
               <button
                 type="button"
                 disabled={pending}
                 onClick={() => handleToggle(sec.key, sec.enabled)}
                 className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none disabled:opacity-50 ${
-                  sec.enabled ? "bg-blue-600" : "bg-neutral-300"
+                  sec.enabled ? "bg-[var(--lc-primary)]" : "bg-white/10"
                 }`}
                 role="switch"
                 aria-checked={sec.enabled}
                 aria-label={he.adminToggleEnabled}
               >
                 <span
-                  className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow ring-0 transition-transform duration-200 ${
+                  className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-[#f0f0f0] transition-transform duration-200 ${
                     sec.enabled ? "-translate-x-5" : "translate-x-0"
                   }`}
                 />
@@ -150,7 +150,7 @@ export function SectionsManager({
               <div className="flex items-center gap-1">
                 <Link
                   href={`/admin/sections/${sec.key}`}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-300 text-neutral-600 transition hover:border-neutral-400 hover:bg-neutral-100 hover:text-neutral-900"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[rgba(214,235,253,0.19)] text-[#a1a4a5] transition hover:border-[rgba(214,235,253,0.19)] hover:bg-white/10 hover:text-[#f0f0f0]"
                   aria-label={he.editSectionAria}
                   title={he.editSectionAria}
                 >
@@ -173,7 +173,7 @@ export function SectionsManager({
                   type="button"
                   disabled={pending}
                   onClick={() => handleDelete(sec)}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 bg-white text-red-600 transition hover:border-red-300 hover:bg-red-50 disabled:opacity-50"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#ff2047]/30 bg-white/5 text-[#ff2047] transition hover:border-[#ff2047]/30 hover:bg-[#ff2047]/10 disabled:opacity-50"
                   aria-label={he.adminDeleteSectionAria}
                   title={he.adminDeleteSection}
                 >

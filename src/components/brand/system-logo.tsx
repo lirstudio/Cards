@@ -7,7 +7,7 @@ import { he } from "@/lib/i18n/he";
 type Variant = "onLight" | "onDark";
 
 export function SystemLogo({
-  variant = "onLight",
+  variant = "onDark",
   className,
   heightClass = "h-8",
 }: {

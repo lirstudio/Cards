@@ -13,19 +13,19 @@ export default async function SettingsAccountPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold">{he.settingsAccount}</h1>
-      <p className="mt-2 text-sm text-neutral-600">
+      <h1 className="text-2xl font-bold text-[#f0f0f0]">{he.settingsAccount}</h1>
+      <p className="mt-2 text-sm text-[#a1a4a5]">
         כתובת האימייל משמשת להתחברות. לא ניתן לשנות אותה מהממשק הזה — נדרש שירות Supabase Auth.
       </p>
-      <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-4">
-        <div className="text-sm font-medium text-neutral-500">{he.email}</div>
-        <div className="mt-1 font-medium" dir="ltr">
+      <div className="mt-6 rounded-2xl border border-[rgba(214,235,253,0.19)] p-4">
+        <div className="text-sm font-medium text-[#a1a4a5]">{he.email}</div>
+        <div className="mt-1 font-medium text-[#f0f0f0]" dir="ltr">
           {user?.email ?? "—"}
         </div>
       </div>
       <div className="mt-8">
-        <h2 className="font-semibold">איפוס סיסמה</h2>
-        <p className="mt-1 text-sm text-neutral-600">
+        <h2 className="font-semibold text-[#f0f0f0]">איפוס סיסמה</h2>
+        <p className="mt-1 text-sm text-[#a1a4a5]">
           יישלח מייל עם קישור לאיפוס הסיסמה לכתובת שלעיל.
         </p>
         <PasswordResetForm />

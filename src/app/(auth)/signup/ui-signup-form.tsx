@@ -10,10 +10,10 @@ export function SignupForm() {
   return (
     <form action={action} className="mt-8 space-y-4">
       {state?.error ? (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{state.error}</p>
+        <p className="rounded-lg bg-[#ff2047]/10 px-3 py-2 text-sm text-[#ff2047]">{state.error}</p>
       ) : null}
       <div>
-        <label htmlFor="displayName" className="mb-1 block text-sm font-medium">
+        <label htmlFor="displayName" className="mb-1 block text-sm font-medium text-[#f0f0f0]">
           {he.displayName}
         </label>
         <input
@@ -24,7 +24,7 @@ export function SignupForm() {
         />
       </div>
       <div>
-        <label htmlFor="email" className="mb-1 block text-sm font-medium">
+        <label htmlFor="email" className="mb-1 block text-sm font-medium text-[#f0f0f0]">
           {he.email}
         </label>
         <input
@@ -38,7 +38,7 @@ export function SignupForm() {
         />
       </div>
       <div>
-        <label htmlFor="password" className="mb-1 block text-sm font-medium">
+        <label htmlFor="password" className="mb-1 block text-sm font-medium text-[#f0f0f0]">
           {he.password}
         </label>
         <input
@@ -53,7 +53,7 @@ export function SignupForm() {
       </div>
       <button
         type="submit"
-        className="w-full rounded-full bg-[var(--lc-primary)] py-3 text-sm font-medium text-white"
+        className="w-full rounded-full bg-white py-3 text-sm font-medium text-black hover:bg-white/90"
       >
         {he.signup}
       </button>
