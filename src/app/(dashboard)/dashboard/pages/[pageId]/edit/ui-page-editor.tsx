@@ -73,20 +73,6 @@ function clonePageSections(rows: SectionRow[]): SectionRow[] {
   }));
 }
 
-/** סדר סקשנים, הוספות/מחיקות מקומיות או שינוי תוכן/גלוי לעומת baseline מהשרת */
-function isPageDirty(current: SectionRow[], baseline: SectionRow[]): boolean {
-  const orderA = current.map((s) => s.id).join("\0");
-  const orderB = baseline.map((s) => s.id).join("\0");
-  if (orderA !== orderB) return true;
-  const byId = new Map(baseline.map((s) => [s.id, s]));
-  for (const s of current) {
-    const b = byId.get(s.id);
-    if (!b) return true;
-    if (b.visible !== s.visible) return true;
-    if (JSON.stringify(b.content) !== JSON.stringify(s.content)) return true;
-  }
-  return false;
-}
 
 const INSERT_PREFIX = "insert:";
 
@@ -347,7 +333,7 @@ export function PageEditor({
 }) {
   const router = useRouter();
   const [sections, setSections] = useState(initialSections);
-  const [baselineSections, setBaselineSections] = useState(() => clonePageSections(initialSections));
+  const [isDirty, setIsDirty] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(initialSections[0]?.id ?? null);
@@ -369,37 +355,6 @@ export function PageEditor({
     setIsPublishedLive(isPublishedStatus(status));
   }, [status]);
 
-  const isDirty = useMemo(() => {
-    const dirty = isPageDirty(sections, baselineSections);
-    if (dirty && typeof window !== "undefined") {
-      const sIds = sections.map((s) => s.id);
-      const bIds = baselineSections.map((s) => s.id);
-      if (sIds.join() !== bIds.join()) {
-        console.log("[dirty] ID order mismatch", { sIds, bIds });
-      } else {
-        const byId = new Map(baselineSections.map((s) => [s.id, s]));
-        for (const s of sections) {
-          const b = byId.get(s.id);
-          if (!b) { console.log("[dirty] missing id", s.id); continue; }
-          if (b.visible !== s.visible) { console.log("[dirty] visible diff", s.id); continue; }
-          const sj = JSON.stringify(s.content);
-          const bj = JSON.stringify(b.content);
-          if (sj !== bj) {
-            console.log("[dirty] content diff for", s.id, s.section_key);
-            const sKeys = Object.keys(s.content).sort();
-            const bKeys = Object.keys(b.content).sort();
-            console.log("[dirty] section keys:", sKeys, "baseline keys:", bKeys);
-            for (const k of new Set([...sKeys, ...bKeys])) {
-              const sv = JSON.stringify(s.content[k]);
-              const bv = JSON.stringify(b.content[k]);
-              if (sv !== bv) console.log(`[dirty] key "${k}":`, sv, "vs", bv);
-            }
-          }
-        }
-      }
-    }
-    return dirty;
-  }, [sections, baselineSections]);
 
   const styleForSectionKey = useCallback(
     (sectionKey: string): SectionStyleOverrides | undefined =>
@@ -418,15 +373,13 @@ export function PageEditor({
 
   const sectionsRef = useRef(sections);
   sectionsRef.current = sections;
-  const baselineRef = useRef(baselineSections);
-  baselineRef.current = baselineSections;
+  const isDirtyRef = useRef(isDirty);
+  isDirtyRef.current = isDirty;
 
   const persistSections = useCallback(async (): Promise<boolean> => {
-    const snap = sectionsRef.current;
-    const base = baselineRef.current;
-    if (!isPageDirty(snap, base)) return true;
+    if (!isDirtyRef.current) return true;
 
-    const working = clonePageSections(snap);
+    const working = clonePageSections(sectionsRef.current);
     const rows = working.map((s) => ({
       id: s.id.startsWith(TEMP_SECTION_PREFIX) ? null : s.id,
       section_key: s.section_key,
@@ -446,7 +399,7 @@ export function PageEditor({
     }));
 
     setSections(saved);
-    setBaselineSections(clonePageSections(saved));
+    setIsDirty(false);
     setSelectedId((prev) => {
       if (!prev) return prev;
       const idx = working.findIndex((w) => w.id === prev);
@@ -514,6 +467,7 @@ export function PageEditor({
 
   const handleDraftChange = useCallback((draft: Record<string, unknown>) => {
     if (!selectedId) return;
+    setIsDirty(true);
     setSections((prev) =>
       prev.map((s) => (s.id === selectedId ? { ...s, content: draft } : s)),
     );
@@ -539,6 +493,7 @@ export function PageEditor({
       const [removed] = next.splice(oldIdx, 1);
       const newIdx = k > oldIdx ? k - 1 : k;
       next.splice(newIdx, 0, removed);
+      setIsDirty(true);
       setSections(next);
       return;
     }
@@ -550,6 +505,7 @@ export function PageEditor({
       const next = [...sections];
       const [removed] = next.splice(oldIndex, 1);
       next.splice(newIndex, 0, removed);
+      setIsDirty(true);
       setSections(next);
     }
   }
@@ -732,6 +688,7 @@ export function PageEditor({
                         content: draft,
                         visible: true,
                       };
+                      setIsDirty(true);
                       setSections((prev) => [...prev, row]);
                       setAddSectionKey(null);
                       setSelectedId(tempId);
@@ -856,6 +813,7 @@ export function PageEditor({
                                     className="pointer-events-auto inline-flex h-8 w-8 shrink-0 touch-manipulation items-center justify-center rounded-md bg-white/85 text-red-600 ring-1 ring-[rgba(214,235,253,0.19)] backdrop-blur-sm hover:bg-red-50 hover:text-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500"
                                     onClick={(ev) => {
                                       ev.stopPropagation();
+                                      setIsDirty(true);
                                       setSections((s) => s.filter((x) => x.id !== section.id));
                                       if (selectedId === section.id) {
                                         setSelectedId(null);
