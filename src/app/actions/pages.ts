@@ -367,7 +367,8 @@ export async function insertSectionAt(
     .from("page_sections")
     .select("id")
     .eq("landing_page_id", pageId)
-    .order("sort_order", { ascending: true });
+    .order("sort_order", { ascending: true })
+    .order("id", { ascending: true });
 
   const ids = (rows ?? []).map((r) => r.id);
   const insertIndex = Math.max(0, Math.min(index, ids.length));
@@ -522,6 +523,7 @@ export async function persistPageEditorState(
   const r = await runPersistPageEditorState(supabase, user.id, pageId, rows);
   if (r.ok) {
     revalidatePath("/dashboard");
+    revalidatePath(`/dashboard/pages/${pageId}/edit`);
     revalidatePath(`/${r.slug}`);
     return { ok: true, orderedSectionIds: r.orderedSectionIds };
   }

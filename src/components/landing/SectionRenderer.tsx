@@ -215,6 +215,7 @@ export function SectionRenderer({
 
   function renderSiteHeaderNav(c: {
     logoText: string;
+    logoImageUrl?: string;
     topBarLeft?: string;
     topBarRight?: string;
     navLinks: { label: string; href: string }[];
@@ -234,44 +235,60 @@ export function SectionRenderer({
             href: l.href,
           }));
     const ctaHref = resolveHeaderCtaHref(c.headerCta.href, pageNavSections);
+    const sectionLogoUrl = c.logoImageUrl?.trim();
+    const logoTextTrim = c.logoText?.trim() ?? "";
+    const themeLogoUrl = siteLogoUrl;
     const headerNavListDir = (dir ?? "rtl") as "rtl" | "ltr";
     const barPad = embedded ? "px-3 py-2.5" : "px-4 py-3 @md:px-6 @md:py-3.5";
     const outerY = embedded ? "py-2" : "py-4 @md:py-6";
     return (
       <header className={`mx-auto w-full max-w-6xl ${LC_SECTION_PX} ${outerY}`}>
         <nav
-          className={`flex w-full flex-col gap-3 rounded-[1.25rem] bg-[#0a0a0a] shadow-[0_0_0_1px_rgba(176,199,217,0.145)] ring-1 ring-[rgba(176,199,217,0.145)] transition-[box-shadow,transform] duration-300 @md:flex-row @md:items-center @md:gap-3 motion-safe:hover:shadow-[0_0_0_1px_rgba(214,235,253,0.18),0_18px_40px_-24px_rgba(0,0,0,0.35)] ${barPad}`}
+          className={`grid w-full grid-cols-[1fr_auto] grid-rows-[auto_auto] items-center gap-3 rounded-[1.25rem] bg-[#0a0a0a] shadow-[0_0_0_1px_rgba(176,199,217,0.145)] ring-1 ring-[rgba(176,199,217,0.145)] transition-[box-shadow,transform] duration-300 @md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] @md:grid-rows-1 @md:gap-4 motion-safe:hover:shadow-[0_0_0_1px_rgba(214,235,253,0.18),0_18px_40px_-24px_rgba(0,0,0,0.35)] ${barPad}`}
         >
-          <div className="flex w-full min-w-0 items-center justify-between gap-3 @md:contents">
-            <a
-              href="#lc-page-top"
-              className="relative z-10 flex shrink-0 items-center text-lg font-bold tracking-tight text-[#f0f0f0] transition-opacity duration-200 hover:opacity-85 @md:text-xl"
-              style={siteLogoUrl ? undefined : { color: heading }}
-            >
-              {siteLogoUrl ? (
-                <>
-                  {/* eslint-disable-next-line @next/next/no-img-element -- URL משתמש חיצוני */}
-                  <img
-                    src={siteLogoUrl}
-                    alt={c.logoText}
-                    className="h-8 w-auto max-w-[180px] object-contain object-right @md:h-9 @md:max-w-[200px]"
-                  />
-                </>
-              ) : (
-                c.logoText
-              )}
-            </a>
-            <a
-              href={ctaHref}
-              className="lc-cta-interactive relative z-10 inline-flex shrink-0 items-center justify-center rounded-full px-5 py-2.5 text-sm font-medium text-white hover:opacity-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/35 @md:order-last"
-              style={{ backgroundColor: primary }}
-            >
-              {c.headerCta.label}
-            </a>
-          </div>
+          <a
+            href="#lc-page-top"
+            className="relative z-10 col-start-1 row-start-1 flex shrink-0 items-center justify-self-start text-lg font-bold tracking-tight text-[#f0f0f0] transition-opacity duration-200 hover:opacity-85 @md:px-1 @md:text-xl"
+            style={
+              sectionLogoUrl || (!logoTextTrim && themeLogoUrl)
+                ? undefined
+                : { color: heading }
+            }
+          >
+            {sectionLogoUrl ? (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element -- URL משתמש חיצוני */}
+                <img
+                  src={sectionLogoUrl}
+                  alt={logoTextTrim || "לוגו"}
+                  className="h-8 w-auto max-w-[180px] object-contain object-right @md:h-9 @md:max-w-[200px]"
+                />
+              </>
+            ) : logoTextTrim ? (
+              logoTextTrim
+            ) : themeLogoUrl ? (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element -- URL משתמש חיצוני */}
+                <img
+                  src={themeLogoUrl}
+                  alt={logoTextTrim || "לוגו"}
+                  className="h-8 w-auto max-w-[180px] object-contain object-right @md:h-9 @md:max-w-[200px]"
+                />
+              </>
+            ) : (
+              "לוגו"
+            )}
+          </a>
+          <a
+            href={ctaHref}
+            className="lc-cta-interactive relative z-10 col-start-2 row-start-1 inline-flex shrink-0 items-center justify-center justify-self-end rounded-full px-5 py-2.5 text-sm font-medium text-white hover:opacity-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/35 @md:col-start-3 @md:justify-self-end @md:px-5"
+            style={{ backgroundColor: primary }}
+          >
+            {c.headerCta.label}
+          </a>
           <ul
             dir={headerNavListDir}
-            className={`relative z-0 flex min-w-0 flex-1 flex-row flex-nowrap items-center justify-start gap-x-4 overflow-x-auto overflow-y-visible py-0.5 text-sm font-medium [-ms-overflow-style:none] [scrollbar-width:none] @md:order-2 @md:gap-x-5 @md:px-1 [&::-webkit-scrollbar]:hidden ${embedded ? "px-0" : "px-0.5"}`}
+            className={`relative z-0 col-span-2 row-start-2 flex min-w-0 flex-row flex-nowrap items-center justify-center gap-x-4 overflow-x-auto overflow-y-visible py-0.5 text-sm font-medium [-ms-overflow-style:none] [scrollbar-width:none] @md:col-span-1 @md:col-start-2 @md:row-start-1 @md:w-full @md:max-w-full @md:justify-center @md:gap-x-5 @md:px-2 [&::-webkit-scrollbar]:hidden ${embedded ? "px-0" : "px-0.5"}`}
           >
             {navLinksToRender.map((l) => (
               <li key={l.sectionId} className="shrink-0">
@@ -448,6 +465,7 @@ export function SectionRenderer({
           sectionId={sectionId}
           pageNavSections={pageNavSections}
           __hidden={c.__hidden}
+          editorPreview={editorPreview}
         />
       </div>
     );

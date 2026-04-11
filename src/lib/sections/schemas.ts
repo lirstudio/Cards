@@ -58,6 +58,8 @@ export const legacyNavHeroStatsSchema = heroImageSplitContentSchema;
 export const sectionSchemas = {
   site_header_nav: withHidden(z.object({
     logoText: z.string(),
+    /** לוגו כתמונה — אם מלא, מוצג במקום טקסט הלוגו (לא יחד איתו) */
+    logoImageUrl: z.string().optional().default(""),
     topBarLeft: z.string().optional(),
     topBarRight: z.string().optional(),
     /** Legacy — לא בשימוש כשקיימים קישורים דינמיים מהעמוד */

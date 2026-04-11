@@ -7,6 +7,8 @@ import {
   PublishedLandingRoot,
 } from "@/lib/landing/published-landing";
 
+export const dynamic = "force-dynamic";
+
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

@@ -26,7 +26,8 @@ export async function PublishedLandingRoot({ slug }: { slug: string }) {
     .from("page_sections")
     .select("*")
     .eq("landing_page_id", page.id)
-    .order("sort_order", { ascending: true });
+    .order("sort_order", { ascending: true })
+    .order("id", { ascending: true });
 
   const typedSections = (sections ?? []) as unknown as PageSectionRow[];
 

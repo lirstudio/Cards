@@ -152,6 +152,8 @@ export type HeroImmersiveBgProps = BaseHeroProps & {
   heroCta: { label: string; href: string };
   secondaryCta: { label: string; href: string };
   __hidden?: string[];
+  /** Editor: full-bleed hero layer blocked the drag handle; pointer-events pass through except links. */
+  editorPreview?: boolean;
 };
 
 export function HeroImmersiveBg({
@@ -167,6 +169,7 @@ export function HeroImmersiveBg({
   sectionId,
   pageNavSections,
   __hidden,
+  editorPreview = false,
 }: HeroImmersiveBgProps) {
   const heroSecId = landingSectionDomId(sectionId);
   const heroAnchor = LANDING_SECTION_ANCHOR_CLASS;
@@ -174,11 +177,14 @@ export function HeroImmersiveBg({
   const primaryHref = resolveHeaderCtaHref(heroCta.href, pageNavSections);
   const secondaryHref = resolveHeaderCtaHref(secondaryCta.href, pageNavSections);
   const minH = embedded ? "min-h-[200px]" : "min-h-[min(85vh,760px)]";
+  const editorHitThrough =
+    editorPreview &&
+    "pointer-events-none [&_*]:pointer-events-none [&_a]:pointer-events-auto";
 
   return (
     <section
       id={heroSecId}
-      className={`${heroAnchor} relative flex w-full flex-col overflow-hidden ${minH}`}
+      className={`${heroAnchor} relative flex w-full flex-col overflow-hidden ${minH} ${editorHitThrough || ""}`}
     >
       <div className="absolute inset-0">
         {imageSrcIsProvided(backgroundImage) ? (

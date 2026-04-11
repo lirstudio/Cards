@@ -142,7 +142,13 @@ export const he = {
   /** שדה URL לתמונה — בלי דוגמה חיצונית */
   imageUrlFieldPlaceholder: "כתובת תמונה (ריק עד שתמלאו או תעלו קובץ)",
   imageSlotAria: "מקום לתמונה — יש להוסיף קישור או להעלות קובץ",
+  imageUploadEmptyHint: "עדיין אין תמונה — לחצו להעלאת קובץ",
   uploadDone: "הועלה בהצלחה",
+  imageRemove: "הסר תמונה",
+  uploadImagesMultiple: "העלאת תמונות (כמה בבת אחת)",
+  galleryAddMoreImages: "הוספת תמונות נוספות",
+  galleryUploadPartial: "חלק מהקבצים לא הועלו — נוספו רק אלה שהצליחו",
+  galleryEditorImagesLabel: "תמונות בגלריה",
   supabaseLocalUnavailable:
     "לא ניתן להתחבר ל־Supabase המקומי. ודאו ש־Docker Desktop פעיל, ואז הריצו בפרויקט:",
   supabaseAuthError: "שגיאת התחברות ל־Supabase",

@@ -39,7 +39,8 @@ export default async function EditPagePage({
       .from("page_sections")
       .select("*")
       .eq("landing_page_id", pageId)
-      .order("sort_order", { ascending: true }),
+      .order("sort_order", { ascending: true })
+      .order("id", { ascending: true }),
     supabase.from("section_definitions").select("*").order("sort_order"),
   ]);
 
@@ -61,15 +62,12 @@ export default async function EditPagePage({
 
   const theme = typedPage.theme ?? {};
 
-  const sectionsFingerprint = [...typedSections]
-    .sort((a, b) => a.id.localeCompare(b.id))
-    .map((s) => `${s.id}:${JSON.stringify(s.content)}:${s.visible}`)
-    .join("|");
+  const sectionsOrderKey = typedSections.map((s) => s.id).join("|");
 
   return (
     <div>
       <PageEditor
-        key={`${typedPage.updated_at}-${sectionsFingerprint}`}
+        key={`${pageId}-${sectionsOrderKey}`}
         pageId={pageId}
         slug={typedPage.slug}
         status={typedPage.status}

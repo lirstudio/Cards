@@ -1009,23 +1009,40 @@ export async function upsertSectionDefinition(input: {
   const parsedStyle = sectionStyleOverridesSchema.safeParse(input.style_overrides ?? {});
   if (!parsedStyle.success) return { ok: false, error: "ערכי עיצוב לא תקינים" };
 
+  const baseRow = {
+    key: input.key,
+    title_he: input.title_he,
+    description_he: input.description_he,
+    category_slug: input.category_slug,
+    enabled: input.enabled,
+    sort_order: input.sort_order,
+    preview_image_url: input.preview_image_url ?? null,
+  };
+
   const { error } = await admin
     .from("section_definitions")
-    .upsert(
-      {
-        key: input.key,
-        title_he: input.title_he,
-        description_he: input.description_he,
-        category_slug: input.category_slug,
-        enabled: input.enabled,
-        sort_order: input.sort_order,
-        preview_image_url: input.preview_image_url ?? null,
-        style_overrides: parsedStyle.data,
-      },
-      { onConflict: "key" },
-    );
+    .upsert({ ...baseRow, style_overrides: parsedStyle.data }, { onConflict: "key" });
 
-  if (error) return { ok: false, error: error.message };
+  if (error) {
+    // PGRST205 = column not found in schema cache (migration not applied yet).
+    // Fall back to saving without style_overrides so the rest of the data isn't lost.
+    if (error.code === "PGRST205" || error.message.includes("style_overrides")) {
+      const { error: fallbackError } = await admin
+        .from("section_definitions")
+        .upsert(baseRow, { onConflict: "key" });
+      if (fallbackError) return { ok: false, error: fallbackError.message };
+      revalidatePath("/admin/sections");
+      return {
+        ok: false,
+        error:
+          "נשמר — אך הגדרות עיצוב לא נשמרו: עמודת style_overrides חסרה במסד הנתונים. " +
+          "הרץ: ALTER TABLE public.section_definitions ADD COLUMN IF NOT EXISTS style_overrides jsonb NOT NULL DEFAULT '{}'::jsonb; " +
+          "בדשבורד Supabase (SQL Editor) כדי לתקן.",
+      };
+    }
+    return { ok: false, error: error.message };
+  }
+
   revalidatePath("/admin/sections");
   return { ok: true };
 }

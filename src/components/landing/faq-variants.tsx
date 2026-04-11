@@ -87,9 +87,20 @@ export function FaqCardsSection({
         {data.items.map((item, i) => (
           <article
             key={i}
-            className="rounded-2xl border-s-4 border-solid bg-white/5 p-5 ps-4 shadow-[0_0_0_1px_rgba(176,199,217,0.145)] ring-1 ring-[rgba(176,199,217,0.12)] transition-[box-shadow,transform] duration-200 motion-safe:hover:-translate-y-0.5 motion-safe:hover:shadow-[0_0_0_1px_rgba(214,235,253,0.18),0_20px_48px_-28px_rgba(0,0,0,0.4)]"
-            style={{ borderInlineStartColor: primary }}
+            className="relative overflow-hidden rounded-2xl border border-[rgba(59,158,255,0.28)] p-5 transition-[box-shadow,transform] duration-200 motion-safe:hover:-translate-y-0.5"
+            style={{
+              boxShadow:
+                "0 0 0 1px rgba(59,158,255,0.08), 0 0 32px -6px rgba(59,158,255,0.25), inset 0 1px 0 rgba(59,158,255,0.13)",
+            }}
           >
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 top-0 h-px"
+              style={{
+                background:
+                  "linear-gradient(90deg, transparent 10%, rgba(59,158,255,0.6) 50%, transparent 90%)",
+              }}
+            />
             <h3 className="break-words text-base font-semibold text-[#f0f0f0] sm:text-lg">{item.question}</h3>
             <p className="mt-3 break-words text-sm leading-relaxed text-[#a1a4a5]">{item.answer}</p>
           </article>

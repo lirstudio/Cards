@@ -5,6 +5,7 @@ import { getUserQuota } from "@/lib/subscription";
 import { he } from "@/lib/i18n/he";
 import { CreateDraftPageForm } from "./create-draft-page-form";
 import { DeleteLandingPageButton } from "./delete-landing-page-button";
+import { CopyLinkButton } from "./copy-link-button";
 
 function formatRelativeDate(dateStr: string): string {
   const diffDays = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86_400_000);
@@ -45,28 +46,25 @@ export default async function DashboardPage() {
   const allPages = pages ?? [];
   const pageIds = allPages.map((p) => p.id);
 
-  const [subCountRows, secCountRows, viewCountRows, { count: totalLeads }] =
+  const [subCountRows, viewCountRows, { count: totalLeads }] =
     pageIds.length > 0
       ? await Promise.all([
           supabase.from("form_submissions").select("landing_page_id").in("landing_page_id", pageIds).then((r) => r.data ?? []),
-          supabase.from("page_sections").select("landing_page_id").in("landing_page_id", pageIds).then((r) => r.data ?? []),
           supabase.from("page_views").select("landing_page_id").in("landing_page_id", pageIds).then((r) => r.data ?? []),
           supabase.from("form_submissions").select("id", { count: "exact", head: true }).in("landing_page_id", pageIds),
         ])
-      : [[], [], [], { count: 0 }];
+      : [[], [], { count: 0 }];
 
   const submissionsMap = new Map<string, number>();
   for (const row of subCountRows as { landing_page_id: string }[]) {
     submissionsMap.set(row.landing_page_id, (submissionsMap.get(row.landing_page_id) ?? 0) + 1);
   }
-  const sectionsMap = new Map<string, number>();
-  for (const row of secCountRows as { landing_page_id: string }[]) {
-    sectionsMap.set(row.landing_page_id, (sectionsMap.get(row.landing_page_id) ?? 0) + 1);
-  }
   const viewsMap = new Map<string, number>();
   for (const row of viewCountRows as { landing_page_id: string }[]) {
     viewsMap.set(row.landing_page_id, (viewsMap.get(row.landing_page_id) ?? 0) + 1);
   }
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
 
   const publishedCount = allPages.filter((p) => String(p.status).trim() === "published").length;
   const draftCount = allPages.length - publishedCount;
@@ -98,13 +96,7 @@ export default async function DashboardPage() {
       {/* KPI strip */}
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {kpis.map((kpi) => (
-          <div
-            key={kpi.label}
-            className="rounded-2xl border border-[rgba(214,235,253,0.19)] px-4 py-3"
-          >
-            <p className="text-xs text-[#a1a4a5]">{kpi.label}</p>
-            <p className="mt-1 text-xl font-bold tabular-nums text-[#f0f0f0]">{kpi.value}</p>
-          </div>
+          <KpiCard key={kpi.label} label={kpi.label} value={kpi.value} />
         ))}
       </div>
 
@@ -123,17 +115,17 @@ export default async function DashboardPage() {
           )}
         </div>
       ) : (
-        <ul className="mt-6 space-y-3">
+        <ul className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {allPages.map((p) => {
             const isPublished = String(p.status).trim() === "published";
             const submissionCount = submissionsMap.get(p.id) ?? 0;
-            const sectionCount = sectionsMap.get(p.id) ?? 0;
             const viewCount = viewsMap.get(p.id) ?? 0;
+            const pageUrl = `${siteUrl}/${p.slug}`;
 
             return (
               <li
                 key={p.id}
-                className="rounded-2xl border border-[rgba(214,235,253,0.19)] bg-transparent p-5 transition hover:bg-white/[0.03]"
+                className="flex flex-col rounded-2xl border border-[rgba(214,235,253,0.19)] bg-transparent p-5 transition hover:bg-white/[0.03]"
               >
                 {/* Title + status badge */}
                 <div className="flex flex-wrap items-start justify-between gap-2">
@@ -151,12 +143,9 @@ export default async function DashboardPage() {
                   </span>
                 </div>
 
-                {/* Slug + last updated */}
-                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-                  <span className="font-mono text-sm text-[#a1a4a5]" dir="ltr">
-                    /{p.slug}
-                  </span>
-                  <span className="text-[#464a4d]" aria-hidden>·</span>
+                {/* Copy link + last updated */}
+                <div className="mt-1.5 flex items-center gap-2">
+                  <CopyLinkButton url={pageUrl} />
                   <span className="text-xs text-[#a1a4a5]">
                     {he.dashboardLastUpdated} {formatRelativeDate(p.updated_at)}
                   </span>
@@ -166,7 +155,6 @@ export default async function DashboardPage() {
                 <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-[rgba(214,235,253,0.09)] pt-3">
                   <MetricItem label={he.dashboardViews} value={viewCount} />
                   <MetricItem label={he.dashboardLeads} value={submissionCount} />
-                  <MetricItem label={he.dashboardSections} value={sectionCount} />
                   <div className="ms-auto">
                     {isPublished && p.published_at ? (
                       <span className="text-xs text-[#a1a4a5]">
@@ -206,6 +194,30 @@ export default async function DashboardPage() {
           })}
         </ul>
       )}
+    </div>
+  );
+}
+
+function KpiCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div
+      className="relative overflow-hidden rounded-2xl border border-[rgba(59,158,255,0.28)] px-4 py-3"
+      style={{
+        boxShadow:
+          "0 0 0 1px rgba(59,158,255,0.08), 0 0 32px -6px rgba(59,158,255,0.25), inset 0 1px 0 rgba(59,158,255,0.13)",
+      }}
+    >
+      {/* top-edge shine streak */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-px"
+        style={{
+          background:
+            "linear-gradient(90deg, transparent 10%, rgba(59,158,255,0.6) 50%, transparent 90%)",
+        }}
+      />
+      <p className="text-xs text-[#a1a4a5]">{label}</p>
+      <p className="mt-1 text-xl font-bold tabular-nums text-[#f0f0f0]">{value}</p>
     </div>
   );
 }

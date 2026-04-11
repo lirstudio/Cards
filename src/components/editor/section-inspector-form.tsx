@@ -14,6 +14,7 @@ import {
   sectionContentFieldLabel,
   testimonialFieldLabel,
 } from "@/lib/i18n/section-content-labels";
+import { GalleryImagesEditor } from "./gallery-images-editor";
 import { ImageUploadField } from "./image-upload-field";
 import { HeaderNavLinksEditor } from "./header-nav-links-editor";
 import type { PageNavSectionRow } from "@/lib/landing/page-nav";
@@ -80,21 +81,37 @@ export function SectionInspectorForm({
   pageNavSections?: PageNavSectionRow[];
 }) {
   const [draft, setDraft] = useState<Record<string, unknown>>(() => ({ ...content }));
+  const [headerLogoMode, setHeaderLogoMode] = useState<"text" | "image">("text");
   const [msg, setMsg] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const isMounted = useRef(false);
+  // מונע קריאת onDraftChange כשה-draft מתאתחל (מעבר סקשן / הרכבה ראשונה) ולא מקלדת משתמש
+  const isInitializing = useRef(false);
 
   useEffect(() => {
     // סנכרון בעת מעבר בין סקשנים בלבד — לא בכל עדכון תוכן מההורה (טיוטה חיה)
+    isInitializing.current = true;
     setDraft({ ...content });
     // content מיועד לטעינה רק כשהסקשן משתנה; לא מסנכרנים מחדש מ-props בזמן הקלדה
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional
   }, [sectionId]);
 
   useEffect(() => {
+    if (sectionKey !== "site_header_nav") return;
+    const url = String((content.logoImageUrl as string) ?? "").trim();
+    setHeaderLogoMode(url ? "image" : "text");
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- סנכרון רק כשמחליפים סקשן
+  }, [sectionId, sectionKey]);
+
+  useEffect(() => {
     // לא מפעילים onDraftChange בעת הרכבה ראשונה — מאפשר לתצוגה מקדימה להשתמש בתוכן ברירת המחדל
     if (!isMounted.current) {
       isMounted.current = true;
+      return;
+    }
+    // לא מפעילים onDraftChange כשה-draft נטען מחדש בגלל מעבר סקשן (לא עריכת משתמש)
+    if (isInitializing.current) {
+      isInitializing.current = false;
       return;
     }
     onDraftChange?.(draft);
@@ -148,16 +165,75 @@ export function SectionInspectorForm({
     body = (
       <div className="space-y-3 text-sm">
         {!isHidden("logoText") && (
-          <label className="block">
-            {fieldLabel("logoText", sectionContentFieldLabel("logoText"))}
-            <textarea
-              className="lc-textarea-compact mt-1 w-full text-sm"
-              rows={1}
-              value={String(d.logoText ?? "")}
-              onFocus={selectOnFocus}
-              onChange={(e) => setDraft({ ...d, logoText: e.target.value })}
-            />
-          </label>
+          <div className="space-y-2">
+            <span className="text-[#a1a4a5]">
+              {sectionContentFieldLabel("logoText")} / {sectionContentFieldLabel("logoImageUrl")}
+            </span>
+            <p className="text-xs leading-relaxed text-[#464a4d]">
+              {sectionContentFieldLabel("headerLogoXorHint")}
+            </p>
+            <div
+              className="flex gap-0.5 rounded-lg border border-[rgba(214,235,253,0.19)] bg-white/5 p-0.5"
+              role="group"
+              aria-label="סוג לוגו"
+            >
+              <button
+                type="button"
+                aria-pressed={headerLogoMode === "text"}
+                onClick={() => {
+                  setHeaderLogoMode("text");
+                  setDraft((prev) => {
+                    const p = prev as Record<string, unknown>;
+                    return { ...p, logoImageUrl: "" };
+                  });
+                }}
+                className={`min-w-0 flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${
+                  headerLogoMode === "text"
+                    ? "bg-[var(--lc-primary)] text-white"
+                    : "text-[#a1a4a5] hover:bg-white/10 hover:text-[#f0f0f0]"
+                }`}
+              >
+                {sectionContentFieldLabel("headerLogoAsText")}
+              </button>
+              <button
+                type="button"
+                aria-pressed={headerLogoMode === "image"}
+                onClick={() => {
+                  setHeaderLogoMode("image");
+                  setDraft((prev) => {
+                    const p = prev as Record<string, unknown>;
+                    return { ...p, logoText: "" };
+                  });
+                }}
+                className={`min-w-0 flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${
+                  headerLogoMode === "image"
+                    ? "bg-[var(--lc-primary)] text-white"
+                    : "text-[#a1a4a5] hover:bg-white/10 hover:text-[#f0f0f0]"
+                }`}
+              >
+                {sectionContentFieldLabel("headerLogoAsImage")}
+              </button>
+            </div>
+            {headerLogoMode === "text" ? (
+              <label className="block">
+                {fieldLabel("logoText", sectionContentFieldLabel("logoText"))}
+                <textarea
+                  className="lc-textarea-compact mt-1 w-full text-sm"
+                  rows={1}
+                  value={String(d.logoText ?? "")}
+                  onFocus={selectOnFocus}
+                  onChange={(e) => setDraft({ ...d, logoText: e.target.value })}
+                />
+              </label>
+            ) : (
+              <ImageUploadField
+                pageId={pageId}
+                label={sectionContentFieldLabel("logoImageUrl")}
+                value={String(d.logoImageUrl ?? "")}
+                onChange={(url) => setDraft({ ...d, logoImageUrl: url })}
+              />
+            )}
+          </div>
         )}
         {!isHidden("headerCta") && (
           <div>
@@ -850,54 +926,11 @@ export function SectionInspectorForm({
   } else if (sk === "gallery_row") {
     const d = draft as Record<string, unknown>;
     body = (
-      <div className="space-y-3 text-sm">
-        {((d.images as { src: string; alt?: string }[]) ?? []).map((im, i) => (
-          <div key={i} className="lc-field-stack-item space-y-2">
-            <ImageUploadField
-              pageId={pageId}
-              label={`תמונה ${i + 1}`}
-              value={im.src}
-              onChange={(url) => {
-                const arr = [...((d.images as typeof im[]) ?? [])];
-                arr[i] = { ...im, src: url };
-                setDraft({ ...d, images: arr });
-              }}
-            />
-            <input
-              className="mt-2 w-full text-xs"
-              placeholder={he.imageAltPlaceholder}
-              value={im.alt ?? ""}
-              onFocus={selectOnFocus}
-              onChange={(e) => {
-                const arr = [...((d.images as typeof im[]) ?? [])];
-                arr[i] = { ...im, alt: e.target.value };
-                setDraft({ ...d, images: arr });
-              }}
-            />
-            <button
-              type="button"
-              className="mt-1 text-xs text-red-600"
-              onClick={() =>
-                setDraft({ ...d, images: ((d.images as unknown[]) ?? []).filter((_, j) => j !== i) })
-              }
-            >
-              הסר תמונה
-            </button>
-          </div>
-        ))}
-        <button
-          type="button"
-          className="text-[var(--lc-primary)]"
-          onClick={() =>
-            setDraft({
-              ...d,
-              images: [...((d.images as { src: string; alt?: string }[]) ?? []), { src: "", alt: "" }],
-            })
-          }
-        >
-          + תמונה
-        </button>
-      </div>
+      <GalleryImagesEditor
+        pageId={pageId}
+        images={(d.images as { src: string; alt?: string }[]) ?? []}
+        onChange={(images) => setDraft({ ...d, images })}
+      />
     );
   } else if (sk === "gallery_grid_even" || sk === "gallery_spotlight" || sk === "gallery_bento") {
     const d = draft as Record<string, unknown>;
@@ -925,52 +958,11 @@ export function SectionInspectorForm({
             />
           </label>
         )}
-        {((d.images as { src: string; alt?: string }[]) ?? []).map((im, i) => (
-          <div key={i} className="lc-field-stack-item space-y-2">
-            <ImageUploadField
-              pageId={pageId}
-              label={`תמונה ${i + 1}`}
-              value={im.src}
-              onChange={(url) => {
-                const arr = [...((d.images as typeof im[]) ?? [])];
-                arr[i] = { ...im, src: url };
-                setDraft({ ...d, images: arr });
-              }}
-            />
-            <input
-              className="mt-2 w-full text-xs"
-              placeholder={he.imageAltPlaceholder}
-              value={im.alt ?? ""}
-              onFocus={selectOnFocus}
-              onChange={(e) => {
-                const arr = [...((d.images as typeof im[]) ?? [])];
-                arr[i] = { ...im, alt: e.target.value };
-                setDraft({ ...d, images: arr });
-              }}
-            />
-            <button
-              type="button"
-              className="mt-1 text-xs text-red-600"
-              onClick={() =>
-                setDraft({ ...d, images: ((d.images as unknown[]) ?? []).filter((_, j) => j !== i) })
-              }
-            >
-              הסר תמונה
-            </button>
-          </div>
-        ))}
-        <button
-          type="button"
-          className="text-[var(--lc-primary)]"
-          onClick={() =>
-            setDraft({
-              ...d,
-              images: [...((d.images as { src: string; alt?: string }[]) ?? []), { src: "", alt: "" }],
-            })
-          }
-        >
-          + תמונה
-        </button>
+        <GalleryImagesEditor
+          pageId={pageId}
+          images={(d.images as { src: string; alt?: string }[]) ?? []}
+          onChange={(images) => setDraft({ ...d, images })}
+        />
       </div>
     );
   } else if (sk === "how_it_works_blue") {
@@ -1090,7 +1082,22 @@ export function SectionInspectorForm({
           </label>
         )}
         {((d.items as { question: string; answer: string }[]) ?? []).map((it, i) => (
-          <div key={i} className="lc-field-stack-item space-y-2">
+          <div
+            key={i}
+            className="relative overflow-hidden rounded-2xl border border-[rgba(59,158,255,0.28)] p-3 space-y-2"
+            style={{
+              boxShadow:
+                "0 0 0 1px rgba(59,158,255,0.08), 0 0 32px -6px rgba(59,158,255,0.25), inset 0 1px 0 rgba(59,158,255,0.13)",
+            }}
+          >
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 top-0 h-px"
+              style={{
+                background:
+                  "linear-gradient(90deg, transparent 10%, rgba(59,158,255,0.6) 50%, transparent 90%)",
+              }}
+            />
             <label className="block">
               <span className="text-[#a1a4a5]">{sectionContentFieldLabel("question")}</span>
               <textarea

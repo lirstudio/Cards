@@ -4,6 +4,10 @@
  */
 const LABELS: Record<string, string> = {
   logoText: "טקסט לוגו",
+  logoImageUrl: "תמונת לוגו",
+  headerLogoAsText: "לוגו כטקסט",
+  headerLogoAsImage: "לוגו כתמונה",
+  headerLogoXorHint: "בחרו לוגו כטקסט או כתמונה — לא שניהם יחד.",
   topBarLeft: "סרגל עליון — טקסט משמאל",
   topBarRight: "סרגל עליון — טקסט מימין",
   headline: "כותרת",

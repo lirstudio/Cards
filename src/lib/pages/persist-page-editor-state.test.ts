@@ -31,6 +31,9 @@ describe("runPersistPageEditorState", () => {
                 }),
               }),
             }),
+            update: () => ({
+              eq: async () => ({ error: null }),
+            }),
           };
         }
         if (table === "page_sections") {
@@ -85,6 +88,9 @@ describe("runPersistPageEditorState", () => {
                 }),
               }),
             }),
+            update: () => ({
+              eq: async () => ({ error: null }),
+            }),
           };
         }
         if (table === "page_sections") {
@@ -126,6 +132,9 @@ describe("runPersistPageEditorState", () => {
                   maybeSingle: async () => ({ data: { slug: "slug-b" }, error: null }),
                 }),
               }),
+            }),
+            update: () => ({
+              eq: async () => ({ error: null }),
             }),
           };
         }

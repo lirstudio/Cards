@@ -18,6 +18,7 @@ function defaultFaqBlock(): Record<string, unknown> {
 const defaults: Record<SectionKey, Record<string, unknown>> = {
   site_header_nav: {
     logoText: "לוגו",
+    logoImageUrl: "",
     navLinks: [],
     headerCta: { label: "טקסט כפתור", href: "#contact" },
   },
@@ -264,47 +265,22 @@ const defaults: Record<SectionKey, Record<string, unknown>> = {
     ],
   },
   gallery_row: {
-    images: [
-      { src: "", alt: "" },
-      { src: "", alt: "" },
-      { src: "", alt: "" },
-      { src: "", alt: "" },
-    ],
+    images: [],
   },
   gallery_grid_even: {
     title: "גלריה",
     subtitle: "רגעים מהעבודה שלנו",
-    images: [
-      { src: "", alt: "" },
-      { src: "", alt: "" },
-      { src: "", alt: "" },
-      { src: "", alt: "" },
-      { src: "", alt: "" },
-      { src: "", alt: "" },
-    ],
+    images: [],
   },
   gallery_spotlight: {
     title: "במוקד",
     subtitle: "הפרויקט האחרון",
-    images: [
-      { src: "", alt: "" },
-      { src: "", alt: "" },
-      { src: "", alt: "" },
-      { src: "", alt: "" },
-      { src: "", alt: "" },
-    ],
+    images: [],
   },
   gallery_bento: {
     title: "גלריית בנטו",
     subtitle: "מבט על הפעילות",
-    images: [
-      { src: "", alt: "" },
-      { src: "", alt: "" },
-      { src: "", alt: "" },
-      { src: "", alt: "" },
-      { src: "", alt: "" },
-      { src: "", alt: "" },
-    ],
+    images: [],
   },
   how_it_works_blue: {
     badge: "תגית",

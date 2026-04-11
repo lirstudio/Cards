@@ -153,5 +153,7 @@ export async function runPersistPageEditorState(
   });
   if (rpcErr) return { ok: false, error: rpcErr.message };
 
+  await supabase.from("landing_pages").update({ updated_at: new Date().toISOString() }).eq("id", pageId);
+
   return { ok: true, slug: pageSlug, orderedSectionIds: orderedDbIds };
 }

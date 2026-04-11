@@ -47,7 +47,7 @@ export default async function AdminLayout({
           </Link>
           <p className="mt-1 text-xs font-medium text-[var(--text-secondary)]">{he.admin}</p>
         </div>
-        <nav className="flex-1 overflow-y-auto p-3">
+        <nav className="min-h-0 flex-1 overflow-y-auto p-3">
           <AdminSidebarNav items={NAV_ITEMS} />
         </nav>
         <div className="border-t border-[var(--frost-border)] p-3">
@@ -59,7 +59,7 @@ export default async function AdminLayout({
           </Link>
         </div>
       </aside>
-      <main className="flex-1 overflow-y-auto p-6 lg:p-8">
+      <main className="min-h-0 flex-1 overflow-y-auto p-6 lg:p-8">
         {children}
       </main>
     </div>

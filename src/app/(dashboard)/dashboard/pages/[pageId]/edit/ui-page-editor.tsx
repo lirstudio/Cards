@@ -20,7 +20,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import Link from "next/link";
-import { Fragment, type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { persistPageEditorState, setPagePublished } from "@/app/actions/pages";
 import {
@@ -42,7 +42,6 @@ import { PageSettingsDrawer } from "@/components/editor/page-settings-drawer";
 import {
   Modal,
   ModalBody,
-  ModalFooter,
   ModalHeader,
   ModalPanel,
 } from "@/components/ui/modal";
@@ -145,7 +144,7 @@ function previewInnerWidthClass(v: PreviewViewport): string {
       return "w-full min-w-0 max-w-[768px] shrink-0";
     case "wide":
     default:
-      return "w-full min-w-0 max-w-none";
+      return "w-full min-w-[1080px] max-w-none";
   }
 }
 
@@ -349,8 +348,6 @@ export function PageEditor({
   const router = useRouter();
   const [sections, setSections] = useState(initialSections);
   const [baselineSections, setBaselineSections] = useState(() => clonePageSections(initialSections));
-  const [leaveTarget, setLeaveTarget] = useState<string | null>(null);
-  const [leaveBusy, setLeaveBusy] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(initialSections[0]?.id ?? null);
@@ -366,15 +363,43 @@ export function PageEditor({
   /** מסונכרן עם השרת; מתעדכן מיד אחרי פרסום/ביטול כדי שכפתור הצפייה יופיע בלי להמתין ל־refresh */
   const [isPublishedLive, setIsPublishedLive] = useState(() => isPublishedStatus(status));
   const [paletteCat, setPaletteCat] = useState<"all" | SectionCategory>("all");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
     setIsPublishedLive(isPublishedStatus(status));
   }, [status]);
 
-  const isDirty = useMemo(
-    () => isPageDirty(sections, baselineSections),
-    [sections, baselineSections],
-  );
+  const isDirty = useMemo(() => {
+    const dirty = isPageDirty(sections, baselineSections);
+    if (dirty && typeof window !== "undefined") {
+      const sIds = sections.map((s) => s.id);
+      const bIds = baselineSections.map((s) => s.id);
+      if (sIds.join() !== bIds.join()) {
+        console.log("[dirty] ID order mismatch", { sIds, bIds });
+      } else {
+        const byId = new Map(baselineSections.map((s) => [s.id, s]));
+        for (const s of sections) {
+          const b = byId.get(s.id);
+          if (!b) { console.log("[dirty] missing id", s.id); continue; }
+          if (b.visible !== s.visible) { console.log("[dirty] visible diff", s.id); continue; }
+          const sj = JSON.stringify(s.content);
+          const bj = JSON.stringify(b.content);
+          if (sj !== bj) {
+            console.log("[dirty] content diff for", s.id, s.section_key);
+            const sKeys = Object.keys(s.content).sort();
+            const bKeys = Object.keys(b.content).sort();
+            console.log("[dirty] section keys:", sKeys, "baseline keys:", bKeys);
+            for (const k of new Set([...sKeys, ...bKeys])) {
+              const sv = JSON.stringify(s.content[k]);
+              const bv = JSON.stringify(b.content[k]);
+              if (sv !== bv) console.log(`[dirty] key "${k}":`, sv, "vs", bv);
+            }
+          }
+        }
+      }
+    }
+    return dirty;
+  }, [sections, baselineSections]);
 
   const styleForSectionKey = useCallback(
     (sectionKey: string): SectionStyleOverrides | undefined =>
@@ -391,10 +416,17 @@ export function PageEditor({
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
   }, [isDirty]);
 
-  const persistSections = useCallback(async (): Promise<boolean> => {
-    if (!isPageDirty(sections, baselineSections)) return true;
+  const sectionsRef = useRef(sections);
+  sectionsRef.current = sections;
+  const baselineRef = useRef(baselineSections);
+  baselineRef.current = baselineSections;
 
-    const working = clonePageSections(sections);
+  const persistSections = useCallback(async (): Promise<boolean> => {
+    const snap = sectionsRef.current;
+    const base = baselineRef.current;
+    if (!isPageDirty(snap, base)) return true;
+
+    const working = clonePageSections(snap);
     const rows = working.map((s) => ({
       id: s.id.startsWith(TEMP_SECTION_PREFIX) ? null : s.id,
       section_key: s.section_key,
@@ -408,39 +440,22 @@ export function PageEditor({
       return false;
     }
 
-    const nextBaseline = clonePageSections(
-      working.map((s, i) => ({ ...s, id: r.orderedSectionIds[i]! })),
-    );
-    setSections(nextBaseline);
-    setBaselineSections(nextBaseline);
+    const saved = working.map((s, i) => ({
+      ...s,
+      id: r.orderedSectionIds[i]!,
+    }));
+
+    setSections(saved);
+    setBaselineSections(clonePageSections(saved));
+    setSelectedId((prev) => {
+      if (!prev) return prev;
+      const idx = working.findIndex((w) => w.id === prev);
+      return idx >= 0 ? r.orderedSectionIds[idx]! : prev;
+    });
+
     router.refresh();
     return true;
-  }, [sections, baselineSections, pageId, router]);
-
-  function requestNavigate(href: string) {
-    if (isDirty) setLeaveTarget(href);
-    else router.push(href);
-  }
-
-  async function confirmSaveAndLeave() {
-    setLeaveBusy(true);
-    try {
-      const ok = await persistSections();
-      if (ok && leaveTarget) {
-        router.push(leaveTarget);
-        setLeaveTarget(null);
-      }
-    } finally {
-      setLeaveBusy(false);
-    }
-  }
-
-  function confirmLeaveWithoutSaving() {
-    if (leaveTarget) {
-      router.push(leaveTarget);
-      setLeaveTarget(null);
-    }
-  }
+  }, [pageId, router]);
 
   async function handleSavePage() {
     setIsSaving(true);
@@ -582,52 +597,6 @@ export function PageEditor({
 
   return (
     <>
-      {leaveTarget ? (
-        <Modal
-          labelledBy="leave-edit-title"
-          backdropAriaLabel={he.unsavedStayEditing}
-          onRequestClose={() => setLeaveTarget(null)}
-          zClassName="z-[80]"
-        >
-          <ModalPanel maxWidthClassName="max-w-md" dir="rtl">
-            <ModalHeader
-              titleId="leave-edit-title"
-              title={he.unsavedChangesTitle}
-              onClose={() => setLeaveTarget(null)}
-              closeAriaLabel={he.cancel}
-            />
-            <ModalBody className="px-4 py-4">
-              <p className="text-sm leading-relaxed text-[#a1a4a5]">{he.unsavedChangesBody}</p>
-            </ModalBody>
-            <ModalFooter className="flex flex-wrap justify-end gap-2">
-              <button
-                type="button"
-                className="rounded-lg border border-[rgba(214,235,253,0.19)] bg-white/5 px-3 py-2 text-sm hover:bg-white/10"
-                onClick={() => setLeaveTarget(null)}
-              >
-                {he.unsavedStayEditing}
-              </button>
-              <button
-                type="button"
-                disabled={leaveBusy}
-                className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 hover:bg-red-100 disabled:opacity-50"
-                onClick={confirmLeaveWithoutSaving}
-              >
-                {he.unsavedLeaveWithoutSaving}
-              </button>
-              <button
-                type="button"
-                disabled={leaveBusy}
-                className="rounded-lg bg-[var(--lc-primary)] px-3 py-2 text-sm font-medium text-white hover:opacity-95 disabled:opacity-50"
-                onClick={() => void confirmSaveAndLeave()}
-              >
-                {he.unsavedSaveAndLeave}
-              </button>
-            </ModalFooter>
-          </ModalPanel>
-        </Modal>
-      ) : null}
-
       <div className="mt-6 space-y-6">
         {showNewDraftHint && !newDraftHintDismissed ? (
           <div
@@ -646,15 +615,7 @@ export function PageEditor({
         ) : null}
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
-            <button
-              type="button"
-              className="text-sm text-[var(--lc-primary)] hover:underline"
-              onClick={() => requestNavigate("/dashboard")}
-            >
-              ← {he.back}
-            </button>
-            <h1 className="mt-3 text-2xl font-bold">{pageHeadline}</h1>
-            <p className="mt-1 text-sm text-[#a1a4a5]">{he.reorderHint}</p>
+            <h1 className="text-2xl font-bold">{pageHeadline}</h1>
           </div>
           <div className="flex flex-wrap items-center gap-2" dir="rtl">
             <button
@@ -825,23 +786,28 @@ export function PageEditor({
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
       >
-        <div
-          dir="ltr"
-          className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(300px,400px)] lg:items-start"
-        >
+        <div dir="ltr">
           <div className="min-w-0">
-            <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <h3 className="text-sm font-semibold">{he.livePreview}</h3>
-              <div className="flex flex-wrap items-center gap-2">
-                <PreviewViewportToolbar
-                  value={livePreviewViewport}
-                  onChange={setLivePreviewViewport}
-                  onFullscreen={
-                    sections.length > 0 ? () => setImmersivePreviewOpen(true) : undefined
-                  }
-                />
-                <p className="text-xs text-[#464a4d]">{he.reorderHint}</p>
-              </div>
+            <div className="mb-2 flex w-full flex-wrap items-center justify-end gap-2">
+              <PreviewViewportToolbar
+                value={livePreviewViewport}
+                onChange={setLivePreviewViewport}
+                onFullscreen={
+                  sections.length > 0 ? () => setImmersivePreviewOpen(true) : undefined
+                }
+              />
+              <button
+                type="button"
+                onClick={() => setSidebarOpen(true)}
+                className={`inline-flex items-center gap-1.5 rounded-lg border border-[rgba(214,235,253,0.19)] bg-white/5 px-3 py-1.5 text-xs font-medium text-[#a1a4a5] transition hover:bg-white/10 hover:text-[#f0f0f0] ${sidebarOpen ? "hidden" : ""}`}
+                aria-label={he.sectionLibrary}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <path d="M15 3v18" />
+                </svg>
+                {he.sectionLibrary}
+              </button>
             </div>
             <div
               className="max-h-[min(85vh,1200px)] min-h-0 overflow-y-auto overflow-x-auto rounded-2xl border border-[rgba(214,235,253,0.19)] shadow-inner"
@@ -874,7 +840,7 @@ export function PageEditor({
                               <div
                                 className={`relative ${selectedId === section.id ? "ring-2 ring-[var(--lc-primary)] ring-inset" : ""}`}
                               >
-                                <div className="pointer-events-none absolute end-2 top-2 z-10 flex gap-0.5 opacity-0 transition-opacity duration-150 group-hover/section:pointer-events-auto group-hover/section:opacity-100 has-[:focus-visible]:pointer-events-auto has-[:focus-visible]:opacity-100">
+                                <div className="pointer-events-none absolute end-2 top-2 z-[100] flex gap-0.5 opacity-0 transition-opacity duration-150 group-hover/section:pointer-events-auto group-hover/section:opacity-100 has-[:focus-visible]:pointer-events-auto has-[:focus-visible]:opacity-100">
                                   <button
                                     type="button"
                                     className="pointer-events-auto inline-flex h-8 w-8 shrink-0 cursor-grab touch-manipulation items-center justify-center rounded-md bg-white/85 text-[#a1a4a5] ring-1 ring-[rgba(214,235,253,0.19)] backdrop-blur-sm hover:bg-white/10 hover:text-[#f0f0f0] active:cursor-grabbing focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--lc-primary)]"
@@ -908,12 +874,14 @@ export function PageEditor({
                                   onClick={() => {
                                     setSelectedId(section.id);
                                     setRightPanel("edit");
+                                    setSidebarOpen(true);
                                   }}
                                   onKeyDown={(e) => {
                                     if (e.key === "Enter" || e.key === " ") {
                                       e.preventDefault();
                                       setSelectedId(section.id);
                                       setRightPanel("edit");
+                                      setSidebarOpen(true);
                                     }
                                   }}
                                 >
@@ -942,85 +910,111 @@ export function PageEditor({
               </div>
             </div>
           </div>
-
-          <aside className="min-h-[min(85vh,1200px)] lg:sticky lg:top-4 lg:self-start" dir="rtl">
-            {rightPanel === "library" ? (
-              <div className="flex h-full flex-col rounded-2xl border border-[rgba(214,235,253,0.19)] bg-white/5 p-3">
-                <h3 className="mb-2 text-sm font-semibold">{he.sectionLibrary}</h3>
-                <p className="mb-3 text-xs text-[#464a4d]">{he.libraryHint}</p>
-                {/* Category tabs */}
-                <div className="mb-3 flex flex-wrap gap-1.5">
-                  {(
-                    [
-                      ["all", "הכל"],
-                      ["hero", "הירו"],
-                      ["content", "תוכן"],
-                      ["conversion", "המרה"],
-                      ["gallery", "גלריה"],
-                      ["faq", "שאלות נפוצות"],
-                      ["footer", "פוטר"],
-                    ] as const
-                  ).map(([cat, label]) => (
-                    <button
-                      key={cat}
-                      type="button"
-                      onClick={() => setPaletteCat(cat)}
-                      className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
-                        paletteCat === cat
-                          ? "bg-[var(--lc-primary)] text-white"
-                          : "bg-white/5 text-[#a1a4a5] hover:bg-white/10 hover:text-[#f0f0f0]"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-                <div className="flex max-h-[min(72vh,1100px)] flex-col gap-3 overflow-y-auto pe-1">
-                  {paletteKeys
-                    .filter((k) => paletteCat === "all" || sectionCatalog[k].category === paletteCat)
-                    .map((k) => {
-                      const dbDef = defsMap.get(k);
-                      return (
-                        <PaletteCard
-                          key={k}
-                          sectionKey={k}
-                          onAdd={openAddSection}
-                          titleHe={dbDef?.title_he}
-                        />
-                      );
-                    })}
-                </div>
-              </div>
-            ) : selected && isEditableSectionKey(selected.section_key) ? (
-              <div className="rounded-2xl border border-[rgba(214,235,253,0.19)] bg-white/5 p-3">
-                <button
-                  type="button"
-                  className="mb-3 text-sm text-[var(--lc-primary)] underline"
-                  onClick={() => setRightPanel("library")}
-                >
-                  ← {he.backToLibrary}
-                </button>
-                <SectionInspectorForm
-                  pageId={pageId}
-                  sectionId={selected.id}
-                  sectionKey={
-                    selected.section_key as SectionKey | typeof LEGACY_NAV_HERO_STATS_KEY
-                  }
-                  content={selected.content}
-                  deferPersistence
-                  onDraftChange={handleDraftChange}
-                  pageNavSections={
-                    selected.section_key === "site_header_nav" ? pageNavSections : undefined
-                  }
-                />
-              </div>
-            ) : (
-              <p className="text-sm text-[#464a4d]">{he.selectSectionPrompt}</p>
-            )}
-          </aside>
         </div>
         <DragOverlay>{dragOverlay}</DragOverlay>
       </DndContext>
+
+      {/* Sidebar backdrop */}
+      <div
+        className={`fixed inset-0 z-40 bg-black/30 transition-opacity duration-300 ${sidebarOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
+        onClick={() => setSidebarOpen(false)}
+        aria-hidden
+      />
+
+      {/* Sidebar drawer */}
+      <aside
+        dir="rtl"
+        className={`fixed bottom-6 right-6 top-6 z-50 flex w-[min(400px,calc(85vw-48px))] flex-col overflow-hidden rounded-2xl border border-[rgba(214,235,253,0.19)] bg-[#0a0a0b] shadow-2xl transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "translate-x-[calc(100%+24px)]"}`}
+      >
+        <div className="flex shrink-0 items-center justify-between border-b border-[rgba(214,235,253,0.19)] px-3 py-2.5">
+          <h3 className="text-sm font-semibold">
+            {rightPanel === "library" ? he.sectionLibrary : he.editSectionAria}
+          </h3>
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(false)}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[#a1a4a5] transition hover:bg-white/10 hover:text-[#f0f0f0]"
+            aria-label="סגירה"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3">
+          {rightPanel === "library" ? (
+            <>
+              <p className="mb-3 text-xs text-[#464a4d]">{he.libraryHint}</p>
+              <div className="mb-3 flex flex-wrap gap-1.5">
+                {(
+                  [
+                    ["all", "הכל"],
+                    ["hero", "הירו"],
+                    ["content", "תוכן"],
+                    ["conversion", "המרה"],
+                    ["gallery", "גלריה"],
+                    ["faq", "שאלות נפוצות"],
+                    ["footer", "פוטר"],
+                  ] as const
+                ).map(([cat, label]) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setPaletteCat(cat)}
+                    className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
+                      paletteCat === cat
+                        ? "bg-[var(--lc-primary)] text-white"
+                        : "bg-white/5 text-[#a1a4a5] hover:bg-white/10 hover:text-[#f0f0f0]"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <div className="flex flex-col gap-3 pe-1">
+                {paletteKeys
+                  .filter((k) => paletteCat === "all" || sectionCatalog[k].category === paletteCat)
+                  .map((k) => {
+                    const dbDef = defsMap.get(k);
+                    return (
+                      <PaletteCard
+                        key={k}
+                        sectionKey={k}
+                        onAdd={openAddSection}
+                        titleHe={dbDef?.title_he}
+                      />
+                    );
+                  })}
+              </div>
+            </>
+          ) : selected && isEditableSectionKey(selected.section_key) ? (
+            <>
+              <button
+                type="button"
+                className="mb-3 text-sm text-[var(--lc-primary)] underline"
+                onClick={() => setRightPanel("library")}
+              >
+                ← {he.backToLibrary}
+              </button>
+              <SectionInspectorForm
+                pageId={pageId}
+                sectionId={selected.id}
+                sectionKey={
+                  selected.section_key as SectionKey | typeof LEGACY_NAV_HERO_STATS_KEY
+                }
+                content={selected.content}
+                deferPersistence
+                onDraftChange={handleDraftChange}
+                pageNavSections={
+                  selected.section_key === "site_header_nav" ? pageNavSections : undefined
+                }
+              />
+            </>
+          ) : (
+            <p className="text-sm text-[#464a4d]">{he.selectSectionPrompt}</p>
+          )}
+        </div>
+      </aside>
       </div>
       <FullscreenLandingPreview
         open={immersivePreviewOpen}
