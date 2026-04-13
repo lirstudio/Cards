@@ -21,15 +21,20 @@ export function GalleryImagesEditor({
   label?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const onChangeRef = useRef(onChange);
   const [msg, setMsg] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
+  useEffect(() => {
     if (images.length === 0) return;
     if (!images.some((im) => imageSrcIsProvided(im.src))) {
-      onChange([]);
+      onChangeRef.current([]);
     }
-  }, [images, onChange]);
+  }, [images]);
 
   function pickFiles() {
     inputRef.current?.click();

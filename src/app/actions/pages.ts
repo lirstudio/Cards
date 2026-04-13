@@ -96,8 +96,8 @@ export async function updateSectionOrder(
   if (!page) return { ok: false, error: "אין גישה" };
 
   const { error: rpcErr } = await supabase.rpc("reorder_page_sections", {
-    p_page_id: pageId,
-    p_ordered_ids: orderedSectionIds,
+    a_page_id: pageId,
+    b_ordered_ids: orderedSectionIds,
   });
   if (rpcErr) return { ok: false, error: rpcErr.message };
 
@@ -389,8 +389,8 @@ export async function insertSectionAt(
 
   const newOrder = [...ids.slice(0, insertIndex), inserted.id, ...ids.slice(insertIndex)];
   const { error: rpcErr } = await supabase.rpc("reorder_page_sections", {
-    p_page_id: pageId,
-    p_ordered_ids: newOrder,
+    a_page_id: pageId,
+    b_ordered_ids: newOrder,
   });
   if (rpcErr) return { ok: false, error: rpcErr.message };
 

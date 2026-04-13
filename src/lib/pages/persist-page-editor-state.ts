@@ -148,8 +148,8 @@ export async function runPersistPageEditorState(
   }
 
   const { error: rpcErr } = await supabase.rpc("reorder_page_sections", {
-    p_page_id: pageId,
-    p_ordered_ids: orderedDbIds,
+    a_page_id: pageId,
+    b_ordered_ids: orderedDbIds,
   });
   if (rpcErr) return { ok: false, error: rpcErr.message };
 

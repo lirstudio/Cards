@@ -59,8 +59,8 @@ describe("runPersistPageEditorState", () => {
     expect(r.ok).toBe(true);
     expect(rpc).toHaveBeenCalledTimes(1);
     expect(rpc).toHaveBeenCalledWith("reorder_page_sections", {
-      p_page_id: "page-1",
-      p_ordered_ids: ["sec-1"],
+      a_page_id: "page-1",
+      b_ordered_ids: ["sec-1"],
     });
   });
 
@@ -179,8 +179,8 @@ describe("runPersistPageEditorState", () => {
     expect(pageSectionsFromCount).toBe(2);
     expect(rpc).toHaveBeenCalledTimes(1);
     expect(rpc).toHaveBeenCalledWith("reorder_page_sections", {
-      p_page_id: "page-2",
-      p_ordered_ids: ["new-1", "new-2"],
+      a_page_id: "page-2",
+      b_ordered_ids: ["new-1", "new-2"],
     });
   });
 });
