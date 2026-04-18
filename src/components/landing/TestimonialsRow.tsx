@@ -1,7 +1,9 @@
 "use client";
 
 import Image from "next/image";
+import { useMemo } from "react";
 import { LC_SECTION_SHELL } from "@/lib/landing/section-shell";
+import { useMarqueeLoopCopies } from "@/lib/landing/use-marquee-loop-copies";
 import {
   landingSectionDomId,
   LANDING_SECTION_ANCHOR_CLASS,
@@ -283,6 +285,44 @@ function CinematicCard({ t }: { t: TestimonialItem }) {
   );
 }
 
+/** מרקיי CSS אינסופי — ממלא רוחב מספיק (עותקים זוגיים) כדי שלא ייראה שטח ריק */
+function TestimonialsCssMarquee({
+  items,
+  sid,
+  sectionShell,
+  marqueeReverse,
+}: {
+  items: TestimonialItem[];
+  sid: string;
+  sectionShell: string;
+  marqueeReverse?: boolean;
+}) {
+  const { clipRef, trackRef, copies } = useMarqueeLoopCopies(items.length, true);
+  const loop = useMemo(() => {
+    const out: TestimonialItem[] = [];
+    for (let c = 0; c < copies; c++) {
+      out.push(...items);
+    }
+    return out;
+  }, [items, copies]);
+
+  const trackClass =
+    "lc-marquee-x-track flex w-max items-stretch gap-6" +
+    (marqueeReverse ? " lc-marquee-x-track--reverse" : "");
+
+  return (
+    <section id={sid} className={`${sectionShell} pb-4`} dir="rtl">
+      <div ref={clipRef} className="lc-marquee-x-clip overflow-x-hidden overflow-y-visible">
+        <div ref={trackRef} className={trackClass}>
+          {loop.map((t, i) => (
+            <MarqueeCard key={`${t.authorName}-${i}-m${Math.floor(i / items.length)}`} t={t} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ── main export ───────────────────────────────────────────────────────────────
 
 export function TestimonialsRow({
@@ -291,12 +331,15 @@ export function TestimonialsRow({
   sectionId,
   layout = "marquee",
   sectionPadClass = "py-12 sm:py-16",
+  marqueeAnimationDirection,
 }: {
   items: TestimonialItem[];
   noSectionAnimations?: boolean;
   sectionId: string;
   layout?: TestimonialsVisualLayout;
   sectionPadClass?: string;
+  /** כיוון תנועת המרקיי — `reverse` גולל בכיוון ההפוך מברירת המחדל. */
+  marqueeAnimationDirection?: "reverse";
 }) {
   if (items.length === 0) return null;
 
@@ -315,7 +358,7 @@ export function TestimonialsRow({
         className={`${sectionShell} @container pb-4`}
         dir="rtl"
       >
-        <ManualHorizontalCarousel gapClassName="gap-5">{cards}</ManualHorizontalCarousel>
+        <ManualHorizontalCarousel spaceBetween={20}>{cards}</ManualHorizontalCarousel>
       </section>
     );
   }
@@ -346,7 +389,7 @@ export function TestimonialsRow({
         className={`${sectionShell} @container pb-4`}
         dir="rtl"
       >
-        <ManualHorizontalCarousel gapClassName="gap-6">{slides}</ManualHorizontalCarousel>
+        <ManualHorizontalCarousel spaceBetween={24}>{slides}</ManualHorizontalCarousel>
       </section>
     );
   }
@@ -364,7 +407,7 @@ export function TestimonialsRow({
         className={`${sectionShell} @container pb-4`}
         dir="rtl"
       >
-        <ManualHorizontalCarousel gapClassName="gap-6">{slides}</ManualHorizontalCarousel>
+        <ManualHorizontalCarousel spaceBetween={24}>{slides}</ManualHorizontalCarousel>
       </section>
     );
   }
@@ -376,22 +419,17 @@ export function TestimonialsRow({
     ));
     return (
       <section id={sid} className={`${sectionShell} pb-4`} dir="rtl">
-        <ManualHorizontalCarousel gapClassName="gap-6">{cards}</ManualHorizontalCarousel>
+        <ManualHorizontalCarousel spaceBetween={24}>{cards}</ManualHorizontalCarousel>
       </section>
     );
   }
 
-  const loop = [...items, ...items];
-
   return (
-    <section id={sid} className={`${sectionShell} pb-4`} dir="rtl">
-      <div className="lc-marquee-x-clip overflow-x-hidden overflow-y-visible">
-        <div className="lc-marquee-x-track flex w-max items-stretch gap-6">
-          {loop.map((t, i) => (
-            <MarqueeCard key={`${t.authorName}-${i}`} t={t} />
-          ))}
-        </div>
-      </div>
-    </section>
+    <TestimonialsCssMarquee
+      items={items}
+      sid={sid}
+      sectionShell={sectionShell}
+      marqueeReverse={marqueeAnimationDirection === "reverse"}
+    />
   );
 }

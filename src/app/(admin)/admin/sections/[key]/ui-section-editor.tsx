@@ -197,10 +197,13 @@ function AdminSectionStylePreview({
 function DefinitionStyleForm({
   value,
   onChange,
+  sectionKey,
 }: {
   value: SectionStyleOverrides;
   onChange: (v: SectionStyleOverrides) => void;
+  sectionKey: string;
 }) {
+  const showMarqueeAnimation = sectionKey === "testimonials_marquee" || sectionKey === "gallery_row";
   return (
     <div className="space-y-4">
       {/* Colors */}
@@ -266,6 +269,25 @@ function DefinitionStyleForm({
           ]}
         />
       </div>
+
+      {showMarqueeAnimation ? (
+        <div className="space-y-1.5">
+          <label className="block text-xs font-medium text-[#a1a4a5]">{he.adminMarqueeAnimationDirection}</label>
+          <SegmentControl
+            value={value.marqueeAnimationDirection === "reverse" ? "reverse" : ""}
+            onChange={(v) =>
+              onChange({
+                ...value,
+                marqueeAnimationDirection: v as SectionStyleOverrides["marqueeAnimationDirection"],
+              })
+            }
+            options={[
+              { value: "", label: he.adminMarqueeAnimationDefault },
+              { value: "reverse", label: he.adminMarqueeAnimationReverse },
+            ]}
+          />
+        </div>
+      ) : null}
 
       {/* Image/text layout */}
       <div className="space-y-1.5">
@@ -508,6 +530,7 @@ export function SectionEditor({
         <div className="space-y-4 rounded-xl border border-[rgba(214,235,253,0.19)] bg-white/5 p-5">
           <h3 className="text-sm font-semibold text-[#f0f0f0]">{he.adminVariantStyle}</h3>
           <DefinitionStyleForm
+            sectionKey={def.key}
             value={def.style_overrides ?? {}}
             onChange={(style_overrides) => updateDef({ style_overrides })}
           />

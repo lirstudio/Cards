@@ -22,7 +22,11 @@ import { CSS } from "@dnd-kit/utilities";
 import Link from "next/link";
 import { Fragment, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { persistPageEditorState, setPagePublished } from "@/app/actions/pages";
+import {
+  persistPageEditorState,
+  refreshSectionDefinitionStyles,
+  setPagePublished,
+} from "@/app/actions/pages";
 import {
   LEGACY_NAV_HERO_STATS_KEY,
   SECTION_KEYS,
@@ -252,10 +256,12 @@ function PaletteCard({
   sectionKey,
   onAdd,
   titleHe,
+  variantStyleOverrides,
 }: {
   sectionKey: SectionKey;
   onAdd: (key: SectionKey) => void;
   titleHe?: string;
+  variantStyleOverrides?: SectionStyleOverrides;
 }) {
   const meta = sectionCatalog[sectionKey];
   const title = titleHe ?? meta?.titleHe ?? sectionKey;
@@ -269,7 +275,7 @@ function PaletteCard({
       >
         +
       </button>
-      <SectionTypePreview sectionKey={sectionKey} />
+      <SectionTypePreview sectionKey={sectionKey} variantStyleOverrides={variantStyleOverrides} />
       <div className="mt-2 px-1">
         <div className="text-sm font-medium">{title}</div>
       </div>
@@ -350,16 +356,39 @@ export function PageEditor({
   const [isPublishedLive, setIsPublishedLive] = useState(() => isPublishedStatus(status));
   const [paletteCat, setPaletteCat] = useState<"all" | SectionCategory>("all");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [definitionStyles, setDefinitionStyles] = useState<Record<string, SectionStyleOverrides>>(
+    () => definitionStyleBySectionKey ?? {},
+  );
 
   useEffect(() => {
     setIsPublishedLive(isPublishedStatus(status));
   }, [status]);
 
+  useEffect(() => {
+    setDefinitionStyles(definitionStyleBySectionKey ?? {});
+  }, [definitionStyleBySectionKey]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function pull() {
+      const r = await refreshSectionDefinitionStyles();
+      if (cancelled || !r.ok) return;
+      setDefinitionStyles(r.styles);
+    }
+    void pull();
+    function onVis() {
+      if (document.visibilityState === "visible") void pull();
+    }
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      cancelled = true;
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, []);
 
   const styleForSectionKey = useCallback(
-    (sectionKey: string): SectionStyleOverrides | undefined =>
-      definitionStyleBySectionKey[sectionKey],
-    [definitionStyleBySectionKey],
+    (sectionKey: string): SectionStyleOverrides | undefined => definitionStyles[sectionKey],
+    [definitionStyles],
   );
 
   useEffect(() => {
@@ -940,6 +969,7 @@ export function PageEditor({
                         sectionKey={k}
                         onAdd={openAddSection}
                         titleHe={dbDef?.title_he}
+                        variantStyleOverrides={styleForSectionKey(k)}
                       />
                     );
                   })}

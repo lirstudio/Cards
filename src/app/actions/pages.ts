@@ -14,8 +14,31 @@ import {
 import { getUserQuota } from "@/lib/subscription";
 import { isReservedSlug } from "@/lib/reserved-slugs";
 import type { PageTheme } from "@/types/landing";
+import { sectionStyleOverridesSchema, type SectionStyleOverrides } from "@/types/admin";
 import { he } from "@/lib/i18n/he";
 import { runPersistPageEditorState } from "@/lib/pages/persist-page-editor-state";
+
+/** עדכון style_overrides מהקטלוג — מסנכרן עורך עמוד עם שינויים גלובליים (טאב פתוח / בלי רענון ידני). */
+export async function refreshSectionDefinitionStyles(): Promise<
+  { ok: true; styles: Record<string, SectionStyleOverrides> } | { ok: false; error: string }
+> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "לא מחובר" };
+
+  const { data: defs, error } = await supabase.from("section_definitions").select("key, style_overrides");
+  if (error) return { ok: false, error: error.message };
+
+  const styles: Record<string, SectionStyleOverrides> = {};
+  for (const row of defs ?? []) {
+    const key = row.key as string;
+    const parsed = sectionStyleOverridesSchema.safeParse(row.style_overrides ?? {});
+    styles[key] = parsed.success ? parsed.data : {};
+  }
+  return { ok: true, styles };
+}
 
 function slugify(input: string) {
   return input
@@ -478,6 +501,42 @@ export async function deleteLandingPage(
   revalidatePath("/dashboard");
   revalidatePath(`/${page.slug}`);
   return { ok: true };
+}
+
+export async function deleteLandingPagesBulk(
+  pageIds: string[],
+): Promise<{ ok: true; deleted: number } | { ok: false; error: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "לא מחובר" };
+
+  const uniqueIds = [...new Set(pageIds.filter(Boolean))];
+  if (uniqueIds.length === 0) return { ok: false, error: "לא נבחרו עמודים" };
+
+  const { data: pages } = await supabase
+    .from("landing_pages")
+    .select("id, slug")
+    .eq("user_id", user.id)
+    .in("id", uniqueIds);
+
+  if (!pages?.length) return { ok: false, error: "אין גישה" };
+
+  const ownedIds = pages.map((p) => p.id);
+  const { error } = await supabase
+    .from("landing_pages")
+    .delete()
+    .in("id", ownedIds)
+    .eq("user_id", user.id);
+
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/dashboard");
+  for (const p of pages) {
+    revalidatePath(`/${p.slug}`);
+  }
+  return { ok: true, deleted: pages.length };
 }
 
 export async function removeSectionFromPage(

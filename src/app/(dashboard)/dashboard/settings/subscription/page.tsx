@@ -12,6 +12,9 @@ export default async function SettingsSubscriptionPage() {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+  const isAdmin = profile?.role === "admin";
+
   let planName = "—";
   let maxPages: number | null = null;
   const { data: sub } = await supabase
@@ -40,10 +43,12 @@ export default async function SettingsSubscriptionPage() {
           <span className="text-sm text-[#a1a4a5]">תוכנית</span>
           <div className="font-semibold text-[#f0f0f0]">{planName}</div>
         </div>
-        {maxPages != null ? (
+        {isAdmin || maxPages != null ? (
           <div>
             <span className="text-sm text-[#a1a4a5]">מכסת עמודים</span>
-            <div className="font-semibold text-[#f0f0f0]">{maxPages}</div>
+            <div className="font-semibold text-[#f0f0f0]">
+              {isAdmin ? he.dashboardQuotaUnlimited : maxPages}
+            </div>
           </div>
         ) : null}
         {sub?.status ? (

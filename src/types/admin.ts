@@ -9,6 +9,8 @@ export const sectionStyleOverridesSchema = z.object({
   paddingY: z.enum(["sm", "md", "lg", "xl"]).optional(),
   borderRadius: z.enum(["none", "sm", "md", "lg"]).optional(),
   layoutDirection: z.enum(["rtl", "ltr"]).optional(),
+  /** מרקיי אופקי (המלצות / גלריה): אם `reverse` — גלילה בכיוון ההפוך (animation-direction: reverse). */
+  marqueeAnimationDirection: z.literal("reverse").optional(),
   /** For sections with text + image: side‑by‑side (default) or stacked order. */
   imageTextLayout: z
     .enum(["default", "stack_text_above", "stack_image_above"])

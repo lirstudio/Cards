@@ -1,11 +1,9 @@
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { getUserQuota } from "@/lib/subscription";
+import { getUserQuota, type Quota } from "@/lib/subscription";
 import { he } from "@/lib/i18n/he";
 import { CreateDraftPageForm } from "./create-draft-page-form";
-import { DeleteLandingPageButton } from "./delete-landing-page-button";
-import { CopyLinkButton } from "./copy-link-button";
+import { DashboardPageList } from "./dashboard-page-list";
 
 function formatRelativeDate(dateStr: string): string {
   const diffDays = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86_400_000);
@@ -23,6 +21,20 @@ function formatShortDate(dateStr: string): string {
     month: "short",
     year: "numeric",
   });
+}
+
+function ltrNum(n: number): string {
+  return `\u200E${n}\u200E`;
+}
+
+function dashboardQuotaKpiValue(quota: Quota | null, allPagesLen: number): string {
+  if (!quota) return ltrNum(allPagesLen);
+  if (quota.unlimited) {
+    return `${ltrNum(quota.currentCount)} · ${he.dashboardQuotaUnlimited}`;
+  }
+  return he.dashboardPagesQuotaTotal
+    .replace("{current}", ltrNum(quota.currentCount))
+    .replace("{max}", ltrNum(quota.maxPages));
 }
 
 export default async function DashboardPage() {
@@ -50,7 +62,7 @@ export default async function DashboardPage() {
     pageIds.length > 0
       ? await Promise.all([
           supabase.from("form_submissions").select("landing_page_id").in("landing_page_id", pageIds).then((r) => r.data ?? []),
-          supabase.from("page_views").select("landing_page_id").in("landing_page_id", pageIds).then((r) => r.data ?? []),
+          supabase.rpc("get_my_landing_page_view_counts").then((r) => r.data ?? []),
           supabase.from("form_submissions").select("id", { count: "exact", head: true }).in("landing_page_id", pageIds),
         ])
       : [[], [], { count: 0 }];
@@ -60,8 +72,8 @@ export default async function DashboardPage() {
     submissionsMap.set(row.landing_page_id, (submissionsMap.get(row.landing_page_id) ?? 0) + 1);
   }
   const viewsMap = new Map<string, number>();
-  for (const row of viewCountRows as { landing_page_id: string }[]) {
-    viewsMap.set(row.landing_page_id, (viewsMap.get(row.landing_page_id) ?? 0) + 1);
+  for (const row of viewCountRows as { landing_page_id: string; view_count: number | string }[]) {
+    viewsMap.set(row.landing_page_id, Number(row.view_count));
   }
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
@@ -69,10 +81,26 @@ export default async function DashboardPage() {
   const publishedCount = allPages.filter((p) => String(p.status).trim() === "published").length;
   const draftCount = allPages.length - publishedCount;
 
+  const pageCards = allPages.map((p) => {
+    const isPublished = String(p.status).trim() === "published";
+    return {
+      id: p.id,
+      slug: p.slug,
+      title: p.title || p.slug,
+      isPublished,
+      updatedRelative: formatRelativeDate(p.updated_at),
+      publishedShort: p.published_at ? formatShortDate(p.published_at) : null,
+      viewCount: viewsMap.get(p.id) ?? 0,
+      submissionCount: submissionsMap.get(p.id) ?? 0,
+      pageUrl: `${siteUrl}/${p.slug}`,
+      pageLabel: (p.title || p.slug).trim() || p.slug,
+    };
+  });
+
   const kpis = [
     {
       label: he.dashboardTotalPages,
-      value: quota ? `${quota.currentCount} / ${quota.maxPages}` : String(allPages.length),
+      value: dashboardQuotaKpiValue(quota, allPages.length),
     },
     { label: he.dashboardPublished, value: String(publishedCount) },
     { label: he.dashboardDrafts, value: String(draftCount) },
@@ -115,84 +143,7 @@ export default async function DashboardPage() {
           )}
         </div>
       ) : (
-        <ul className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {allPages.map((p) => {
-            const isPublished = String(p.status).trim() === "published";
-            const submissionCount = submissionsMap.get(p.id) ?? 0;
-            const viewCount = viewsMap.get(p.id) ?? 0;
-            const pageUrl = `${siteUrl}/${p.slug}`;
-
-            return (
-              <li
-                key={p.id}
-                className="flex flex-col rounded-2xl border border-[rgba(214,235,253,0.19)] bg-transparent p-5 transition hover:bg-white/[0.03]"
-              >
-                {/* Title + status badge */}
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <h2 className="text-base font-semibold text-[#f0f0f0]">
-                    {p.title || p.slug}
-                  </h2>
-                  <span
-                    className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                      isPublished
-                        ? "bg-[#11ff99]/15 text-[#11ff99]"
-                        : "bg-white/10 text-[#a1a4a5]"
-                    }`}
-                  >
-                    {isPublished ? he.published : he.draft}
-                  </span>
-                </div>
-
-                {/* Copy link + last updated */}
-                <div className="mt-1.5 flex items-center gap-2">
-                  <CopyLinkButton url={pageUrl} />
-                  <span className="text-xs text-[#a1a4a5]">
-                    {he.dashboardLastUpdated} {formatRelativeDate(p.updated_at)}
-                  </span>
-                </div>
-
-                {/* Metrics row */}
-                <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-[rgba(214,235,253,0.09)] pt-3">
-                  <MetricItem label={he.dashboardViews} value={viewCount} />
-                  <MetricItem label={he.dashboardLeads} value={submissionCount} />
-                  <div className="ms-auto">
-                    {isPublished && p.published_at ? (
-                      <span className="text-xs text-[#a1a4a5]">
-                        {he.dashboardPublishedAt}: {formatShortDate(p.published_at)}
-                      </span>
-                    ) : (
-                      <span className="text-xs text-[#464a4d]">{he.dashboardNeverPublished}</span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Action buttons */}
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <Link
-                    href={`/dashboard/pages/${p.id}/edit`}
-                    className="rounded-full border border-[rgba(214,235,253,0.19)] px-4 py-2 text-sm text-[#f0f0f0] transition hover:bg-white/10"
-                  >
-                    {he.editPage}
-                  </Link>
-                  {isPublished ? (
-                    <Link
-                      href={`/${p.slug}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="rounded-full border border-[rgba(214,235,253,0.19)] px-4 py-2 text-sm font-medium text-[#f0f0f0] transition hover:bg-white/10"
-                    >
-                      {he.openPage}
-                    </Link>
-                  ) : null}
-                  <DeleteLandingPageButton
-                    pageId={p.id}
-                    pageLabel={(p.title || p.slug).trim() || p.slug}
-                  />
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+        <DashboardPageList pages={pageCards} />
       )}
     </div>
   );
@@ -217,18 +168,10 @@ function KpiCard({ label, value }: { label: string; value: string }) {
         }}
       />
       <p className="text-xs text-[#a1a4a5]">{label}</p>
-      <p className="mt-1 text-xl font-bold tabular-nums text-[#f0f0f0]">{value}</p>
+      <p className="mt-1 text-xl font-bold tabular-nums text-[#f0f0f0]" dir="auto">
+        {value}
+      </p>
     </div>
   );
 }
 
-function MetricItem({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="flex items-baseline gap-1">
-      <span className="text-sm font-bold tabular-nums text-[#f0f0f0]">
-        {value.toLocaleString("he-IL")}
-      </span>
-      <span className="text-xs text-[#a1a4a5]">{label}</span>
-    </div>
-  );
-}

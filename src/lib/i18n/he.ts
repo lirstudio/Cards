@@ -232,6 +232,9 @@ export const he = {
   adminStylePadding: "ריווח אנכי",
   adminStyleRadius: "עיגול פינות",
   adminStyleDirection: "כיוון",
+  adminMarqueeAnimationDirection: "כיוון אנימציה",
+  adminMarqueeAnimationDefault: "רגיל",
+  adminMarqueeAnimationReverse: "הפוך",
   adminImageTextLayout: "פריסת טקסט ותמונה",
   adminLayoutSideBySide: "שניים לצד (ברירת מחדל)",
   adminLayoutStackTextAbove: "טקסט מעל, תמונה מתחת",
@@ -380,4 +383,12 @@ export const he = {
   dashboardNeverPublished: "טרם פורסם",
   dashboardEmptyTitle: "עדיין אין עמודי נחיתה",
   dashboardEmptySubtitle: "צרו את עמוד הנחיתה הראשון שלכם עכשיו — זה לוקח פחות מדקה.",
+  dashboardPagesQuotaTotal: "נוצלו {current} מתוך {max} עמודים במנוי",
+  dashboardQuotaUnlimited: "ללא הגבלה",
+  dashboardSelectAll: "בחר הכל",
+  dashboardBulkDelete: "מחק נבחרים",
+  dashboardBulkDeleteDeleting: "מוחק…",
+  dashboardBulkDeleteConfirm:
+    'למחוק {n} עמודים? כל הסקשנים והטפסים יימחקו — לא ניתן לשחזר.',
+  dashboardSelectPageForBulkAria: "בחר עמוד למחיקה קבוצתית",
 } as const;

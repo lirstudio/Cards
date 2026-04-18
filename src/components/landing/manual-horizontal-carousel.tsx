@@ -2,193 +2,131 @@
 
 import {
   Children,
-  useCallback,
-  useEffect,
-  useLayoutEffect,
+  isValidElement,
+  useMemo,
   useRef,
-  useState,
   type ReactNode,
 } from "react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation } from "swiper/modules";
+import type { Swiper as SwiperClass, NavigationOptions } from "swiper/types";
+import "swiper/css";
+import "swiper/css/navigation";
 import { he } from "@/lib/i18n/he";
 
-const DRAG_THRESHOLD_PX = 6;
+/**
+ * סדר שקפים 1→2→3 כמו ב-React. מנוע LTR: אנימציית הגלילה והגרירה הפוכות מ-Swiper ב-dir=rtl
+ * (מתאים למי שרוצה "כמו אנגלית" לכיוון התזוזה). טקסט בתוך הכרטיסים נשאר RTL מההורה.
+ */
+const MIN_EXPANDED_SLIDES = 16;
+const MAX_COPIES = 8;
+
+function expandSlidesForLoop(baseSlides: ReactNode[]): ReactNode[] {
+  const n = baseSlides.length;
+  if (n <= 1) return baseSlides;
+  const minTotal = Math.max(MIN_EXPANDED_SLIDES, n * 2);
+  let copies = Math.min(MAX_COPIES, Math.max(1, Math.ceil(minTotal / n)));
+  if (n > 30) copies = Math.min(copies, 2);
+  const out: ReactNode[] = [];
+  for (let c = 0; c < copies; c++) {
+    for (let i = 0; i < n; i++) {
+      out.push(baseSlides[i]);
+    }
+  }
+  return out;
+}
 
 export function ManualHorizontalCarousel({
   children,
-  gapClassName,
+  spaceBetween = 20,
   className = "",
 }: {
   children: ReactNode;
-  gapClassName: string;
-  /** מחלקות למעטפת היחסית (רקע/פדינג של הסקשן מגיעים מבחוץ) */
+  spaceBetween?: number;
   className?: string;
 }) {
-  const scrollerRef = useRef<HTMLDivElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const dragRef = useRef<{
-    pointerId: number;
-    startX: number;
-    startScroll: number;
-    moved: boolean;
-  } | null>(null);
+  const baseSlides = useMemo(() => Children.toArray(children), [children]);
+  const baseCount = baseSlides.length;
+  const canLoop = baseCount > 1;
 
-  const [canScroll, setCanScroll] = useState(false);
-  const snapCount = Children.count(children);
+  const slides = useMemo(
+    () => (canLoop ? expandSlidesForLoop(baseSlides) : baseSlides),
+    [baseSlides, canLoop],
+  );
 
-  const measure = useCallback(() => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    setCanScroll(el.scrollWidth > el.clientWidth + 1);
-  }, []);
+  const prevRef = useRef<HTMLButtonElement | null>(null);
+  const nextRef = useRef<HTMLButtonElement | null>(null);
 
-  useEffect(() => {
-    measure();
-    const el = scrollerRef.current;
-    const track = trackRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(() => measure());
-    ro.observe(el);
-    if (track) ro.observe(track);
-    return () => ro.disconnect();
-  }, [measure]);
-
-  /** סקשן RTL: הכרטיס הראשון ב-DOM מימין — scroller LTR ל-scrollLeft חיובי, המסלול RTL; גלילה לסוף בטעינה */
-  useLayoutEffect(() => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const toEnd = () => {
-      const maxScroll = el.scrollWidth - el.clientWidth;
-      if (maxScroll > 0) el.scrollLeft = maxScroll;
-    };
-    toEnd();
-    const raf = requestAnimationFrame(toEnd);
-    const t = window.setTimeout(toEnd, 80);
-    return () => {
-      cancelAnimationFrame(raf);
-      window.clearTimeout(t);
-    };
-  }, [snapCount]);
-
-  const scrollStep = useCallback(() => {
-    const el = scrollerRef.current;
-    if (!el) return Math.min(280, typeof window !== "undefined" ? window.innerWidth * 0.72 : 280);
-    return Math.max(200, Math.floor(el.clientWidth * 0.72));
-  }, []);
-
-  const scrollPrev = useCallback(() => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    el.scrollBy({ left: -scrollStep(), behavior: "smooth" });
-  }, [scrollStep]);
-
-  const scrollNext = useCallback(() => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    el.scrollBy({ left: scrollStep(), behavior: "smooth" });
-  }, [scrollStep]);
-
-  const onPointerDown = useCallback((e: React.PointerEvent) => {
-    if (e.pointerType === "touch") return;
-    const el = scrollerRef.current;
-    if (!el) return;
-    dragRef.current = {
-      pointerId: e.pointerId,
-      startX: e.clientX,
-      startScroll: el.scrollLeft,
-      moved: false,
-    };
-    try {
-      el.setPointerCapture(e.pointerId);
-    } catch {
-      /* ignore */
+  /** LTR: משמאל קודם, מימין הבא — כיוון אנימציה הפוך מ-rtl swiper */
+  const onBeforeInit = (sw: SwiperClass) => {
+    if (sw.params.navigation && typeof sw.params.navigation !== "boolean") {
+      const navParams = sw.params.navigation as NavigationOptions;
+      navParams.prevEl = prevRef.current;
+      navParams.nextEl = nextRef.current;
     }
-    el.style.cursor = "grabbing";
-  }, []);
-
-  const onPointerMove = useCallback((e: React.PointerEvent) => {
-    const state = dragRef.current;
-    const el = scrollerRef.current;
-    if (!state || !el || e.pointerId !== state.pointerId) return;
-    const dx = e.clientX - state.startX;
-    if (Math.abs(dx) > DRAG_THRESHOLD_PX) {
-      state.moved = true;
-      el.scrollLeft = state.startScroll - dx;
-      e.preventDefault();
-    }
-  }, []);
-
-  const endDrag = useCallback((e: React.PointerEvent) => {
-    const state = dragRef.current;
-    const el = scrollerRef.current;
-    if (!state || e.pointerId !== state.pointerId) return;
-    dragRef.current = null;
-    if (el) {
-      try {
-        el.releasePointerCapture(e.pointerId);
-      } catch {
-        /* ignore */
-      }
-      el.style.cursor = "";
-    }
-  }, []);
+  };
 
   return (
     <div className={`relative ${className}`}>
-      {canScroll ? (
+      {canLoop ? (
         <>
           <button
+            ref={prevRef}
             type="button"
-            aria-label={he.carouselNextAria}
+            aria-label={he.carouselPrevAria}
             className="absolute left-1 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-[rgba(214,235,253,0.19)] bg-[#0a0a0a] text-[#f0f0f0] transition-[transform,background-color,box-shadow] duration-200 hover:bg-white/10 hover:shadow-[0_0_0_1px_rgba(214,235,253,0.22)] motion-safe:active:scale-95 @md:left-2"
-            onClick={scrollPrev}
           >
             <Chevron direction="prev" />
           </button>
           <button
+            ref={nextRef}
             type="button"
-            aria-label={he.carouselPrevAria}
+            aria-label={he.carouselNextAria}
             className="absolute right-1 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-[rgba(214,235,253,0.19)] bg-[#0a0a0a] text-[#f0f0f0] transition-[transform,background-color,box-shadow] duration-200 hover:bg-white/10 hover:shadow-[0_0_0_1px_rgba(214,235,253,0.22)] motion-safe:active:scale-95 @md:right-2"
-            onClick={scrollNext}
           >
             <Chevron direction="next" />
           </button>
         </>
       ) : null}
-      <div
-        ref={scrollerRef}
+      <Swiper
+        modules={[Navigation]}
         dir="ltr"
-        onScroll={measure}
-        className="max-w-full snap-x snap-mandatory overflow-x-auto overflow-y-visible scroll-smooth [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={endDrag}
-        onPointerCancel={endDrag}
-        onPointerLeave={(e) => {
-          if (dragRef.current?.pointerId === e.pointerId) endDrag(e);
-        }}
-        style={{ cursor: "grab", touchAction: "pan-x" }}
+        loop={canLoop}
+        loopAdditionalSlides={baseCount}
+        loopPreventsSliding={false}
+        slidesPerView="auto"
+        slidesPerGroup={1}
+        spaceBetween={spaceBetween}
+        speed={380}
+        grabCursor
+        watchOverflow={false}
+        initialSlide={0}
+        onBeforeInit={onBeforeInit}
+        navigation={
+          canLoop
+            ? {
+                prevEl: null,
+                nextEl: null,
+              }
+            : false
+        }
       >
-        <div
-          ref={trackRef}
-          dir="rtl"
-          className={`ms-auto flex w-max items-stretch ${gapClassName}`}
-        >
-          {mapSnapChildren(children)}
-        </div>
-      </div>
+        {slides.map((child, i) => {
+          const cycle = Math.floor(i / Math.max(1, baseCount));
+          const baseIdx = i % Math.max(1, baseCount);
+          const key =
+            isValidElement(child) && child.key != null
+              ? `mhc-${cycle}-${String(child.key)}`
+              : `mhc-${cycle}-${baseIdx}`;
+          return (
+            <SwiperSlide key={key} className="!h-auto !w-auto">
+              {child}
+            </SwiperSlide>
+          );
+        })}
+      </Swiper>
     </div>
   );
-}
-
-function mapSnapChildren(children: ReactNode) {
-  return Children.map(children, (child, i) => {
-    if (child === null || child === undefined) return child;
-    return (
-      <div key={i} className="shrink-0 snap-start">
-        {child}
-      </div>
-    );
-  });
 }
 
 function Chevron({ direction }: { direction: "prev" | "next" }) {

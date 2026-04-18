@@ -657,6 +657,7 @@ export function SectionRenderer({
           sectionId={sectionId}
           layout={tLayout}
           sectionPadClass={paddingClass ?? undefined}
+          marqueeAnimationDirection={vo.marqueeAnimationDirection}
         />
       );
     }
@@ -995,6 +996,7 @@ export function SectionRenderer({
         paddingClass={galleryPad}
         noSectionAnimations={noSectionAnimations}
         sectionId={sectionId}
+        marqueeAnimationDirection={vo.marqueeAnimationDirection}
       />
     );
   }

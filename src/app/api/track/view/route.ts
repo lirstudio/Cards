@@ -15,6 +15,11 @@ export async function POST(req: Request) {
       .insert({ landing_page_id: landingPageId });
 
     if (error) {
+      console.error("[api/track/view] insert failed", {
+        landingPageId,
+        message: error.message,
+        code: error.code,
+      });
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 

@@ -1,16 +1,12 @@
 import type { Metadata } from "next";
-import { Inter, Heebo } from "next/font/google";
+import { Google_Sans } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
-const heebo = Heebo({
-  subsets: ["hebrew", "latin"],
-  variable: "--font-heebo",
+const googleSans = Google_Sans({
+  subsets: ["latin", "latin-ext", "hebrew"],
+  weight: "variable",
+  axes: ["GRAD", "opsz"],
+  variable: "--font-google-sans",
   display: "swap",
 });
 
@@ -33,7 +29,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="he" dir="rtl" className={`${inter.variable} ${heebo.variable} h-full`}>
+    <html lang="he" dir="rtl" className={`${googleSans.variable} h-full`}>
       <body className="min-h-full bg-black font-sans text-[#f0f0f0] antialiased">
         {children}
       </body>

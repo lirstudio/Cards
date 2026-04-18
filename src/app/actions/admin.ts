@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { he } from "@/lib/i18n/he";
+import { isReservedSlug } from "@/lib/reserved-slugs";
 import {
   CHECKLIST_SECTION_LEGACY_METADATA,
   sectionCatalog,
@@ -20,6 +21,16 @@ import {
   type AdminUserDetail,
   type ListUsersOpts,
 } from "@/types/admin";
+
+async function revalidatePublishedLandingsAndEditors(admin: ReturnType<typeof createAdminClient>) {
+  const { data: pages } = await admin.from("landing_pages").select("slug").eq("status", "published");
+  for (const p of pages ?? []) {
+    const slug = String(p.slug ?? "").trim().toLowerCase();
+    if (!slug || isReservedSlug(slug)) continue;
+    revalidatePath(`/${slug}`);
+  }
+  revalidatePath("/dashboard", "layout");
+}
 
 const SPLIT_HERO_SECTION_KEYS = [
   "site_header_nav",
@@ -1044,6 +1055,7 @@ export async function upsertSectionDefinition(input: {
   }
 
   revalidatePath("/admin/sections");
+  await revalidatePublishedLandingsAndEditors(admin);
   return { ok: true };
 }
 
